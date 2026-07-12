@@ -47,7 +47,9 @@ class Department(TimestampMixin, Base):
         back_populates="departments",
     )
 
+
     researchers = relationship(
-        "Researcher",
-        back_populates="department",
+    	"Researcher",
+    	secondary="researcher_departments",
+    	back_populates="departments",
     )

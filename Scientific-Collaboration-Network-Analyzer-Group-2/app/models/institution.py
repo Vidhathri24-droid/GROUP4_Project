@@ -64,10 +64,6 @@ class Institution(TimestampMixin, Base):
         nullable=True,
     )
 
-    researchers = relationship(
-        "Researcher",
-        back_populates="institution",
-    )
 
     departments = relationship(
         "Department",
