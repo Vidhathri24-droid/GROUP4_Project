@@ -92,3 +92,9 @@ class Researcher(TimestampMixin, Base):
     	secondary="researcher_departments",
     	back_populates="researchers",
     )
+
+    publications = relationship(
+    	"Publication",
+    	secondary="publication_authors",
+    	back_populates="researchers",
+    )
