@@ -60,4 +60,5 @@ class User(TimestampMixin,Base):
     publications = relationship(
     	"Publication",
     	back_populates="owner",
+	cascade="all, delete-orphan"
     )
