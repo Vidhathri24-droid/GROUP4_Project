@@ -1,58 +1,33 @@
+// src/App.js
 import React, { useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 
 function App() {
-  const [view, setView] = useState('login');
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [token, setToken] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken('');
-    alert('Logged out successfully!');
+    setToken(null);
+    toast.info("Logged out successfully.");
   };
 
   return (
-    <div>
+    <div className="App">
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       {token ? (
         <Dashboard onLogout={handleLogout} />
       ) : (
-        <div style={{ textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-          <header style={{ padding: '15px', backgroundColor: '#282c34', color: 'white' }}>
-            <h1>🧪 Scientific Collaboration Network Analyzer</h1>
-            <div>
-              <button 
-                onClick={() => setView('login')} 
-                style={{ ...navBtnStyle, fontWeight: view === 'login' ? 'bold' : 'normal' }}
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => setView('register')} 
-                style={{ ...navBtnStyle, fontWeight: view === 'register' ? 'bold' : 'normal' }}
-              >
-                Register
-              </button>
-            </div>
-          </header>
-
-          <main style={{ marginTop: '20px' }}>
-            {view === 'login' ? <Login setToken={setToken} /> : <Register />}
-          </main>
-        </div>
+        // Yahan setToken pass kar dein
+        <Login setToken={(t) => {
+          setToken(t);
+          if (t) toast.success("Login successful!");
+          else toast.error("Invalid credentials!");
+        }} />
       )}
     </div>
   );
 }
-
-const navBtnStyle = {
-  margin: '0 5px',
-  padding: '8px 16px',
-  backgroundColor: '#61dafb',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer'
-};
 
 export default App;

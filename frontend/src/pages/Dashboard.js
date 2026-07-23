@@ -9,21 +9,18 @@ const Dashboard = ({ onLogout }) => {
 
   return (
     <div className="dashboard-layout">
-      {/* Top Bar / Header */}
+      {/* Header */}
       <header className="dashboard-header">
         <div className="logo-section">
           <h2>🔬 CollabAnalyzer</h2>
         </div>
         <div className="user-section">
-          <button onClick={onLogout} className="logout-btn">
-            Logout
-          </button>
+          <button onClick={onLogout} className="logout-btn">Logout</button>
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="dashboard-body">
-        {/* Stats Summary Cards */}
+        {/* Top Stats */}
         <div className="stats-container">
           <div className="stat-card">
             <span className="stat-icon">👨‍🔬</span>
@@ -48,18 +45,18 @@ const Dashboard = ({ onLogout }) => {
           </div>
         </div>
 
-        {/* Search & Filter Controls */}
+        {/* Filters */}
         <div className="filter-card">
-          <input
-            type="text"
-            placeholder="Search researcher name (e.g. Dr. A. Sharma)..."
+          <input 
+            type="text" 
+            placeholder="Search researcher name (e.g. Dr. A. Sharma)..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          <select
-            className="filter-select"
-            value={selectedDept}
+          <select 
+            className="filter-select" 
+            value={selectedDept} 
             onChange={(e) => setSelectedDept(e.target.value)}
           >
             <option value="all">All Departments</option>
@@ -70,44 +67,55 @@ const Dashboard = ({ onLogout }) => {
           </select>
         </div>
 
-        {/* Main Graph Section + Interactive Profile Panel */}
+        {/* Main Graph & Side Profile */}
         <div className="main-graph-section">
           <div className="graph-container-card">
             <div className="graph-header">
               <h3>🌐 Network Collaboration Map</h3>
               <span className="badge">
-                {selectedNode ? `Selected: ${selectedNode.label}` : 'Click any node to view details'}
+                {selectedNode ? `Selected: ${selectedNode.label}` : 'Click any node to view profile'}
               </span>
             </div>
             <div className="graph-view">
-              <NetworkGraph
-                searchTerm={searchTerm}
+              <NetworkGraph 
+                searchTerm={searchTerm} 
                 selectedDept={selectedDept}
-                onSelectNode={(node) => setSelectedNode(node)}
+                onSelectNode={(nodeData) => setSelectedNode(nodeData)}
               />
             </div>
           </div>
 
-          {/* Node Click Details Side Card */}
+          {/* Upgraded Side Profile Drawer */}
           {selectedNode && (
             <div className="node-details-card">
               <div className="details-header">
-                <h3>👨‍🔬 Author Profile</h3>
-                <button className="close-btn" onClick={() => setSelectedNode(null)}>
-                  ✕
-                </button>
+                <h3>👨‍🔬 Researcher Details</h3>
+                <button className="close-btn" onClick={() => setSelectedNode(null)}>✕</button>
               </div>
               <div className="details-body">
                 <h4>{selectedNode.label}</h4>
-                <p>
-                  <strong>Department:</strong> <span className="dept-tag">{selectedNode.group}</span>
+                <p style={{ marginTop: '4px' }}>
+                  <strong>Dept:</strong> <span className="dept-tag">{selectedNode.group}</span>
                 </p>
-                <p>
-                  <strong>Researcher ID:</strong> #{selectedNode.id}
-                </p>
-                <p>
-                  <strong>Status:</strong> Active Collaborator
-                </p>
+                <div className="researcher-stats">
+                  <div className="mini-stat">
+                    <span>📄 Papers</span>
+                    <strong>{selectedNode.publications ? selectedNode.publications.length : 0}</strong>
+                  </div>
+                  <div className="mini-stat">
+                    <span>⭐ Citations</span>
+                    <strong>{selectedNode.citations || 0}</strong>
+                  </div>
+                </div>
+
+                <hr style={{ margin: '15px 0', borderColor: '#f1f5f9' }} />
+
+                <h5>📚 Top Publications:</h5>
+                <ul className="publications-list">
+                  {selectedNode.publications && selectedNode.publications.map((paper, idx) => (
+                    <li key={idx}>📖 {paper}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           )}

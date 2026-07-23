@@ -4,17 +4,68 @@ import { Network } from 'vis-network/standalone';
 function NetworkGraph({ searchTerm, selectedDept, onSelectNode }) {
   const containerRef = useRef(null);
   const networkRef = useRef(null);
+  
+  const onSelectNodeRef = useRef(onSelectNode);
+  useEffect(() => {
+    onSelectNodeRef.current = onSelectNode;
+  }, [onSelectNode]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Dummy Data
+    // Detailed Mock Data for Researchers
     const rawNodes = [
-      { id: 1, label: 'Dr. A. Sharma', group: 'CS' },
-      { id: 2, label: 'Prof. B. Verma', group: 'Physics' },
-      { id: 3, label: 'Dr. C. Mehta', group: 'CS' },
-      { id: 4, label: 'Dr. D. Patel', group: 'Maths' },
-      { id: 5, label: 'Dr. E. Rao', group: 'Biotech' },
+      { 
+        id: 1, 
+        label: 'Dr. A. Sharma', 
+        group: 'CS',
+        citations: 142,
+        publications: [
+          'Graph Neural Networks in Social Analysis (2024)',
+          'Optimizing Distributed Systems (2023)',
+          'AI-driven Network Mapping (2022)'
+        ]
+      },
+      { 
+        id: 2, 
+        label: 'Prof. B. Verma', 
+        group: 'Physics',
+        citations: 289,
+        publications: [
+          'Quantum Computing Approaches (2024)',
+          'Thermal Dynamics in Micro-particles (2021)'
+        ]
+      },
+      { 
+        id: 3, 
+        label: 'Dr. C. Mehta', 
+        group: 'CS',
+        citations: 98,
+        publications: [
+          'Secure Edge Computing Frameworks (2023)',
+          'Big Data Analytics in Healthcare (2022)'
+        ]
+      },
+      { 
+        id: 4, 
+        label: 'Dr. D. Patel', 
+        group: 'Maths',
+        citations: 210,
+        publications: [
+          'Topology of Complex Networks (2023)',
+          'Statistical Mechanics Models (2020)'
+        ]
+      },
+      { 
+        id: 5, 
+        label: 'Dr. E. Rao', 
+        group: 'Biotech',
+        citations: 175,
+        publications: [
+          'Genomic Sequence Clustering (2024)',
+          'Bio-informatics Collaboration Mapping (2022)'
+        ]
+      },
     ];
 
     const rawEdges = [
@@ -24,10 +75,9 @@ function NetworkGraph({ searchTerm, selectedDept, onSelectNode }) {
       { from: 3, to: 5, label: '2 Papers' },
     ];
 
-    // Filter Logic
     let filteredNodes = rawNodes;
     if (searchTerm) {
-      filteredNodes = filteredNodes.filter(node =>
+      filteredNodes = filteredNodes.filter(node => 
         node.label.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -46,7 +96,7 @@ function NetworkGraph({ searchTerm, selectedDept, onSelectNode }) {
     const options = {
       nodes: {
         shape: 'dot',
-        size: 22,
+        size: 24,
         font: { size: 14, color: '#1e293b' },
         borderWidth: 2,
         shadow: true
@@ -63,16 +113,14 @@ function NetworkGraph({ searchTerm, selectedDept, onSelectNode }) {
       interaction: { hover: true, navigationButtons: true }
     };
 
-    // Network instance create karein
     networkRef.current = new Network(containerRef.current, data, options);
 
-    // Node Click Event Handling Fix
     networkRef.current.on("click", (params) => {
       if (params.nodes && params.nodes.length > 0) {
-        const clickedId = params.nodes[0];
-        const clickedNode = rawNodes.find(n => n.id === clickedId);
-        if (clickedNode && onSelectNode) {
-          onSelectNode(clickedNode);
+        const nodeId = params.nodes[0];
+        const clickedNode = rawNodes.find(n => n.id === nodeId);
+        if (onSelectNodeRef.current && clickedNode) {
+          onSelectNodeRef.current(clickedNode);
         }
       }
     });
@@ -82,12 +130,12 @@ function NetworkGraph({ searchTerm, selectedDept, onSelectNode }) {
         networkRef.current.destroy();
       }
     };
-  }, [searchTerm, selectedDept, onSelectNode]);
+  }, [searchTerm, selectedDept]);
 
   return (
     <div 
       ref={containerRef} 
-      style={{ height: '100%', width: '100%' }} 
+      style={{ height: '480px', width: '100%', backgroundColor: '#ffffff' }} 
     />
   );
 }
