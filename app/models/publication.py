@@ -125,3 +125,13 @@ class Publication(TimestampMixin, Base):
         secondary="publication_authors",
         back_populates="publications",
     )
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+    	UUID(as_uuid=True),
+    	ForeignKey("users.id", ondelete="CASCADE"),
+    	nullable=False,
+    )
+
+    owner = relationship(
+    	"User",
+    	back_populates="publications",
+    )
