@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     CheckConstraint,
     UniqueConstraint,
+    ForeignKey
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
@@ -124,4 +125,16 @@ class Publication(TimestampMixin, Base):
         "Researcher",
         secondary="publication_authors",
         back_populates="publications",
+	lazy="selectin",
+    )
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+    	UUID(as_uuid=True),
+    	ForeignKey("users.id", ondelete="CASCADE"),
+    	nullable=True,
+    )
+
+    owner = relationship(
+    	"User",
+    	back_populates="publications",
+	lazy="joined",
     )
