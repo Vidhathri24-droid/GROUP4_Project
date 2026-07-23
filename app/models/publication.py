@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     CheckConstraint,
     UniqueConstraint,
+    ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import (
@@ -47,7 +48,7 @@ class Publication(TimestampMixin, Base):
         ),
         CheckConstraint(
             "citation_count >= 0",
-            name="ck_citation_count_positive",
+            name="ck_publication_citation_count_positive",
         ),
     )
 
@@ -64,18 +65,22 @@ class Publication(TimestampMixin, Base):
 
     abstract: Mapped[str | None] = mapped_column(
         Text,
+        nullable=True,
     )
 
     doi: Mapped[str | None] = mapped_column(
         String(255),
+        nullable=True,
     )
 
     journal: Mapped[str | None] = mapped_column(
         String(255),
+        nullable=True,
     )
 
     conference: Mapped[str | None] = mapped_column(
         String(255),
+        nullable=True,
     )
 
     publication_year: Mapped[int] = mapped_column(
@@ -90,12 +95,13 @@ class Publication(TimestampMixin, Base):
 
     status: Mapped[PublicationStatus] = mapped_column(
         Enum(PublicationStatus),
-        default=PublicationStatus.DRAFT,
         nullable=False,
+        default=PublicationStatus.DRAFT,
     )
 
     url: Mapped[str | None] = mapped_column(
         String(500),
+        nullable=True,
     )
 
     citation_count: Mapped[int] = mapped_column(
@@ -103,21 +109,38 @@ class Publication(TimestampMixin, Base):
         default=0,
     )
 
-    # File upload information
     file_name: Mapped[str | None] = mapped_column(
         String(255),
+        nullable=True,
     )
 
     file_path: Mapped[str | None] = mapped_column(
         String(500),
+        nullable=True,
     )
 
     file_size: Mapped[int | None] = mapped_column(
         Integer,
+        nullable=True,
     )
 
     file_type: Mapped[str | None] = mapped_column(
         String(100),
+        nullable=True,
+    )
+
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+
+    owner = relationship(
+        "User",
+        back_populates="publications",
     )
 
     researchers = relationship(

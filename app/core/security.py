@@ -11,8 +11,9 @@ pwd_context = CryptContext(
     deprecated="auto"
 )
 
+
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password[:72])
+    return pwd_context.hash(password)
 
 
 def verify_password(
@@ -20,9 +21,10 @@ def verify_password(
     hashed_password: str,
 ) -> bool:
     return pwd_context.verify(
-        plain_password[:72],
+        plain_password,
         hashed_password,
     )
+
 
 def create_access_token(
     subject: str,
