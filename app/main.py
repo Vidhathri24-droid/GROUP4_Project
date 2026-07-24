@@ -6,10 +6,22 @@ from app.api.routes.institutions import router as institution_router
 from app.api.routes.departments import router as department_router
 from app.api.routes.conferences import router as conference_router
 from app.api.routes.publications import router as publication_router
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth_router)
