@@ -44,7 +44,6 @@ def create_institution(
 )
 def get_institutions(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return InstitutionService.get_all_institutions(db)
 
@@ -56,7 +55,6 @@ def get_institutions(
 def get_institution(
     institution_id: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return InstitutionService.get_institution(
         db,

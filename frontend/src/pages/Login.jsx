@@ -1,6 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../services/authService";
 
 function Login() {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await login(email, password);
+
+      // Store JWT token
+      localStorage.setItem("access_token", data.access_token);
+
+      // Redirect to dashboard
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.status === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError("Unable to login. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div
       className="d-flex justify-content-center align-items-center"
@@ -11,34 +48,53 @@ function Login() {
     >
       <div
         className="card shadow-lg p-4"
-        style={{ width: "420px", borderRadius: "15px" }}
+        style={{
+          width: "420px",
+          borderRadius: "15px",
+        }}
       >
         <h2 className="text-center text-primary mb-4">
           Login to SCNA
         </h2>
 
-        <form>
-          {/* Email */}
+        {error && (
+          <div className="alert alert-danger">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+
           <div className="mb-3">
-            <label className="form-label fw-bold">Email</label>
+            <label className="form-label fw-bold">
+              Email
+            </label>
+
             <input
               type="email"
               className="form-control"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
-          {/* Password */}
           <div className="mb-3">
-            <label className="form-label fw-bold">Password</label>
+            <label className="form-label fw-bold">
+              Password
+            </label>
+
             <input
               type="password"
               className="form-control"
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          {/* Remember Me */}
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div className="form-check">
               <input
@@ -46,7 +102,11 @@ function Login() {
                 type="checkbox"
                 id="remember"
               />
-              <label className="form-check-label" htmlFor="remember">
+
+              <label
+                className="form-check-label"
+                htmlFor="remember"
+              >
                 Remember Me
               </label>
             </div>
@@ -56,18 +116,20 @@ function Login() {
             </a>
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             className="btn btn-primary w-100"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
 
-          {/* Register */}
           <p className="text-center mt-3">
             Don't have an account?{" "}
-            <a href="/register" className="text-decoration-none fw-bold">
+            <a
+              href="/register"
+              className="text-decoration-none fw-bold"
+            >
               Register
             </a>
           </p>

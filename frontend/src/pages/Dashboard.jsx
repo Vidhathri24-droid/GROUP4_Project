@@ -1,55 +1,42 @@
-function Dashboard() {
-  return (
-    <div className="container py-5">
+import { useEffect, useState } from "react";
 
-      <h1 className="text-primary mb-4">Dashboard</h1>
+import DashboardStats from "../components/dashboard/DashboardStats";
+import QuickActions from "../components/dashboard/QuickActions";
 
-      <div className="row">
+import { getDashboardData } from "../services/dashboardService";
 
-        <div className="col-md-3 mb-4">
-          <div className="card shadow text-center">
-            <div className="card-body">
-              <h1>👨‍🔬</h1>
-              <h3>250</h3>
-              <p>Researchers</p>
-            </div>
-          </div>
+export default function Dashboard() {
+
+    const [stats, setStats] = useState(null);
+
+    useEffect(() => {
+        loadDashboard();
+    }, []);
+
+    const loadDashboard = async () => {
+        try {
+            const data = await getDashboardData();
+            setStats(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div className="container py-5">
+
+            <h1 className="mb-2">
+                Dashboard
+            </h1>
+
+            <p className="text-muted mb-4">
+                Welcome to the Scientific Collaboration Network Analyzer.
+            </p>
+
+            <QuickActions />
+
+            <DashboardStats stats={stats} />
+
         </div>
-
-        <div className="col-md-3 mb-4">
-          <div className="card shadow text-center">
-            <div className="card-body">
-              <h1>🏛️</h1>
-              <h3>35</h3>
-              <p>Institutions</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-4">
-          <div className="card shadow text-center">
-            <div className="card-body">
-              <h1>📚</h1>
-              <h3>420</h3>
-              <p>Publications</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-4">
-          <div className="card shadow text-center">
-            <div className="card-body">
-              <h1>🤝</h1>
-              <h3>185</h3>
-              <p>Collaborations</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  );
+    );
 }
-
-export default Dashboard;

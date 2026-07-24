@@ -7,7 +7,7 @@ from app.api.routes.departments import router as department_router
 from app.api.routes.conferences import router as conference_router
 from app.api.routes.publications import router as publication_router
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.api.routes import analytics
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
@@ -31,6 +31,7 @@ app.include_router(institution_router)
 app.include_router(department_router)
 app.include_router(conference_router)
 app.include_router(publication_router)
+app.include_router(analytics.router)
 
 @app.get("/")
 def root():

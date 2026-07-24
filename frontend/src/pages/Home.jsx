@@ -1,25 +1,32 @@
-function Home() {
-  return (
-    <div className="container text-center mt-5">
+import { useEffect, useState } from "react";
 
-      <h1 className="display-4 text-primary fw-bold">
-        Scientific Collaboration Network Analysis
-      </h1>
+import Hero from "../components/Hero";
+import StatsSection from "../components/StatsSection";
 
-      <p className="lead mt-3">
-        Connect Researchers • Share Publications • Build Collaborations
-      </p>
+import { getHomeAnalytics } from "../services/homeService";
 
-      <button className="btn btn-primary btn-lg m-2">
-        Explore Researchers
-      </button>
+export default function Home() {
 
-      <button className="btn btn-outline-primary btn-lg m-2">
-        View Dashboard
-      </button>
+    const [stats, setStats] = useState(null);
 
-    </div>
-  );
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const data = await getHomeAnalytics();
+            setStats(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <>
+            <Hero />
+
+            <StatsSection stats={stats} />
+        </>
+    );
 }
-
-export default Home;

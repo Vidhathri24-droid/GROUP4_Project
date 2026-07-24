@@ -1,0 +1,12 @@
+export const getToken = () => {
+  return localStorage.getItem("access_token");
+};
+
+export const isAuthenticated = () => {
+  return !!getToken();
+};
+
+export const logout = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("user");
+};

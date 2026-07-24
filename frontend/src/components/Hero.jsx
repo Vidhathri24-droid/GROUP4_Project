@@ -1,33 +1,50 @@
-function Hero() {
-  return (
-    <div className="container hero py-5">
+import SearchBar from "./SearchBar";
 
-      <h1 className="display-3 fw-bold">
-        Welcome to SCNA
-      </h1>
+export default function Hero() {
+    return (
+        <section
+            className="py-5"
+            style={{
+                background: "linear-gradient(135deg, #0d6efd, #4dabf7)",
+                minHeight: "70vh",
+                display: "flex",
+                alignItems: "center",
+            }}
+        >
+            <div className="container">
+                <div className="row align-items-center">
 
-      <p className="lead fs-3 text-secondary">
-        Scientific Collaboration Network Analyzer
-      </p>
+                    <div className="col-lg-7 text-white">
+                        <h1 className="display-3 fw-bold">
+                            Scientific Collaboration
+                        </h1>
 
-      <p className="fs-5 text-muted w-75">
-        SCNA is a research collaboration platform that helps researchers,
-        institutions, and publications connect, analyze research networks,
-        and discover scientific collaborations efficiently.
-      </p>
+                        <h2 className="display-5 mb-4">
+                            Network Analyzer
+                        </h2>
 
-      <div className="mt-4">
-        <button className="btn btn-primary btn-lg me-3">
-          View Researchers
-        </button>
+                        <p className="lead mb-4">
+                            Discover publications, explore researchers,
+                            connect institutions, and find conferences
+                            from one unified research platform.
+                        </p>
 
-        <button className="btn btn-outline-secondary btn-lg">
-          Explore Institutions
-        </button>
-      </div>
+                        <SearchBar />
+                    </div>
 
-    </div>
-  );
+                    <div className="col-lg-5 text-center">
+                        <img
+                            src="https://cdn-icons-png.flaticon.com/512/2103/2103633.png"
+                            alt="Research"
+                            className="img-fluid"
+                            style={{
+                                maxHeight: "350px",
+                            }}
+                        />
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    );
 }
-
-export default Hero;

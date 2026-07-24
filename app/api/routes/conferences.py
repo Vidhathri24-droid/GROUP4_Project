@@ -44,7 +44,6 @@ def create_conference(
 )
 def get_conferences(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return ConferenceService.get_all_conferences(db)
 
@@ -56,7 +55,6 @@ def get_conferences(
 def get_conference(
     conference_id: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return ConferenceService.get_conference(
         db,

@@ -44,7 +44,6 @@ def create_researcher(
 )
 def get_researchers(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return ResearcherService.get_all_researchers(
         db,
@@ -58,7 +57,6 @@ def get_researchers(
 def get_researcher(
     researcher_id: UUID,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
 ):
     return ResearcherService.get_researcher(
         db,

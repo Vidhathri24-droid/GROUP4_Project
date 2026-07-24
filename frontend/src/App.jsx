@@ -1,15 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
-import Researchers from "./pages/Researchers";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Researchers from "./pages/researchers/Researchers";
 import Institutions from "./pages/Institutions";
 import Publications from "./pages/Publications";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
+import CreatePublication from "./pages/CreatePublication";
+import EditPublication from "./pages/EditPublication";
+import PublicationDetails from "./pages/PublicationDetails";
+import CreateResearcher from "./pages/researchers/CreateResearcher";
+import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -17,15 +19,90 @@ function App() {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/researchers" element={<Researchers />} />
-        <Route path="/institutions" element={<Institutions />} />
-        <Route path="/publications" element={<Publications />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
 
-      <Footer />
+        {/* Public Routes */}
+
+        <Route path="/" element={<Home />} />
+
+        <Route path="/login" element={<Login />} />
+
+
+
+        {/* Protected Routes */}
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/researchers"
+          element={
+            <ProtectedRoute>
+              <Researchers />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/institutions"
+          element={
+            <ProtectedRoute>
+              <Institutions />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/publications"
+          element={
+            <ProtectedRoute>
+              <Publications />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/publications/create"
+          element={
+            <ProtectedRoute>
+              <CreatePublication />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/publications/:id"
+          element={
+            <ProtectedRoute>
+              <PublicationDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/publications/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditPublication />
+            </ProtectedRoute>
+          }
+        />
+
+	<Route
+    path="/researchers/create"
+    element={
+        <ProtectedRoute>
+            <CreateResearcher />
+        </ProtectedRoute>
+    }
+/>
+
+      </Routes>
     </BrowserRouter>
   );
 }

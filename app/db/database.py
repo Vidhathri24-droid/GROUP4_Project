@@ -8,7 +8,9 @@ from app.core.config import settings
 # Create SQLAlchemy Engine
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,  # Set to False in production
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=300,
 )
 
 
