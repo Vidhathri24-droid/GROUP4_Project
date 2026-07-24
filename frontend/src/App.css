@@ -1,38 +1,71 @@
-.App {
-    text-align: center;
+/* General */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f8f9fa;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Navbar */
+.navbar {
+  background: linear-gradient(90deg, #007bff, #0056d2);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.navbar-brand,
+.nav-link {
+  color: white !important;
+  font-weight: 600;
 }
 
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.nav-link:hover {
+  color: #ffd54f !important;
+  transition: 0.3s;
 }
 
-.App-link {
-    color: #61dafb;
+/* Hero Section */
+.hero {
+  padding: 80px 0;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.hero h1 {
+  font-weight: bold;
+}
+
+.hero p {
+  color: #555;
+}
+
+/* Buttons */
+.btn {
+  transition: 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Dashboard */
+.card h3 {
+  color: #0d6efd;
+  font-weight: bold;
+}
+
+/* Footer */
+footer {
+  background: #212529;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 40px;
 }
