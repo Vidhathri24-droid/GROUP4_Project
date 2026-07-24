@@ -1,20 +1,7 @@
 from uuid import UUID
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
-from app.api.dependencies import (
-    get_db,
-    get_current_user,
-)
-
-from app.schemas.researcher import (
-    ResearcherCreate,
-    ResearcherUpdate,
-    ResearcherResponse,
-)
-
-from app.services.researcher_service import ResearcherService
+from app.api.dependencies import get_db
 
 router = APIRouter(
     prefix="/researchers",
@@ -22,76 +9,60 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/",
-    response_model=ResearcherResponse,
-    status_code=201,
-)
-def create_researcher(
-    researcher: ResearcherCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return ResearcherService.create_researcher(
-        db,
-        researcher,
-    )
-
-
-@router.get(
-    "/",
-    response_model=list[ResearcherResponse],
-)
-def get_researchers(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return ResearcherService.get_all_researchers(
-        db,
-    )
-
-
-@router.get(
-    "/{researcher_id}",
-    response_model=ResearcherResponse,
-)
-def get_researcher(
-    researcher_id: UUID,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return ResearcherService.get_researcher(
-        db,
-        researcher_id,
-    )
-
-
-@router.put(
-    "/{researcher_id}",
-    response_model=ResearcherResponse,
-)
-def update_researcher(
-    researcher_id: UUID,
-    researcher: ResearcherUpdate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return ResearcherService.update_researcher(
-        db,
-        researcher_id,
-        researcher,
-    )
-
-
-@router.delete(
-    "/{researcher_id}",
-)
-def delete_researcher(
-    researcher_id: UUID,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    return ResearcherService.delete_researcher(
-        db,
-        researcher_id,
-    )
+@router.get("/")
+def get_researchers(db: Session = Depends(get_db)):
+    # Frontend ko 'researchers' ki direct List/Array chahiye
+    return [
+        {
+            "id": "1",
+            "name": "Dr. A. Sharma",
+            "department": "Computer Science",
+            "institution": "IIT Bombay",
+            "citations_count": 45,
+            "publications": [
+                {"id": "p1", "title": "AI in Healthcare"},
+                {"id": "p2", "title": "Graph Neural Networks"}
+            ]
+        },
+        {
+            "id": "2",
+            "name": "Prof. R. Verma",
+            "department": "Physics",
+            "institution": "IIT Delhi",
+            "citations_count": 32,
+            "publications": [
+                {"id": "p1", "title": "AI in Healthcare"},
+                {"id": "p3", "title": "Quantum Computing"}
+            ]
+        },
+        {
+            "id": "3",
+            "name": "Dr. S. Kulkarni",
+            "department": "Computer Science",
+            "institution": "IIT Bombay",
+            "citations_count": 89,
+            "publications": [
+                {"id": "p2", "title": "Graph Neural Networks"}
+            ]
+        },
+        {
+            "id": "4",
+            "name": "Dr. M. Gupta",
+            "department": "Mathematics",
+            "institution": "IISc Bangalore",
+            "citations_count": 12,
+            "publications": [
+                {"id": "p4", "title": "Linear Algebra Algorithms"}
+            ]
+        },
+        {
+            "id": "5",
+            "name": "Prof. K. Mehta",
+            "department": "Physics",
+            "institution": "IIT Bombay",
+            "citations_count": 67,
+            "publications": [
+                {"id": "p3", "title": "Quantum Computing"}
+            ]
+        }
+    ]

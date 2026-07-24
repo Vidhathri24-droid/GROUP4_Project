@@ -113,7 +113,9 @@ const Dashboard = ({ onLogout }) => {
                 <h5>📚 Top Publications:</h5>
                 <ul className="publications-list">
                   {selectedNode.publications && selectedNode.publications.map((paper, idx) => (
-                    <li key={idx}>📖 {paper}</li>
+                    <li key={idx}>
+                      📖 {typeof paper === 'object' ? (paper.title || paper.name || JSON.stringify(paper)) : paper}
+                    </li>
                   ))}
                 </ul>
               </div>
