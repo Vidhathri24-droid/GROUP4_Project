@@ -2,16 +2,20 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db
+from app.models.researcher import Researcher
 
 router = APIRouter(
     prefix="/researchers",
     tags=["Researchers"],
 )
 
-
 @router.get("/")
 def get_researchers(db: Session = Depends(get_db)):
-    # Frontend ko 'researchers' ki direct List/Array chahiye
+    # 💡 Real DB Query (Jab DB me records insert ho jayein):
+    # researchers = db.query(Researcher).all()
+    # return researchers
+
+    # Current Mock Response (Jo tumhara frontend easily consume kar raha hai):
     return [
         {
             "id": "1",

@@ -1,128 +1,165 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NetworkGraph from '../components/NetworkGraph';
+import Publications from './Publications';
 import './Dashboard.css';
 
 const Dashboard = ({ onLogout }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('graph');
+  const [researchers, setResearchers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState('all');
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedResearcher, setSelectedResearcher] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('http://localhost:8000/researchers/');
+        const data = await res.json();
+        setResearchers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error fetching researchers data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const filteredResearchers = researchers.filter(r => {
+    const matchesSearch = r.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          r.institution?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDept = selectedDept === 'all' || r.department === selectedDept;
+    return matchesSearch && matchesDept;
+  });
 
   return (
-    <div className="dashboard-layout">
-      {/* Header */}
+    <div className="dashboard-container">
+      {/* HEADER */}
       <header className="dashboard-header">
-        <div className="logo-section">
-          <h2>🔬 CollabAnalyzer</h2>
+        <div className="header-title-wrapper">
+          <span style={{ fontSize: '20px' }}>🧬</span>
+          <h2 className="header-title">Scientific Collaboration Network</h2>
         </div>
-        <div className="user-section">
-          <button onClick={onLogout} className="logout-btn">Logout</button>
+
+        <div className="tab-navigation">
+          <button
+            onClick={() => setActiveTab('graph')}
+            className={`tab-btn ${activeTab === 'graph' ? 'active' : ''}`}
+          >
+            🕸️ Network Graph
+          </button>
+          <button
+            onClick={() => setActiveTab('publications')}
+            className={`tab-btn ${activeTab === 'publications' ? 'active' : ''}`}
+          >
+            📚 Publications
+          </button>
         </div>
+
+        <button onClick={onLogout} className="logout-btn">
+          Logout
+        </button>
       </header>
 
-      <main className="dashboard-body">
-        {/* Top Stats */}
-        <div className="stats-container">
-          <div className="stat-card">
-            <span className="stat-icon">👨‍🔬</span>
+      {/* TAB 1: GRAPH */}
+      {activeTab === 'graph' && (
+        <div className="graph-tab-content">
+          <div className="stats-header">
             <div>
-              <h3>Total Researchers</h3>
-              <p className="stat-number">5</p>
+              <p className="stats-subtitle">
+                Explore co-authorships, institutions, and research impacts
+              </p>
             </div>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">📚</span>
-            <div>
-              <h3>Publications</h3>
-              <p className="stat-number">11</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <span className="stat-icon">🔗</span>
-            <div>
-              <h3>Collaborations</h3>
-              <p className="stat-number">4</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Filters */}
-        <div className="filter-card">
-          <input 
-            type="text" 
-            placeholder="Search researcher name (e.g. Dr. A. Sharma)..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <select 
-            className="filter-select" 
-            value={selectedDept} 
-            onChange={(e) => setSelectedDept(e.target.value)}
-          >
-            <option value="all">All Departments</option>
-            <option value="CS">Computer Science (CS)</option>
-            <option value="Physics">Physics</option>
-            <option value="Maths">Maths</option>
-            <option value="Biotech">Biotech</option>
-          </select>
-        </div>
-
-        {/* Main Graph & Side Profile */}
-        <div className="main-graph-section">
-          <div className="graph-container-card">
-            <div className="graph-header">
-              <h3>🌐 Network Collaboration Map</h3>
-              <span className="badge">
-                {selectedNode ? `Selected: ${selectedNode.label}` : 'Click any node to view profile'}
-              </span>
-            </div>
-            <div className="graph-view">
-              <NetworkGraph 
-                searchTerm={searchTerm} 
-                selectedDept={selectedDept}
-                onSelectNode={(nodeData) => setSelectedNode(nodeData)}
-              />
-            </div>
-          </div>
-
-          {/* Upgraded Side Profile Drawer */}
-          {selectedNode && (
-            <div className="node-details-card">
-              <div className="details-header">
-                <h3>👨‍🔬 Researcher Details</h3>
-                <button className="close-btn" onClick={() => setSelectedNode(null)}>✕</button>
+            <div className="stats-cards-wrapper">
+              <div className="stat-card">
+                <span className="stat-card-label">Researchers</span>
+                <strong className="stat-card-value-blue">{researchers.length}</strong>
               </div>
-              <div className="details-body">
-                <h4>{selectedNode.label}</h4>
-                <p style={{ marginTop: '4px' }}>
-                  <strong>Dept:</strong> <span className="dept-tag">{selectedNode.group}</span>
-                </p>
-                <div className="researcher-stats">
-                  <div className="mini-stat">
-                    <span>📄 Papers</span>
-                    <strong>{selectedNode.publications ? selectedNode.publications.length : 0}</strong>
+              <div className="stat-card">
+                <span className="stat-card-label">Total Citations</span>
+                <strong className="stat-card-value-green">
+                  {researchers.reduce((acc, r) => acc + (r.citations_count || 0), 0)}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-bar">
+            <input
+              type="text"
+              placeholder="Search by researcher or institution..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+
+            <select
+              value={selectedDept}
+              onChange={(e) => setSelectedDept(e.target.value)}
+              className="dept-select"
+            >
+              <option value="all">All Departments</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Physics">Physics</option>
+              <option value="Mathematics">Mathematics</option>
+            </select>
+          </div>
+
+          <div className={`dashboard-grid ${selectedResearcher ? 'has-sidebar' : ''}`}>
+            <div className="graph-container">
+              {loading ? (
+                <div className="loading-state">Loading Collaboration Graph...</div>
+              ) : (
+                <NetworkGraph
+                  researchers={filteredResearchers}
+                  selectedDept={selectedDept}
+                  onNodeSelect={(researcher) => setSelectedResearcher(researcher)}
+                />
+              )}
+            </div>
+
+            {selectedResearcher && (
+              <div className="sidebar-panel">
+                <div>
+                  <div className="sidebar-header">
+                    <h2 style={{ fontSize: '18px', margin: 0, color: '#fff' }}>{selectedResearcher.name}</h2>
+                    <button onClick={() => setSelectedResearcher(null)} className="close-btn">✕</button>
                   </div>
-                  <div className="mini-stat">
-                    <span>⭐ Citations</span>
-                    <strong>{selectedNode.citations || 0}</strong>
+
+                  <div className="sidebar-info">
+                    <p style={{ margin: '4px 0' }}>🏢 <strong>{selectedResearcher.institution}</strong></p>
+                    <p style={{ margin: '4px 0' }}>📂 Department: <span style={{ color: '#60a5fa' }}>{selectedResearcher.department}</span></p>
+                    <p style={{ margin: '4px 0' }}>⭐ Citations: <span style={{ color: '#34d399' }}>{selectedResearcher.citations_count}</span></p>
                   </div>
+
+                  <hr className="sidebar-divider" />
+
+                  <h3 style={{ fontSize: '14px', color: '#e2e8f0', marginBottom: '10px' }}>
+                    Publications ({selectedResearcher.publications?.length || 0})
+                  </h3>
+                  <ul className="pub-list">
+                    {selectedResearcher.publications?.map((pub, idx) => (
+                      <li key={pub.id || idx} className="pub-item">
+                        {pub.title}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <hr style={{ margin: '15px 0', borderColor: '#f1f5f9' }} />
-
-                <h5>📚 Top Publications:</h5>
-                <ul className="publications-list">
-                  {selectedNode.publications && selectedNode.publications.map((paper, idx) => (
-                    <li key={idx}>
-                      📖 {typeof paper === 'object' ? (paper.title || paper.name || JSON.stringify(paper)) : paper}
-                    </li>
-                  ))}
-                </ul>
+                <button onClick={() => setSelectedResearcher(null)} className="action-btn">
+                  Close Details
+                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* TAB 2: PUBLICATIONS */}
+      {activeTab === 'publications' && <Publications />}
     </div>
   );
 };

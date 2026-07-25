@@ -1,75 +1,123 @@
 import React, { useState } from 'react';
-import API from '../api';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
 
-    try {
-      // Direct /auth/register request
-      await API.post('/auth/register', { username, email, password });
-      setMessage('✅ Registration successful! Please go to Login tab.');
-      setUsername('');
-      setEmail('');
-      setPassword('');
-    } catch (err) {
-      console.error('Registration Error:', err.response?.data);
-      const serverDetail = err.response?.data?.detail;
-      setError(typeof serverDetail === 'string' ? serverDetail : 'Registration failed');
+    // 💡 Dummy Bypass Flow: Direct alert & redirect to Login
+    if (username && email && password) {
+      alert(`Account created successfully for ${username}! Please Login.`);
+      navigate('/login');
+    } else {
+      alert('Please fill in all fields!');
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h2>📝 Register</h2>
-      {message && <p style={styles.success}>{message}</p>}
-      {error && <p style={styles.error}>❌ {error}</p>}
-      <form onSubmit={handleRegister} style={styles.form}>
-        <input 
-          type="text" 
-          placeholder="Username" 
-          value={username} 
-          onChange={(e) => setUsername(e.target.value)} 
-          required 
-          style={styles.input}
-        />
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)} 
-          required 
-          style={styles.input}
-        />
-       <input 
-  type="password" 
-  placeholder="Password" 
-  maxLength={72} // <-- Limit input length
-  value={password} 
-  onChange={(e) => setPassword(e.target.value)} 
-  required 
-/>
-        <button type="submit" style={styles.button}>Register</button>
+    <div style={containerStyle}>
+      <form onSubmit={handleRegister} style={formStyle}>
+        <h2 style={{ textAlign: 'center', margin: '0 0 10px 0' }}>📝 Register</h2>
+
+        <div style={inputGroupStyle}>
+          <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Username:</label>
+          <input 
+            type="text" 
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={inputStyle}
+            required 
+          />
+        </div>
+
+        <div style={inputGroupStyle}>
+          <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Email:</label>
+          <input 
+            type="email" 
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={inputStyle}
+            required 
+          />
+        </div>
+
+        <div style={inputGroupStyle}>
+          <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Password:</label>
+          <input 
+            type="password" 
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={inputStyle}
+            required 
+          />
+        </div>
+
+        <button type="submit" style={buttonStyle}>
+          Register
+        </button>
+
+        <p style={{ color: '#4b5563', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>
+          Already have an account?{' '}
+          <span 
+            onClick={() => navigate('/login')} 
+            style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline', fontWeight: 'bold' }}
+          >
+            Login here
+          </span>
+        </p>
       </form>
     </div>
   );
 }
 
-const styles = {
-  container: { width: '300px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '10px' },
-  input: { padding: '8px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' },
-  button: { padding: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-  error: { color: 'red', fontSize: '14px' },
-  success: { color: 'green', fontSize: '14px' }
+// Styling
+const containerStyle = {
+  display: 'flex',
+  justifyContent: 'center',
+  marginTop: '50px'
 };
-    
+
+const formStyle = {
+  background: '#ffffff',
+  padding: '30px',
+  borderRadius: '8px',
+  boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+  width: '320px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '15px'
+};
+
+const inputGroupStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px'
+};
+
+const inputStyle = {
+  padding: '10px 12px',
+  borderRadius: '4px',
+  border: '1px solid #ccc',
+  fontSize: '14px'
+};
+
+const buttonStyle = {
+  padding: '10px',
+  backgroundColor: '#16a34a',
+  color: 'white',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  marginTop: '5px'
+};
+
 export default Register;

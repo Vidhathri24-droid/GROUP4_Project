@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 1. useNavigate import kiya
 
 function Login({ setToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // 👈 2. Hook initialize kiya
 
   const handleLogin = (e) => {
     e.preventDefault();
 
     // 💡 Dummy Login Bypass (Testing ke liye):
-    // Jab tak backend connect nahi hai, ye direct login karwa dega
     if (email && password) {
       const dummyToken = 'fake_jwt_token_123456';
       localStorage.setItem('token', dummyToken);
       setToken(dummyToken);
-      alert('Login Successful!');
     } else {
       alert('Please enter both Email and Password!');
     }
@@ -45,7 +45,20 @@ function Login({ setToken }) {
             required 
           />
         </div>
+
         <button type="submit" style={buttonStyle}>Submit / Login</button>
+
+        {/* 👈 3. Submit Button ke Niche Register Link Add Kar Diya */}
+        <p style={{ color: '#4b5563', fontSize: '14px', marginTop: '10px', textAlign: 'center' }}>
+          Don't have an account?{' '}
+          <span 
+            onClick={() => navigate('/register')} 
+            style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline', fontWeight: 'bold' }}
+          >
+            Register here
+          </span>
+        </p>
+
       </form>
     </div>
   );
