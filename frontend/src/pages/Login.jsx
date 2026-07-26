@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
 
 function Login() {
@@ -11,27 +11,34 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
     setError("");
 
     try {
-      const data = await login(email, password);
+      const response = await login(email, password);
 
-      // Store JWT token
-      localStorage.setItem("access_token", data.access_token);
+      // Save JWT token
+      if (response.access_token) {
+        localStorage.setItem(
+          "access_token",
+          response.access_token
+        );
+      }
 
-      // Redirect to dashboard
       navigate("/dashboard");
+
     } catch (err) {
       console.error(err);
 
-      if (err.response?.status === 401) {
-        setError("Invalid email or password.");
+      if (err.response?.status === 403) {
+        setError("Please verify your email before logging in.");
+      } else if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
       } else {
-        setError("Unable to login. Please try again.");
+        setError("Login failed.");
       }
     } finally {
       setLoading(false);
@@ -59,12 +66,22 @@ function Login() {
 
         {error && (
           <div className="alert alert-danger">
-            {error}
+            <div>{error}</div>
+
+            {error.toLowerCase().includes("verify") && (
+              <div className="mt-2">
+                <Link
+                  to="/resend-verification"
+                  className="btn btn-warning btn-sm"
+                >
+                  Resend Verification Email
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
-        <form onSubmit={handleLogin}>
-
+        <form onSubmit={handleSubmit}>
           <div className="mb-3">
             <label className="form-label fw-bold">
               Email
@@ -111,9 +128,12 @@ function Login() {
               </label>
             </div>
 
-            <a href="#" className="text-decoration-none">
+            <Link
+              to="/forgot-password"
+              className="text-decoration-none"
+            >
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
           <button
@@ -124,14 +144,14 @@ function Login() {
             {loading ? "Logging in..." : "Login"}
           </button>
 
-          <p className="text-center mt-3">
+          <p className="text-center mt-3 mb-0">
             Don't have an account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="text-decoration-none fw-bold"
             >
               Register
-            </a>
+            </Link>
           </p>
         </form>
       </div>

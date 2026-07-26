@@ -1,12 +1,20 @@
 import uuid
 import enum
-from sqlalchemy import UniqueConstraint, CheckConstraint
-from sqlalchemy import String, Boolean, Enum
+
+from sqlalchemy import (
+    UniqueConstraint,
+    CheckConstraint,
+    String,
+    Boolean,
+    Enum,
+    DateTime,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base_model import TimestampMixin
 from app.db.database import Base
-
+from app.db.database import Base
+from datetime import datetime
 
 class UserRole(str, enum.Enum):
     RESEARCHER = "Researcher"
@@ -47,8 +55,33 @@ class User(TimestampMixin,Base):
 
     is_active = mapped_column(
         Boolean,
-        default=True,
+        default=False,
 	nullable=False
+    )
+    email_verified = mapped_column(
+    	Boolean,
+    	default=False,
+    	nullable=False,
+    )
+
+    verification_token = mapped_column(
+    	String(255),
+    	nullable=True,
+    )
+
+    verification_token_expiry = mapped_column(
+    	DateTime,
+    	nullable=True,
+    )
+
+    password_reset_token = mapped_column(
+    	String(255),
+    	nullable=True,
+    )
+
+    password_reset_expiry = mapped_column(
+    	DateTime,
+    	nullable=True,
     )
 
     researcher = relationship(

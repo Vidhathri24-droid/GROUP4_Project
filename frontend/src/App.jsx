@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Public Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
+import ResendVerification from "./pages/ResendVerification";
 
 // Dashboard
 import Dashboard from "./pages/Dashboard";
@@ -33,18 +36,38 @@ import CreateInstitution from "./pages/institutions/CreateInstitution";
 import EditInstitution from "./pages/institutions/EditInstitution";
 import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 
+// Authentication
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+//Search
+import Search from "./pages/Search";
+
 function App() {
   return (
     <BrowserRouter>
       <Navbar />
 
       <Routes>
-
         {/* ================= Public Routes ================= */}
 
         <Route path="/" element={<Home />} />
-
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route
+          path="/resend-verification"
+          element={<ResendVerification />}
+        />
+	<Route
+	  path="/forgot-password"
+	  element={<ForgotPassword />}
+	/>
+
+	<Route
+          path="/reset-password"
+          element={<ResetPassword />}
+	/>
 
         {/* ================= Dashboard ================= */}
 
@@ -190,7 +213,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+<Route
+  path="/search"
+  element={<Search />}
+/>
       </Routes>
     </BrowserRouter>
   );

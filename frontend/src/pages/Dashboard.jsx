@@ -2,41 +2,67 @@ import { useEffect, useState } from "react";
 
 import DashboardStats from "../components/dashboard/DashboardStats";
 import QuickActions from "../components/dashboard/QuickActions";
+import DashboardCharts from "../components/dashboard/DashboardCharts";
 
-import { getDashboardData } from "../services/dashboardService";
+import {
+  getDashboardStats,
+  getPublicationsPerYear,
+  getPublicationTypes,
+} from "../services/dashboardService";
 
 export default function Dashboard() {
+  const [stats, setStats] = useState(null);
 
-    const [stats, setStats] = useState(null);
+  const [yearlyData, setYearlyData] = useState([]);
 
-    useEffect(() => {
-        loadDashboard();
-    }, []);
+  const [publicationTypes, setPublicationTypes] =
+    useState([]);
 
-    const loadDashboard = async () => {
-        try {
-            const data = await getDashboardData();
-            setStats(data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
-    return (
-        <div className="container py-5">
+  const loadDashboard = async () => {
+    try {
+      const [
+        statsData,
+        yearly,
+        types,
+      ] = await Promise.all([
+        getDashboardStats(),
+        getPublicationsPerYear(),
+        getPublicationTypes(),
+      ]);
 
-            <h1 className="mb-2">
-                Dashboard
-            </h1>
+      setStats(statsData);
+      setYearlyData(yearly);
+      setPublicationTypes(types);
 
-            <p className="text-muted mb-4">
-                Welcome to the Scientific Collaboration Network Analyzer.
-            </p>
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-            <QuickActions />
+  return (
+    <div className="container py-5">
 
-            <DashboardStats stats={stats} />
+      <h1 className="mb-2">
+        Dashboard
+      </h1>
 
-        </div>
-    );
+      <p className="text-muted mb-4">
+        Welcome to the Scientific Collaboration Network Analyzer.
+      </p>
+
+      <QuickActions />
+
+      <DashboardStats stats={stats} />
+
+      <DashboardCharts
+        yearlyData={yearlyData}
+        publicationTypes={publicationTypes}
+      />
+
+    </div>
+  );
 }
