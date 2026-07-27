@@ -8,7 +8,6 @@ from app.models.user import UserRole
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role: UserRole = UserRole.RESEARCHER
 
 
 class UserResponse(BaseModel):
@@ -16,6 +15,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: UserRole
     is_active: bool
+    email_verified: bool
 
     model_config = ConfigDict(from_attributes=True)
 

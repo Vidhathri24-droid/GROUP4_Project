@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import {
   getConferences,
   deleteConference,
@@ -9,17 +10,18 @@ import ConferenceSearch from "../../components/conferences/ConferenceSearch";
 import ConferencePagination from "../../components/conferences/ConferencePagination";
 import ConferenceCard from "../../components/conferences/ConferenceCard";
 
+import { isAdmin } from "../../utils/auth";
+
 function Conferences() {
   const [conferences, setConferences] = useState([]);
   const [filtered, setFiltered] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
-
   const [currentPage, setCurrentPage] = useState(1);
 
   const conferencesPerPage = 6;
+
+  const admin = isAdmin();
 
   useEffect(() => {
     fetchConferences();
@@ -55,7 +57,6 @@ function Conferences() {
 
     try {
       await deleteConference(id);
-
       fetchConferences();
     } catch (err) {
       console.error(err);
@@ -64,7 +65,6 @@ function Conferences() {
   };
 
   const indexOfLast = currentPage * conferencesPerPage;
-
   const indexOfFirst = indexOfLast - conferencesPerPage;
 
   const currentConferences = filtered.slice(
@@ -74,18 +74,17 @@ function Conferences() {
 
   return (
     <div className="container mt-4">
-
       <div className="d-flex justify-content-between align-items-center mb-4">
-
         <h2>Conference Management</h2>
 
-        <Link
-          to="/conferences/create"
-          className="btn btn-primary"
-        >
-          + Create Conference
-        </Link>
-
+        {admin && (
+          <Link
+            to="/conferences/create"
+            className="btn btn-primary"
+          >
+            + Create Conference
+          </Link>
+        )}
       </div>
 
       <ConferenceSearch
@@ -95,25 +94,18 @@ function Conferences() {
 
       {loading ? (
         <div className="text-center mt-5">
-
           <div
             className="spinner-border text-primary"
             role="status"
           />
-
         </div>
       ) : currentConferences.length === 0 ? (
-
         <div className="alert alert-warning mt-4">
           No conferences found.
         </div>
-
       ) : (
-
         <div className="row">
-
           {currentConferences.map((conference) => (
-
             <div
               key={conference.id}
               className="col-md-6 col-lg-4 mb-4"
@@ -123,11 +115,8 @@ function Conferences() {
                 onDelete={handleDelete}
               />
             </div>
-
           ))}
-
         </div>
-
       )}
 
       <ConferencePagination
@@ -136,7 +125,6 @@ function Conferences() {
         currentPage={currentPage}
         paginate={setCurrentPage}
       />
-
     </div>
   );
 }

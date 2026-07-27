@@ -1,5 +1,5 @@
 import uuid
-
+from sqlalchemy.orm import relationship
 from datetime import date
 from sqlalchemy import String, Date, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -25,3 +25,5 @@ class Conference(TimestampMixin, Base):
     conference_date: Mapped[date | None] = mapped_column(Date,nullable=True)
 
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    registrations = relationship("ConferenceRegistration",back_populates="conference",cascade="all, delete-orphan",)
