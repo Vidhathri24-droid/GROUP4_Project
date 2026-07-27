@@ -6,9 +6,13 @@ import {
   deleteConference,
 } from "../../services/conferenceService";
 
+import { isAdmin } from "../../utils/auth";
+
 function ConferenceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const admin = isAdmin();
 
   const [conference, setConference] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +54,12 @@ function ConferenceDetails() {
       console.error(err);
       alert("Failed to delete conference.");
     }
+  };
+
+  const handleJoin = () => {
+    alert(
+      "Join Conference feature will be connected to the backend."
+    );
   };
 
   const formatDate = (date) => {
@@ -96,11 +106,9 @@ function ConferenceDetails() {
       <div className="card shadow">
 
         <div className="card-header bg-primary text-white">
-
           <h3 className="mb-0">
             {conference.title}
           </h3>
-
         </div>
 
         <div className="card-body">
@@ -133,30 +141,30 @@ function ConferenceDetails() {
               Back
             </Link>
 
-            <Link
-              to={`/conferences/edit/${conference.id}`}
-              className="btn btn-warning"
-            >
-              Edit
-            </Link>
+            {admin && (
+              <Link
+                to={`/conferences/edit/${conference.id}`}
+                className="btn btn-warning"
+              >
+                Edit
+              </Link>
+            )}
 
             <button
               className="btn btn-success"
-              onClick={() =>
-                alert(
-                  "Join Conference feature will be available after the backend join endpoint is implemented."
-                )
-              }
+              onClick={handleJoin}
             >
               Join Conference
             </button>
 
-            <button
-              className="btn btn-danger"
-              onClick={handleDelete}
-            >
-              Delete
-            </button>
+            {admin && (
+              <button
+                className="btn btn-danger"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+            )}
 
           </div>
 

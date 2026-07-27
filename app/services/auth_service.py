@@ -56,10 +56,13 @@ class AuthService:
             user,
         )
 
-        EmailService.send_verification_email(
-            created_user.email,
-            verification_token,
-        )
+        try:
+    	    EmailService.send_verification_email(
+        	created_user.email,
+		verification_token,
+    	)
+        except Exception as e:
+            print(f"Email sending failed: {e}")
 
         return created_user
 

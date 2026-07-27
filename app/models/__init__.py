@@ -5,3 +5,5 @@ from .researcher import Researcher
 from .researcher_department import ResearcherDepartment
 from .publication_author import PublicationAuthor
 from .publication import Publication
+from .conference import Conference
+from .conference_registration import ConferenceRegistration

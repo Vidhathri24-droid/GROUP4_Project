@@ -1,9 +1,10 @@
 from uuid import UUID
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.conference import Conference
+from app.models.user import User, UserRole
 from app.repositories.conference_repository import ConferenceRepository
 from app.schemas.conference import (
     ConferenceCreate,
@@ -17,7 +18,14 @@ class ConferenceService:
     def create_conference(
         db: Session,
         data: ConferenceCreate,
+        current_user: User,
     ):
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can create conferences.",
+            )
+
         existing = ConferenceRepository.get_by_title(
             db,
             data.title,
@@ -25,7 +33,7 @@ class ConferenceService:
 
         if existing:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Conference already exists",
             )
 
@@ -56,7 +64,7 @@ class ConferenceService:
 
         if conference is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Conference not found",
             )
 
@@ -67,7 +75,14 @@ class ConferenceService:
         db: Session,
         conference_id: UUID,
         data: ConferenceUpdate,
+        current_user: User,
     ):
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can update conferences.",
+            )
+
         conference = ConferenceRepository.get_by_id(
             db,
             conference_id,
@@ -75,7 +90,7 @@ class ConferenceService:
 
         if conference is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Conference not found",
             )
 
@@ -93,7 +108,14 @@ class ConferenceService:
     def delete_conference(
         db: Session,
         conference_id: UUID,
+        current_user: User,
     ):
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can delete conferences.",
+            )
+
         conference = ConferenceRepository.get_by_id(
             db,
             conference_id,
@@ -101,7 +123,7 @@ class ConferenceService:
 
         if conference is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Conference not found",
             )
 
