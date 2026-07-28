@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   getPublications,
   downloadPublication,
+  deletePublication,
 } from "../services/publicationService";
 
 function Publications() {
@@ -51,12 +52,32 @@ function Publications() {
     }
   };
 
-  const handleDelete = (id) => {
-    alert(
-      "Delete functionality will be implemented next."
-    );
-  };
+  const handleDelete = async (id) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this publication?"
+  );
 
+  if (!confirmed) return;
+
+  try {
+    await deletePublication(id);
+
+    alert("Publication deleted successfully.");
+
+    // Refresh publication list
+    setPublications((prev) =>
+      prev.filter((publication) => publication.id !== id)
+    );
+
+  } catch (err) {
+    console.error(err);
+
+    alert(
+      err.response?.data?.detail ||
+      "Failed to delete publication."
+    );
+  }
+};
   if (loading) {
     return (
       <div className="container mt-5">
