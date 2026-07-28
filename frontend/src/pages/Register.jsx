@@ -6,13 +6,14 @@ function Register() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    full_name: "",
     email: "",
     password: "",
+    role: "Researcher",
   });
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
-
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -39,7 +40,6 @@ function Register() {
       setTimeout(() => {
         navigate("/login");
       }, 3000);
-
     } catch (err) {
       console.error(err);
 
@@ -58,13 +58,13 @@ function Register() {
       className="d-flex justify-content-center align-items-center"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg,#e3f2fd,#ffffff)",
+        background: "linear-gradient(135deg, #e3f2fd, #ffffff)",
       }}
     >
       <div
         className="card shadow-lg p-4"
         style={{
-          width: "450px",
+          width: "460px",
           borderRadius: "15px",
         }}
       >
@@ -85,9 +85,23 @@ function Register() {
         )}
 
         <form onSubmit={handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label fw-bold">
+              Full Name
+            </label>
+
+            <input
+              type="text"
+              name="full_name"
+              className="form-control"
+              placeholder="Enter your full name"
+              value={formData.full_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
           <div className="mb-3">
-
             <label className="form-label fw-bold">
               Email
             </label>
@@ -101,11 +115,9 @@ function Register() {
               onChange={handleChange}
               required
             />
-
           </div>
 
           <div className="mb-3">
-
             <label className="form-label fw-bold">
               Password
             </label>
@@ -114,15 +126,38 @@ function Register() {
               type="password"
               name="password"
               className="form-control"
-              placeholder="Enter password"
+              placeholder="Enter your password"
               value={formData.password}
               onChange={handleChange}
               required
+              minLength={6}
             />
+          </div>
 
+          <div className="mb-4">
+            <label className="form-label fw-bold">
+              Role
+            </label>
+
+            <select
+              name="role"
+              className="form-select"
+              value={formData.role}
+              onChange={handleChange}
+            >
+              <option value="Researcher">Researcher</option>
+              <option value="Reviewer">Reviewer</option>
+              <option value="InstitutionAdmin">
+                Institution Admin
+              </option>
+              <option value="SystemAdmin">
+                System Admin
+              </option>
+            </select>
           </div>
 
           <button
+            type="submit"
             className="btn btn-primary w-100"
             disabled={loading}
           >
@@ -130,20 +165,15 @@ function Register() {
           </button>
 
           <p className="text-center mt-3 mb-0">
-
             Already have an account?{" "}
-
             <Link
               to="/login"
               className="fw-bold text-decoration-none"
             >
               Login
             </Link>
-
           </p>
-
         </form>
-
       </div>
     </div>
   );

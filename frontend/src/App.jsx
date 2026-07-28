@@ -6,6 +6,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResendVerification from "./pages/ResendVerification";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Dashboard
 import Dashboard from "./pages/Dashboard";
@@ -13,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 // Navbar & Protection
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 // Researchers
 import Researchers from "./pages/researchers/Researchers";
@@ -36,11 +39,7 @@ import CreateInstitution from "./pages/institutions/CreateInstitution";
 import EditInstitution from "./pages/institutions/EditInstitution";
 import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 
-// Authentication
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-
-//Search
+// Search
 import Search from "./pages/Search";
 
 function App() {
@@ -49,25 +48,34 @@ function App() {
       <Navbar />
 
       <Routes>
+
         {/* ================= Public Routes ================= */}
 
         <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+
+        <Route
+          path="/verify-email"
+          element={<VerifyEmail />}
+        />
+
         <Route
           path="/resend-verification"
           element={<ResendVerification />}
         />
-	<Route
-	  path="/forgot-password"
-	  element={<ForgotPassword />}
-	/>
 
-	<Route
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        <Route
           path="/reset-password"
           element={<ResetPassword />}
-	/>
+        />
 
         {/* ================= Dashboard ================= */}
 
@@ -149,11 +157,15 @@ function App() {
           }
         />
 
+        {/* Only System Admin can create conferences */}
+
         <Route
           path="/conferences/create"
           element={
             <ProtectedRoute>
-              <CreateConference />
+              <AdminRoute>
+                <CreateConference />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -167,11 +179,15 @@ function App() {
           }
         />
 
+        {/* Only System Admin can edit conferences */}
+
         <Route
           path="/conferences/edit/:id"
           element={
             <ProtectedRoute>
-              <EditConference />
+              <AdminRoute>
+                <EditConference />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -213,10 +229,18 @@ function App() {
             </ProtectedRoute>
           }
         />
-<Route
-  path="/search"
-  element={<Search />}
-/>
+
+        {/* ================= Search ================= */}
+
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Search />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );

@@ -95,3 +95,9 @@ class User(TimestampMixin,Base):
     	back_populates="owner",
 	cascade="all, delete-orphan"
     )
+
+    conference_registrations = relationship(
+        "ConferenceRegistration",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

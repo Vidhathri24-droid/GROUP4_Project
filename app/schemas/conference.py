@@ -24,5 +24,6 @@ class ConferenceUpdate(BaseModel):
 
 class ConferenceResponse(ConferenceBase):
     id: UUID
+    participant_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)

@@ -8,7 +8,7 @@ class ResearcherBase(BaseModel):
     user_id: UUID
 
     full_name: str
-    bio: str
+    bio: Optional[str] = None
 
     phone: Optional[str] = None
     experience: Optional[int] = None

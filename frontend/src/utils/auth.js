@@ -10,3 +10,33 @@ export const logout = () => {
   localStorage.removeItem("access_token");
   localStorage.removeItem("user");
 };
+
+export const getCurrentUser = () => {
+  const user = localStorage.getItem("user");
+
+  if (!user) return null;
+
+  try {
+    return JSON.parse(user);
+  } catch {
+    return null;
+  }
+};
+
+export const getUserRole = () => {
+  const user = getCurrentUser();
+
+  return user?.role || null;
+};
+
+export const isAdmin = () => {
+  return getUserRole() === "SYSTEM_ADMIN";
+};
+
+export const isResearcher = () => {
+  return getUserRole() === "RESEARCHER";
+};
+
+export const isLoggedIn = () => {
+  return !!localStorage.getItem("access_token");
+};
