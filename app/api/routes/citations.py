@@ -1,14 +1,10 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import (
-    get_db,
-    get_current_user,
-)
-
-from app.models.user import User
+from app.api.dependencies import get_db
 
 from app.schemas.citation import (
     CitationCreate,
@@ -17,7 +13,6 @@ from app.schemas.citation import (
 )
 
 from app.services.citation_service import CitationService
-from fastapi.responses import PlainTextResponse
 
 router = APIRouter(
     prefix="/citations",
@@ -33,11 +28,10 @@ router = APIRouter(
 def create_citation(
     citation: CitationCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
     return CitationService.create_citation(
-        db=db,
-        data=citation,
+        db,
+        citation,
     )
 
 
@@ -45,7 +39,7 @@ def create_citation(
     "/",
     response_model=list[CitationResponse],
 )
-def get_citations(
+def get_all_citations(
     db: Session = Depends(get_db),
 ):
     return CitationService.get_all(db)
@@ -60,8 +54,8 @@ def get_citation(
     db: Session = Depends(get_db),
 ):
     return CitationService.get(
-        db=db,
-        citation_id=citation_id,
+        db,
+        citation_id,
     )
 
 
@@ -74,8 +68,8 @@ def get_publication_citations(
     db: Session = Depends(get_db),
 ):
     return CitationService.get_by_publication(
-        db=db,
-        publication_id=publication_id,
+        db,
+        publication_id,
     )
 
 
@@ -87,12 +81,11 @@ def update_citation(
     citation_id: UUID,
     citation: CitationUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
     return CitationService.update(
-        db=db,
-        citation_id=citation_id,
-        data=citation,
+        db,
+        citation_id,
+        citation,
     )
 
 
@@ -102,12 +95,12 @@ def update_citation(
 def delete_citation(
     citation_id: UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
     return CitationService.delete(
-        db=db,
-        citation_id=citation_id,
+        db,
+        citation_id,
     )
+
 
 @router.get(
     "/{citation_id}/bibtex",
@@ -117,8 +110,7 @@ def export_bibtex(
     citation_id: UUID,
     db: Session = Depends(get_db),
 ):
-
     return CitationService.export_bibtex(
-        db=db,
-        citation_id=citation_id,
+        db,
+        citation_id,
     )
