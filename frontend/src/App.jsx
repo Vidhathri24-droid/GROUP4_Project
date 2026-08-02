@@ -42,6 +42,12 @@ import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 // Search
 import Search from "./pages/Search";
 
+// Citations
+import Citations from "./pages/citations/Citations";
+import CreateCitation from "./pages/citations/CreateCitation";
+import EditCitation from "./pages/citations/EditCitation";
+import CitationDetails from "./pages/citations/CitationDetails";
+
 function App() {
   return (
     <BrowserRouter>
@@ -145,6 +151,45 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* =================Citations ================ */}
+        <Route
+          path="/citations"
+          element={
+            <ProtectedRoute>
+               <Citations />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/citations/create"
+          element={
+            <ProtectedRoute>
+              <CreateCitation />
+            </ProtectedRoute>
+        }
+       />
+
+        <Route
+          path="/citations/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditCitation />
+            </ProtectedRoute>
+        }
+       />
+
+        <Route
+           path="/citations/:id"
+           element={
+             <ProtectedRoute>
+                <CitationDetails />
+             </ProtectedRoute>
+           }
+        />
+
+
 
         {/* ================= Conferences ================= */}
 
