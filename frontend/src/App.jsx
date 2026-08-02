@@ -157,7 +157,7 @@ function App() {
           }
         />
 
-        {/* Only System Admin can create conferences */}
+        {/* Only System Admin and Institution Admin can create conferences */}
 
         <Route
           path="/conferences/create"

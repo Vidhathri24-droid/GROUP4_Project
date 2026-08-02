@@ -10,7 +10,10 @@ import ConferenceSearch from "../../components/conferences/ConferenceSearch";
 import ConferencePagination from "../../components/conferences/ConferencePagination";
 import ConferenceCard from "../../components/conferences/ConferenceCard";
 
-import { isAdmin } from "../../utils/auth";
+import {
+  isSystemAdmin,
+  isInstitutionAdmin,
+} from "../../utils/auth";
 
 function Conferences() {
   const [conferences, setConferences] = useState([]);
@@ -21,7 +24,8 @@ function Conferences() {
 
   const conferencesPerPage = 6;
 
-  const admin = isAdmin();
+  const canManage =
+    isSystemAdmin() || isInstitutionAdmin();
 
   useEffect(() => {
     fetchConferences();
@@ -29,7 +33,9 @@ function Conferences() {
 
   useEffect(() => {
     const results = conferences.filter((conference) =>
-      conference.title?.toLowerCase().includes(search.toLowerCase())
+      conference.title
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
     );
 
     setFiltered(results);
@@ -53,14 +59,21 @@ function Conferences() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this conference?")) return;
+    if (!window.confirm("Delete this conference?")) {
+      return;
+    }
 
     try {
       await deleteConference(id);
       fetchConferences();
     } catch (err) {
       console.error(err);
-      alert("Delete failed.");
+
+      if (err.response?.data?.detail) {
+        alert(err.response.data.detail);
+      } else {
+        alert("Failed to delete conference.");
+      }
     }
   };
 
@@ -74,17 +87,20 @@ function Conferences() {
 
   return (
     <div className="container mt-4">
+
       <div className="d-flex justify-content-between align-items-center mb-4">
+
         <h2>Conference Management</h2>
 
-        {admin && (
+        {canManage && (
           <Link
             to="/conferences/create"
-            className="btn btn-primary"
+            className="btn btn-success"
           >
-            + Create Conference
+            + Add Conference
           </Link>
         )}
+
       </div>
 
       <ConferenceSearch
@@ -104,27 +120,30 @@ function Conferences() {
           No conferences found.
         </div>
       ) : (
-        <div className="row">
-          {currentConferences.map((conference) => (
-            <div
-              key={conference.id}
-              className="col-md-6 col-lg-4 mb-4"
-            >
-              <ConferenceCard
-                conference={conference}
-                onDelete={handleDelete}
-              />
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="row">
+            {currentConferences.map((conference) => (
+              <div
+                key={conference.id}
+                className="col-md-6 col-lg-4 mb-4"
+              >
+                <ConferenceCard
+                  conference={conference}
+                  onDelete={handleDelete}
+                />
+              </div>
+            ))}
+          </div>
+
+          <ConferencePagination
+            totalItems={filtered.length}
+            itemsPerPage={conferencesPerPage}
+            currentPage={currentPage}
+            paginate={setCurrentPage}
+          />
+        </>
       )}
 
-      <ConferencePagination
-        totalItems={filtered.length}
-        itemsPerPage={conferencesPerPage}
-        currentPage={currentPage}
-        paginate={setCurrentPage}
-      />
     </div>
   );
 }

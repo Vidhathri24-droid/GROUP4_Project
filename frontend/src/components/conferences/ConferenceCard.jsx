@@ -1,96 +1,147 @@
 import { Link } from "react-router-dom";
-import { isAdmin } from "../../utils/auth";
 
-function ConferenceCard({ conference, onDelete }) {
-  const admin = isAdmin();
+import {
+  joinConference,
+  leaveConference,
+} from "../../services/conferenceService";
 
-  const formatDate = (date) => {
-    if (!date) return "N/A";
+import {
+  isSystemAdmin,
+  isInstitutionAdmin,
+  isResearcher,
+} from "../../utils/auth";
 
+function ConferenceCard({
+  conference,
+  onDelete,
+  refreshConferences,
+}) {
+
+  const canManage =
+    isSystemAdmin() || isInstitutionAdmin();
+
+  const researcher = isResearcher();
+
+  const handleJoin = async () => {
     try {
-      return new Date(date).toLocaleDateString();
-    } catch {
-      return date;
+      await joinConference(conference.id);
+
+      alert("Successfully joined conference.");
+
+      if (refreshConferences) {
+        refreshConferences();
+      }
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.data?.detail) {
+        alert(err.response.data.detail);
+      } else {
+        alert("Unable to join conference.");
+      }
     }
   };
 
-  const handleJoin = () => {
-    alert(
-      "Join Conference feature will be connected to the backend."
-    );
+  const handleLeave = async () => {
+    try {
+      await leaveConference(conference.id);
+
+      alert("Successfully left conference.");
+
+      if (refreshConferences) {
+        refreshConferences();
+      }
+    } catch (err) {
+      console.error(err);
+
+      if (err.response?.data?.detail) {
+        alert(err.response.data.detail);
+      } else {
+        alert("Unable to leave conference.");
+      }
+    }
   };
 
   return (
-    <div className="card shadow-sm h-100 border-0">
+    <div className="card shadow h-100">
+
       <div className="card-body">
+
         <h4 className="card-title text-primary">
           {conference.title}
         </h4>
 
         <hr />
 
-        <p className="mb-3">
-          <strong>Location</strong>
+        <p>
+          <strong>Location:</strong>
           <br />
-          {conference.location || "Not Available"}
+          {conference.location || "Not specified"}
         </p>
 
-        <p className="mb-3">
-          <strong>Conference Date</strong>
+        <p>
+          <strong>Date:</strong>
           <br />
-          {formatDate(conference.conference_date)}
+          {conference.conference_date || "Not specified"}
         </p>
 
-        <p className="mb-4">
-          <strong>Description</strong>
+        <p>
+          <strong>Description:</strong>
           <br />
-          {conference.description
-            ? conference.description.length > 120
-              ? conference.description.substring(0, 120) + "..."
-              : conference.description
-            : "No description available."}
+          {conference.description || "No description"}
         </p>
+
+        <p>
+          <strong>Participants:</strong>{" "}
+          {conference.participant_count}
+        </p>
+
       </div>
 
-      <div className="card-footer bg-white border-0">
-        <div className="d-grid gap-2">
+      <div className="card-footer bg-white">
 
-          <Link
-            to={`/conferences/${conference.id}`}
-            className="btn btn-outline-primary"
-          >
-            View Details
-          </Link>
+        {canManage && (
+          <div className="d-flex justify-content-between">
 
-          {admin && (
             <Link
               to={`/conferences/edit/${conference.id}`}
               className="btn btn-warning"
             >
               Edit
             </Link>
-          )}
 
-          <button
-            type="button"
-            className="btn btn-success"
-            onClick={handleJoin}
-          >
-            Join Conference
-          </button>
-
-          {admin && (
             <button
-              type="button"
               className="btn btn-danger"
               onClick={() => onDelete(conference.id)}
             >
               Delete
             </button>
-          )}
 
-        </div>
+          </div>
+        )}
+
+        {researcher && (
+          <div className="d-flex justify-content-between">
+
+            <button
+              className="btn btn-success"
+              onClick={handleJoin}
+            >
+              Join
+            </button>
+
+            <button
+              className="btn btn-secondary"
+              onClick={handleLeave}
+            >
+              Leave
+            </button>
+
+          </div>
+        )}
+
       </div>
+
     </div>
   );
 }

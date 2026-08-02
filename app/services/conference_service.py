@@ -20,7 +20,7 @@ class ConferenceService:
         data: ConferenceCreate,
         current_user: User,
     ):
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.INSTITUTION_ADMIN,]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only System Admin can create conferences.",
@@ -77,7 +77,7 @@ class ConferenceService:
         data: ConferenceUpdate,
         current_user: User,
     ):
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN,UserRole.INSTITUTION_ADMIN,]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only System Admin can update conferences.",
@@ -110,7 +110,7 @@ class ConferenceService:
         conference_id: UUID,
         current_user: User,
     ):
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.INSTITUTION_ADMIN,]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only System Admin can delete conferences.",

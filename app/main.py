@@ -11,6 +11,8 @@ from app.api.routes import analytics
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.home import router as home_router
 from app.api.routes.search import router as search_router
+from app.api.routes.citations import router as citation_router
+from app.models.citation import Citation
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
@@ -38,6 +40,7 @@ app.include_router(analytics.router)
 app.include_router(dashboard_router)
 app.include_router(home_router)
 app.include_router(search_router)
+app.include_router(citation_router)
 
 @app.get("/")
 def root():
