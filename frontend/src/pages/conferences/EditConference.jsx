@@ -29,7 +29,7 @@ function EditConference() {
       setConference(data);
     } catch (err) {
       console.error(err);
-      setError("Unable to load conference details.");
+      setError("Unable to load conference.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,15 @@ function EditConference() {
       console.error(err);
 
       if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
+        if (Array.isArray(err.response.data.detail)) {
+          setError(
+            err.response.data.detail
+              .map((item) => item.msg)
+              .join(", ")
+          );
+        } else {
+          setError(err.response.data.detail);
+        }
       } else {
         setError("Failed to update conference.");
       }

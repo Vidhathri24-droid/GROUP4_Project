@@ -16,21 +16,24 @@ from app.schemas.conference import (
     ConferenceResponse,
 )
 
-from app.services.conference_service import ConferenceService
-from app.services.conference_registration_service import (
-    ConferenceRegistrationService,
-)
-
 from app.schemas.conference_registration import (
     ConferenceRegistrationResponse,
 )
 
+from app.services.conference_service import ConferenceService
+from app.services.conference_registration_service import (
+    ConferenceRegistrationService,
+)
 
 router = APIRouter(
     prefix="/conferences",
     tags=["Conferences"],
 )
 
+
+# ==========================================
+# Conference CRUD
+# ==========================================
 
 @router.post(
     "/",
@@ -63,10 +66,52 @@ def get_conferences(
     "/{conference_id}",
     response_model=ConferenceResponse,
 )
+def get_conference(
+    conference_id: UUID,
+    db: Session = Depends(get_db),
+):
+    return ConferenceService.get_conference(
+        db=db,
+        conference_id=conference_id,
+    )
 
-# ===============================
-# Conference Registration Routes
-# ===============================
+
+@router.put(
+    "/{conference_id}",
+    response_model=ConferenceResponse,
+)
+def update_conference(
+    conference_id: UUID,
+    conference: ConferenceUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ConferenceService.update_conference(
+        db=db,
+        conference_id=conference_id,
+        data=conference,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/{conference_id}",
+)
+def delete_conference(
+    conference_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return ConferenceService.delete_conference(
+        db=db,
+        conference_id=conference_id,
+        current_user=current_user,
+    )
+
+
+# ==========================================
+# Conference Registration
+# ==========================================
 
 @router.post(
     "/{conference_id}/join",
@@ -109,47 +154,5 @@ def get_joined_conferences(
 ):
     return ConferenceRegistrationService.get_joined_conferences(
         db=db,
-        current_user=current_user,
-    )
-
-def get_conference(
-    conference_id: UUID,
-    db: Session = Depends(get_db),
-):
-    return ConferenceService.get_conference(
-        db=db,
-        conference_id=conference_id,
-    )
-
-
-@router.put(
-    "/{conference_id}",
-    response_model=ConferenceResponse,
-)
-def update_conference(
-    conference_id: UUID,
-    conference: ConferenceUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return ConferenceService.update_conference(
-        db=db,
-        conference_id=conference_id,
-        data=conference,
-        current_user=current_user,
-    )
-
-
-@router.delete(
-    "/{conference_id}",
-)
-def delete_conference(
-    conference_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    return ConferenceService.delete_conference(
-        db=db,
-        conference_id=conference_id,
         current_user=current_user,
     )
