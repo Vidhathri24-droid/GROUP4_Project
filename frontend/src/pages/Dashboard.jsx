@@ -11,6 +11,16 @@ export default function Dashboard() {
   const [uploadStatus, setUploadStatus] = useState('');
   const [isDragging, setIsDragging] = useState(false);
 
+  // Toast Notification State
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+
+  const triggerToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'info' });
+    }, 3500);
+  };
+
   const publicationData = [
     { year: '2020', publications: 420 },
     { year: '2021', publications: 580 },
@@ -31,7 +41,7 @@ export default function Dashboard() {
       setSelectedFile(file);
       setUploadStatus('');
     } else {
-      alert("Kripya sirf CSV ya JSON file upload karein.");
+      triggerToast("Kripya sirf CSV ya JSON file upload karein.", "error");
     }
   };
 
@@ -58,29 +68,26 @@ export default function Dashboard() {
 
     setTimeout(() => {
       setUploadStatus('success');
+      triggerToast(`Dataset '${selectedFile.name}' processed successfully!`, 'success');
       setTimeout(() => {
         setShowModal(false);
         setSelectedFile(null);
         setUploadStatus('');
-      }, 1500);
+      }, 1200);
     }, 1200);
   };
 
   return (
-    <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)', minHeight: '100vh', color: '#f8fafc' }} className="py-4">
-      <div className="container">
+    <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)', minHeight: '100vh', color: '#f8fafc' }}>
+      
+      <div className="container py-4">
 
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4 pb-3" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
-          <div>
-            <h2 className="fw-bold mb-1" style={{ color: '#38bdf8', letterSpacing: '-0.5px' }}>
-              Scientific Collaboration Network
-            </h2>
-            <p className="text-light opacity-75 small mb-0">Analytics, publication trends, and researcher network density</p>
-          </div>
-          <button className="btn btn-outline-danger btn-sm rounded-2 px-3 fw-semibold" onClick={() => navigate('/login')}>
-            Logout
-          </button>
+        {/* Header Title */}
+        <div className="text-center my-4 pb-3" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
+          <h2 className="fw-bold mb-1" style={{ color: '#38bdf8', letterSpacing: '-0.5px' }}>
+            Scientific Collaboration Network
+          </h2>
+          <p className="text-light opacity-75 small mb-0">Analytics, publication trends, and researcher network density</p>
         </div>
 
         {/* Metric Cards */}
@@ -201,7 +208,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-      </div> {/* Container tag fix */}
+      </div>
 
       {/* UPLOAD MODAL */}
       {showModal && (
@@ -276,6 +283,28 @@ export default function Dashboard() {
                 </button>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST NOTIFICATION POPUP */}
+      {toast.show && (
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1100 }}>
+          <div 
+            className="toast show align-items-center text-white border-0 shadow-lg rounded-3 p-2" 
+            style={{ backgroundColor: toast.type === 'error' ? '#dc2626' : '#059669', minWidth: '280px' }}
+          >
+            <div className="d-flex justify-content-between align-items-center">
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold">{toast.type === 'error' ? '✕' : '✓'}</span>
+                <span className="small fw-semibold">{toast.message}</span>
+              </div>
+              <button 
+                type="button" 
+                className="btn-close btn-close-white opacity-75" 
+                onClick={() => setToast({ ...toast, show: false })}
+              ></button>
             </div>
           </div>
         </div>

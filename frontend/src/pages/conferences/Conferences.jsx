@@ -8,26 +8,54 @@ export default function Conferences() {
   ];
 
   return (
-    <div className="container py-4">
-      <h2 className="fw-bold text-dark mb-1">Conferences & Venues</h2>
-      <p className="text-muted mb-4">Top research publication venues and conference rankings.</p>
+    <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #172554 100%)', minHeight: '100vh', color: '#f8fafc', padding: '2.5rem 1rem' }}>
+      <div className="container" style={{ maxWidth: '1100px' }}>
+        
+        {/* Header */}
+        <div className="mb-4">
+          <h2 className="fw-bold mb-1" style={{ color: '#38bdf8' }}>Conferences & Venues</h2>
+          <p className="text-light opacity-75 mb-0">Top research publication venues and conference rankings.</p>
+        </div>
 
-      <div className="row g-4">
-        {conferencesList.map((conf) => (
-          <div key={conf.id} className="col-md-4">
-            <div className="card border-0 shadow-sm rounded-3 p-4 h-100">
-              <span className="badge bg-primary-subtle text-primary border border-primary w-fit mb-2 align-self-start">
-                {conf.acronym}
-              </span>
-              <h5 className="fw-bold text-dark mb-2">{conf.name}</h5>
-              <p className="text-muted small mb-3">🌐 {conf.location}</p>
-              <div className="mt-auto border-top pt-2 d-flex justify-content-between align-items-center">
-                <span className="text-muted small">Impact Score:</span>
-                <strong className="text-success">{conf.impactScore}</strong>
+        {/* Conferences Grid */}
+        <div className="row g-4">
+          {conferencesList.map((conf) => (
+            <div key={conf.id} className="col-md-4">
+              <div 
+                className="p-4 rounded-4 shadow-lg h-100 d-flex flex-column justify-content-between"
+                style={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)', 
+                  border: '1px solid rgba(255, 255, 255, 0.08)', 
+                  backdropFilter: 'blur(8px)',
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                <div>
+                  {/* Glowing Acronym Badge */}
+                  <span 
+                    className="badge px-3 py-2 fw-bold mb-3 d-inline-block" 
+                    style={{ 
+                      backgroundColor: 'rgba(56, 189, 248, 0.15)', 
+                      color: '#38bdf8', 
+                      border: '1px solid rgba(56, 189, 248, 0.3)' 
+                    }}
+                  >
+                    {conf.acronym}
+                  </span>
+
+                  <h5 className="fw-bold text-white mb-2">{conf.name}</h5>
+                  <p className="text-light opacity-75 small mb-3">🌐 {conf.location}</p>
+                </div>
+
+                <div className="mt-auto pt-3 d-flex justify-content-between align-items-center" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <span className="text-light opacity-50 small">Impact Score:</span>
+                  <strong className="fs-6" style={{ color: '#34d399' }}>{conf.impactScore}</strong>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
     </div>
   );
