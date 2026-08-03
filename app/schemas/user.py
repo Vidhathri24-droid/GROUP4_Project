@@ -6,7 +6,8 @@ from app.models.user import UserRole
 
 
 class UserCreate(BaseModel):
-    full_name: str
+    first_name: str
+    last_name: str
     email: EmailStr
     password: str
     role: UserRole = UserRole.RESEARCHER
@@ -23,6 +24,7 @@ class UserResponse(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    full_name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
     email: EmailStr | None = None
     password: str | None = None

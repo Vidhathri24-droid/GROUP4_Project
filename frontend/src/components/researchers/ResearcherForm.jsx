@@ -7,7 +7,8 @@ export default function ResearcherForm({
 }) {
     const [form, setForm] = useState(
         initialValues || {
-            full_name: "",
+            first_name: "",
+            last_name: "",
             bio: "",
             phone: "",
             experience: 0,
@@ -35,13 +36,27 @@ export default function ResearcherForm({
 
             <div className="mb-3">
                 <label className="form-label">
-                    Full Name
+                    First Name
                 </label>
 
                 <input
                     className="form-control"
-                    name="full_name"
-                    value={form.full_name}
+                    name="first_name"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">
+                    Last Name
+                </label>
+
+                <input
+                    className="form-control"
+                    name="last_name"
+                    value={form.last_name}
                     onChange={handleChange}
                     required
                 />

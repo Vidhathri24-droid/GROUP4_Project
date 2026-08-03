@@ -22,7 +22,7 @@ class SearchRepository:
             db.query(Researcher)
             .filter(
                 or_(
-                    Researcher.full_name.ilike(f"%{query}%"),
+                    (Researcher.first_name + " " + Researcher.last_name).ilike(f"%{query}%"),
                     Researcher.bio.ilike(f"%{query}%"),
                     Researcher.orcid.ilike(f"%{query}%"),
                 )
@@ -37,9 +37,9 @@ class SearchRepository:
             )
 
         if sort == "oldest":
-            q = q.order_by(Researcher.full_name.asc())
+            q = q.order_by(Researcher.first_name.asc())
         else:
-            q = q.order_by(Researcher.full_name.asc())
+            q = q.order_by(Researcher.last_name.asc())
 
         total = q.count()
 

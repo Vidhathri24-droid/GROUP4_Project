@@ -146,6 +146,19 @@ export default function Navbar() {
                     Dashboard
                   </NavLink>
                 </li>
+                <li className="nav-item">
+  <NavLink
+    className={({ isActive }) =>
+      isActive
+        ? "nav-link active fw-bold"
+        : "nav-link"
+    }
+    to="/collaborations"
+  >
+    <i className="bi bi-people-fill me-1"></i>
+    Collaboration
+  </NavLink>
+</li>
 
                 <li className="nav-item ms-lg-2">
                   <button

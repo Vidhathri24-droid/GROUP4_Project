@@ -20,6 +20,8 @@ import AdminRoute from "./components/AdminRoute";
 // Researchers
 import Researchers from "./pages/researchers/Researchers";
 import CreateResearcher from "./pages/researchers/CreateResearcher";
+import ResearcherDetails from "./pages/researchers/ResearcherDetails";
+import EditResearcher from "./pages/researchers/EditResearcher";
 
 // Publications
 import Publications from "./pages/Publications";
@@ -42,11 +44,15 @@ import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 // Search
 import Search from "./pages/Search";
 
+
 // Citations
 import Citations from "./pages/citations/Citations";
 import CreateCitation from "./pages/citations/CreateCitation";
 import EditCitation from "./pages/citations/EditCitation";
 import CitationDetails from "./pages/citations/CitationDetails";
+
+import Collaboration from "./pages/Collaboration";
+
 
 function App() {
   return (
@@ -72,6 +78,7 @@ function App() {
           path="/resend-verification"
           element={<ResendVerification />}
         />
+          
 
         <Route
           path="/forgot-password"
@@ -110,6 +117,22 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateResearcher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+  path="/researchers/:id"
+  element={
+    <ProtectedRoute>
+      <ResearcherDetails />
+    </ProtectedRoute>
+  }
+/>
+        <Route
+          path="/researchers/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditResearcher />
             </ProtectedRoute>
           }
         />
@@ -275,7 +298,17 @@ function App() {
           }
         />
 
-        {/* ================= Search ================= */}
+        {/* ================= Collaboration ================= */}
+
+        <Route
+          path="/collaborations"
+          element={
+            <ProtectedRoute>
+            <Collaboration />
+            </ProtectedRoute>
+          }
+        />
+       {/* ================= Search ================= */}
 
         <Route
           path="/search"

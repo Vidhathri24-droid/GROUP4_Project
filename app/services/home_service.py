@@ -28,7 +28,7 @@ class HomeService:
             trending.append(
                 {
                     "id": str(researcher.id),
-                    "name": researcher.full_name,
+                    "name": f"{researcher.first_name} {researcher.last_name}",
                     "department": department_name,
                     "institution_name": institution_name,
                     "publication_count": len(researcher.publications),
