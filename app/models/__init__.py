@@ -7,3 +7,4 @@ from .publication_author import PublicationAuthor
 from .publication import Publication
 from .conference import Conference
 from .conference_registration import ConferenceRegistration
+from .notification import Notification

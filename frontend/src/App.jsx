@@ -41,6 +41,7 @@ import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 
 // Search
 import Search from "./pages/Search";
+import UserManagement from "./pages/UserManagement";
 
 function App() {
   return (
@@ -239,6 +240,19 @@ function App() {
               <Search />
             </ProtectedRoute>
           }
+        />
+
+        {/* ================= User Management ================= */}
+
+        <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <UserManagement />
+                </AdminRoute>
+              </ProtectedRoute>
+            }
         />
 
       </Routes>

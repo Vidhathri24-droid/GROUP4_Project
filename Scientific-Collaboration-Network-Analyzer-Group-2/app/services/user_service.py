@@ -24,18 +24,19 @@ class UserService:
         data,
     ):
 
-        if data.email:
-            user.email = data.email
+       if data.email is not None:
+           user.email = data.email
 
-        if data.password:
-            user.password_hash = hash_password(
-                data.password
-            )
+       if data.password is not None:
+           user.password_hash = hash_password(data.password)
 
-        return UserRepository.update(
-            db,
-            user,
-        )
+       if data.role is not None:
+           user.role = data.role
+
+       if data.is_active is not None:
+           user.is_active = data.is_active
+
+       return UserRepository.update(db, user)
 
     @staticmethod
     def delete_user(

@@ -6,6 +6,7 @@ from app.api.routes.institutions import router as institution_router
 from app.api.routes.departments import router as department_router
 from app.api.routes.conferences import router as conference_router
 from app.api.routes.publications import router as publication_router
+from app.api.routes.notification import router as notification_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import analytics
 from app.api.routes.dashboard import router as dashboard_router
@@ -38,6 +39,7 @@ app.include_router(analytics.router)
 app.include_router(dashboard_router)
 app.include_router(home_router)
 app.include_router(search_router)
+app.include_router(notification_router)
 
 @app.get("/")
 def root():

@@ -23,3 +23,5 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
+    role: UserRole | None = None
+    is_active: bool | None = None

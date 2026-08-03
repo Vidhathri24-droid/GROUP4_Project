@@ -9,8 +9,11 @@ from app.api.dependencies import (
     require_admin,
 )
 
-from app.schemas.user import UserUpdate
+from typing import List
+
+from app.schemas.user import UserUpdate, UserResponse
 from app.services.user_service import UserService
+from app.models.user import UserRole
 
 router = APIRouter(
     prefix="/users",
@@ -18,8 +21,11 @@ router = APIRouter(
 )
 
 
+from typing import List
+from app.schemas.user import UserResponse
+
 # Get all users (Admin only)
-@router.get("/")
+@router.get("/", response_model=List[UserResponse])
 def get_users(
     db: Session = Depends(get_db),
     current_user=Depends(require_admin),
@@ -55,8 +61,12 @@ def update_user(
 
     if (
         current_user.id != user.id
-        and current_user.role.name != "ADMIN"
+        and current_user.role != UserRole.SYSTEM_ADMIN
     ):
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied",
+        )
         raise HTTPException(
             status_code=403,
             detail="Permission denied",

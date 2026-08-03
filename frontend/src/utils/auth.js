@@ -30,11 +30,11 @@ export const getUserRole = () => {
 };
 
 export const isAdmin = () => {
-  return getUserRole() === "SYSTEM_ADMIN";
+  return getUserRole() === "SystemAdmin";
 };
 
 export const isResearcher = () => {
-  return getUserRole() === "RESEARCHER";
+  return getUserRole() === "Researcher";
 };
 
 export const isLoggedIn = () => {
