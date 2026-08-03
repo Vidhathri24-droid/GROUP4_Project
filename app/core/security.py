@@ -6,29 +6,33 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
+# Password hashing context setup
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password[:72])
+    """Password ko bcrypt se hash karta hai."""
+    return pwd_context.hash(password)
 
 
 def verify_password(
     plain_password: str,
     hashed_password: str,
 ) -> bool:
+    """User ke password ko database ke hashed password se verify karta hai."""
     return pwd_context.verify(
-        plain_password[:72],
+        plain_password,
         hashed_password,
     )
+
 
 def create_access_token(
     subject: str,
     expires_delta: timedelta | None = None,
 ) -> str:
-
+    """JWT Access Token create karta hai."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -37,7 +41,7 @@ def create_access_token(
         )
 
     payload: dict[str, Any] = {
-        "sub": subject,
+        "sub": str(subject),
         "exp": expire,
     }
 
@@ -48,12 +52,14 @@ def create_access_token(
     )
 
 
-def decode_access_token(token: str):
+def decode_access_token(token: str) -> dict[str, Any] | None:
+    """JWT Token ko verify aur decode karta hai."""
     try:
-        return jwt.decode(
+        payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
-    except JWTError:
+        return payload
+    except Exception:
         return None
