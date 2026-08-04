@@ -49,6 +49,14 @@ class Researcher(TimestampMixin, Base):
     )
 
     first_name: Mapped[str] = mapped_column(
+<<<<<<< HEAD
+=======
+        String(255),
+        nullable=False,
+    )
+
+    last_name: Mapped[str] = mapped_column(
+>>>>>>> Harshini_V
         String(255),
         nullable=False,
     )

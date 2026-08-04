@@ -42,8 +42,13 @@ export default function Researchers() {
 
         return researchers.filter((r) =>
 
+<<<<<<< HEAD
             `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
 
+=======
+            r.first_name?.toLowerCase().includes(search.toLowerCase()) ||
+            r.last_name?.toLowerCase().includes(search.toLowerCase()) ||
+>>>>>>> Harshini_V
             r.phone?.includes(search) ||
 
             r.orcid?.toLowerCase().includes(search.toLowerCase())
