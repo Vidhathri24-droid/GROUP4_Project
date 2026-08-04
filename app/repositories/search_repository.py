@@ -37,9 +37,15 @@ class SearchRepository:
             )
 
         if sort == "oldest":
+<<<<<<< HEAD
+            q = q.order_by(Researcher.full_name.asc(), Researcher.last_name.asc())
+        else:
+            q = q.order_by(Researcher.full_name.asc(), Researcher.last_name.asc())
+=======
             q = q.order_by(Researcher.first_name.asc())
         else:
             q = q.order_by(Researcher.last_name.asc())
+>>>>>>> Harshini_V
 
         total = q.count()
 

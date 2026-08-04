@@ -32,7 +32,12 @@ export default function ResearcherTable({ researchers }) {
 
                         <tr key={researcher.id}>
 
+<<<<<<< HEAD
+                            <td>{researcher.first_name}</td>
+                            <td>{researcher.last_name}</td>
+=======
                             <td>{researcher.first_name} {researcher.last_name}</td>
+>>>>>>> Harshini_V
 
                             <td>{researcher.experience} Years</td>
 

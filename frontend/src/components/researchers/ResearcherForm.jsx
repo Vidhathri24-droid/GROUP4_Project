@@ -5,6 +5,7 @@ export default function ResearcherForm({
     onSubmit,
     loading,
 }) {
+
     const [form, setForm] = useState(
         initialValues || {
             first_name: "",
@@ -32,8 +33,41 @@ export default function ResearcherForm({
     };
 
     return (
+
         <form onSubmit={submit}>
 
+<<<<<<< HEAD
+            <div className="row">
+
+                <div className="col-md-6 mb-3">
+
+                    <label>First Name</label>
+
+                    <input
+                        className="form-control"
+                        name="first_name"
+                        value={form.first_name}
+                        onChange={handleChange}
+                        required
+                    />
+
+                </div>
+
+                <div className="col-md-6 mb-3">
+
+                    <label>Last Name</label>
+
+                    <input
+                        className="form-control"
+                        name="last_name"
+                        value={form.last_name}
+                        onChange={handleChange}
+                        required
+                    />
+
+                </div>
+
+=======
             <div className="mb-3">
                 <label className="form-label">
                     First Name
@@ -60,12 +94,12 @@ export default function ResearcherForm({
                     onChange={handleChange}
                     required
                 />
+>>>>>>> Harshini_V
             </div>
 
             <div className="mb-3">
-                <label className="form-label">
-                    Bio
-                </label>
+
+                <label>Bio</label>
 
                 <textarea
                     className="form-control"
@@ -74,11 +108,13 @@ export default function ResearcherForm({
                     value={form.bio}
                     onChange={handleChange}
                 />
+
             </div>
 
             <div className="row">
 
                 <div className="col-md-6 mb-3">
+
                     <label>Phone</label>
 
                     <input
@@ -87,9 +123,11 @@ export default function ResearcherForm({
                         value={form.phone}
                         onChange={handleChange}
                     />
+
                 </div>
 
                 <div className="col-md-6 mb-3">
+
                     <label>Experience</label>
 
                     <input
@@ -99,11 +137,13 @@ export default function ResearcherForm({
                         value={form.experience}
                         onChange={handleChange}
                     />
+
                 </div>
 
             </div>
 
             <div className="mb-3">
+
                 <label>ORCID</label>
 
                 <input
@@ -112,9 +152,11 @@ export default function ResearcherForm({
                     value={form.orcid}
                     onChange={handleChange}
                 />
+
             </div>
 
             <div className="mb-3">
+
                 <label>Google Scholar</label>
 
                 <input
@@ -123,9 +165,11 @@ export default function ResearcherForm({
                     value={form.google_scholar}
                     onChange={handleChange}
                 />
+
             </div>
 
             <div className="mb-3">
+
                 <label>ResearchGate</label>
 
                 <input
@@ -134,9 +178,11 @@ export default function ResearcherForm({
                     value={form.research_gate}
                     onChange={handleChange}
                 />
+
             </div>
 
             <div className="mb-4">
+
                 <label>LinkedIn</label>
 
                 <input
@@ -145,6 +191,7 @@ export default function ResearcherForm({
                     value={form.linkedin}
                     onChange={handleChange}
                 />
+
             </div>
 
             <button

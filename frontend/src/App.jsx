@@ -8,7 +8,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ResendVerification from "./pages/ResendVerification";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-
+import Notifications from "./pages/Notifications";
 // Dashboard
 import Dashboard from "./pages/Dashboard";
 
@@ -43,6 +43,7 @@ import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 
 // Search
 import Search from "./pages/Search";
+import UserManagement from "./pages/UserManagement";
 
 
 // Citations
@@ -318,6 +319,28 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ================= User Management ================= */}
+
+        <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <UserManagement />
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+        />
+
+        <Route 
+            path="/notifications" 
+            element={ 
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            } 
+          />
 
       </Routes>
     </BrowserRouter>
