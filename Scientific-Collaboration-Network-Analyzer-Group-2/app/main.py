@@ -10,11 +10,11 @@ from app.api.routes.conferences import router as conference_router
 from app.api.routes.publications import router as publication_router
 from app.api.routes.notification import router as notification_router
 from app.api.routes.collaborations import router as collaboration_router
+from app.api.routes.citations import router as citation_router
 from app.api.routes import analytics
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.home import router as home_router
 from app.api.routes.search import router as search_router
-from app.api.routes.citations import router as citation_router
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
@@ -23,9 +23,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
