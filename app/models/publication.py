@@ -148,3 +148,9 @@ class Publication(TimestampMixin, Base):
         secondary="publication_authors",
         back_populates="publications",
     )
+
+    citations = relationship(
+    	"Citation",
+    	back_populates="publication",
+    	cascade="all, delete-orphan",
+    )

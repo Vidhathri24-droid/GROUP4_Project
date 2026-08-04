@@ -7,7 +7,8 @@ from pydantic import BaseModel, ConfigDict
 class ResearcherBase(BaseModel):
     user_id: UUID
 
-    full_name: str
+    first_name: str
+    last_name: str
     bio: Optional[str] = None
 
     phone: Optional[str] = None
@@ -24,7 +25,8 @@ class ResearcherCreate(ResearcherBase):
 
 
 class ResearcherUpdate(BaseModel):
-    full_name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     bio: Optional[str] = None
 
     phone: Optional[str] = None

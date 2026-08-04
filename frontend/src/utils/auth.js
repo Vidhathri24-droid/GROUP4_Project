@@ -18,23 +18,48 @@ export const getCurrentUser = () => {
 
   try {
     return JSON.parse(user);
-  } catch {
+  } catch (error) {
     return null;
   }
 };
 
 export const getUserRole = () => {
   const user = getCurrentUser();
-
   return user?.role || null;
 };
 
-export const isAdmin = () => {
-  return getUserRole() === "SystemAdmin";
+export const isSystemAdmin = () => {
+  const role = getUserRole();
+
+  return (
+    role === "SystemAdmin" ||
+    role === "SYSTEM_ADMIN"
+  );
+};
+
+export const isInstitutionAdmin = () => {
+  const role = getUserRole();
+
+  return (
+    role === "InstitutionAdmin" ||
+    role === "INSTITUTION_ADMIN"
+  );
 };
 
 export const isResearcher = () => {
-  return getUserRole() === "Researcher";
+  const role = getUserRole();
+
+  return (
+    role === "Researcher" ||
+    role === "RESEARCHER"
+  );
+};
+
+export const isAdmin = () => {
+  return (
+    isSystemAdmin() ||
+    isInstitutionAdmin()
+  );
 };
 
 export const isLoggedIn = () => {

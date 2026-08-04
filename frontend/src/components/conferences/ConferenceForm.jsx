@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function ConferenceForm({
   initialData = null,
@@ -18,9 +18,7 @@ function ConferenceForm({
     setFormData({
       title: initialData.title || "",
       location: initialData.location || "",
-      conference_date: initialData.conference_date
-        ? initialData.conference_date.slice(0, 10)
-        : "",
+      conference_date: initialData.conference_date || "",
       description: initialData.description || "",
     });
   }, [initialData]);
@@ -36,7 +34,6 @@ function ConferenceForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     onSubmit(formData);
   };
 
@@ -48,6 +45,7 @@ function ConferenceForm({
 
       <div className="card-body">
         <form onSubmit={handleSubmit}>
+
           <div className="mb-3">
             <label className="form-label">
               Conference Title
@@ -55,11 +53,10 @@ function ConferenceForm({
 
             <input
               type="text"
-              name="title"
               className="form-control"
+              name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter conference title"
               required
             />
           </div>
@@ -71,12 +68,10 @@ function ConferenceForm({
 
             <input
               type="text"
-              name="location"
               className="form-control"
+              name="location"
               value={formData.location}
               onChange={handleChange}
-              placeholder="Enter conference location"
-              required
             />
           </div>
 
@@ -87,11 +82,10 @@ function ConferenceForm({
 
             <input
               type="date"
-              name="conference_date"
               className="form-control"
+              name="conference_date"
               value={formData.conference_date}
               onChange={handleChange}
-              required
             />
           </div>
 
@@ -102,22 +96,23 @@ function ConferenceForm({
 
             <textarea
               rows="5"
-              name="description"
               className="form-control"
+              name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Enter conference description"
-              required
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-success"
-            disabled={loading}
-          >
-            {loading ? "Saving..." : "Save Conference"}
-          </button>
+          <div className="mt-4">
+            <button
+              type="submit"
+              className="btn btn-success"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save Conference"}
+            </button>
+          </div>
+
         </form>
       </div>
     </div>

@@ -1,50 +1,44 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-import ConferenceForm from "../../components/conferences/ConferenceForm";
-import {
-  getConference,
-  updateConference,
-} from "../../services/conferenceService";
+import CitationForm from "../../components/citations/CitationForm";
+import { createCitation } from "../../services/citationService";
+import { getPublications } from "../../services/publicationService";
 
-function EditConference() {
-  const { id } = useParams();
+function CreateCitation() {
   const navigate = useNavigate();
 
-  const [conference, setConference] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [publications, setPublications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchConference();
+    fetchPublications();
   }, []);
 
-  const fetchConference = async () => {
+  const fetchPublications = async () => {
     try {
-      setLoading(true);
-
-      const data = await getConference(id);
-
-      setConference(data);
+      const data = await getPublications();
+      setPublications(data);
     } catch (err) {
       console.error(err);
-      setError("Unable to load conference.");
+      setError("Unable to load publications.");
     } finally {
-      setLoading(false);
+      setPageLoading(false);
     }
   };
 
   const handleSubmit = async (formData) => {
     try {
-      setSaving(true);
+      setLoading(true);
       setError("");
 
-      await updateConference(id, formData);
+      await createCitation(formData);
 
-      alert("Conference updated successfully.");
+      alert("Citation created successfully.");
 
-      navigate("/conferences");
+      navigate("/citations");
     } catch (err) {
       console.error(err);
 
@@ -59,14 +53,14 @@ function EditConference() {
           setError(err.response.data.detail);
         }
       } else {
-        setError("Failed to update conference.");
+        setError("Failed to create citation.");
       }
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
-  if (loading) {
+  if (pageLoading) {
     return (
       <div className="container mt-5 text-center">
         <div
@@ -82,10 +76,10 @@ function EditConference() {
 
       <div className="row justify-content-center">
 
-        <div className="col-lg-8">
+        <div className="col-lg-10">
 
           <h2 className="mb-4">
-            Edit Conference
+            Create Citation
           </h2>
 
           {error && (
@@ -94,10 +88,10 @@ function EditConference() {
             </div>
           )}
 
-          <ConferenceForm
-            initialData={conference}
+          <CitationForm
+            publications={publications}
             onSubmit={handleSubmit}
-            loading={saving}
+            loading={loading}
           />
 
         </div>
@@ -108,4 +102,4 @@ function EditConference() {
   );
 }
 
-export default EditConference;
+export default CreateCitation;

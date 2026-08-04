@@ -20,6 +20,8 @@ import AdminRoute from "./components/AdminRoute";
 // Researchers
 import Researchers from "./pages/researchers/Researchers";
 import CreateResearcher from "./pages/researchers/CreateResearcher";
+import ResearcherDetails from "./pages/researchers/ResearcherDetails";
+import EditResearcher from "./pages/researchers/EditResearcher";
 
 // Publications
 import Publications from "./pages/Publications";
@@ -42,6 +44,16 @@ import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 // Search
 import Search from "./pages/Search";
 import UserManagement from "./pages/UserManagement";
+
+
+// Citations
+import Citations from "./pages/citations/Citations";
+import CreateCitation from "./pages/citations/CreateCitation";
+import EditCitation from "./pages/citations/EditCitation";
+import CitationDetails from "./pages/citations/CitationDetails";
+
+import Collaboration from "./pages/Collaboration";
+
 
 function App() {
   return (
@@ -67,6 +79,7 @@ function App() {
           path="/resend-verification"
           element={<ResendVerification />}
         />
+          
 
         <Route
           path="/forgot-password"
@@ -105,6 +118,22 @@ function App() {
           element={
             <ProtectedRoute>
               <CreateResearcher />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+  path="/researchers/:id"
+  element={
+    <ProtectedRoute>
+      <ResearcherDetails />
+    </ProtectedRoute>
+  }
+/>
+        <Route
+          path="/researchers/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditResearcher />
             </ProtectedRoute>
           }
         />
@@ -147,6 +176,45 @@ function App() {
           }
         />
 
+        {/* =================Citations ================ */}
+        <Route
+          path="/citations"
+          element={
+            <ProtectedRoute>
+               <Citations />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/citations/create"
+          element={
+            <ProtectedRoute>
+              <CreateCitation />
+            </ProtectedRoute>
+        }
+       />
+
+        <Route
+          path="/citations/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditCitation />
+            </ProtectedRoute>
+        }
+       />
+
+        <Route
+           path="/citations/:id"
+           element={
+             <ProtectedRoute>
+                <CitationDetails />
+             </ProtectedRoute>
+           }
+        />
+
+
+
         {/* ================= Conferences ================= */}
 
         <Route
@@ -158,7 +226,7 @@ function App() {
           }
         />
 
-        {/* Only System Admin can create conferences */}
+        {/* Only System Admin and Institution Admin can create conferences */}
 
         <Route
           path="/conferences/create"
@@ -231,7 +299,17 @@ function App() {
           }
         />
 
-        {/* ================= Search ================= */}
+        {/* ================= Collaboration ================= */}
+
+        <Route
+          path="/collaborations"
+          element={
+            <ProtectedRoute>
+            <Collaboration />
+            </ProtectedRoute>
+          }
+        />
+       {/* ================= Search ================= */}
 
         <Route
           path="/search"
