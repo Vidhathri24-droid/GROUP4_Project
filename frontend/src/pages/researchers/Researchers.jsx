@@ -42,7 +42,7 @@ export default function Researchers() {
 
         return researchers.filter((r) =>
 
-            r.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+            `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
 
             r.phone?.includes(search) ||
 

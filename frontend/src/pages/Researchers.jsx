@@ -62,7 +62,9 @@ function Researchers() {
             <div className="card shadow h-100">
               <div className="card-body">
 
-                <h5>{researcher.full_name}</h5>
+                <h5>{researcher.first_name}</h5>
+                <h5>{researcher.last_name}</h5>
+
 
                 <p>
                   <strong>Bio:</strong>
