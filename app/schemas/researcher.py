@@ -7,9 +7,10 @@ from pydantic import BaseModel, ConfigDict
 class ResearcherBase(BaseModel):
     user_id: UUID
 
-    full_name: str
-    bio: str
+    first_name: str
+    last_name: str
 
+    bio: Optional[str] = None
     phone: Optional[str] = None
     experience: Optional[int] = None
 
@@ -24,9 +25,10 @@ class ResearcherCreate(ResearcherBase):
 
 
 class ResearcherUpdate(BaseModel):
-    full_name: Optional[str] = None
-    bio: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
+    bio: Optional[str] = None
     phone: Optional[str] = None
     experience: Optional[int] = None
 
@@ -34,6 +36,7 @@ class ResearcherUpdate(BaseModel):
     google_scholar: Optional[str] = None
     research_gate: Optional[str] = None
     linkedin: Optional[str] = None
+
 
 class ResearcherResponse(ResearcherBase):
     id: UUID

@@ -69,3 +69,28 @@ footer {
   padding: 20px;
   margin-top: 40px;
 }
+
+
+.form-control,
+.form-control:focus,
+input,
+textarea,
+select {
+    color: #212529 !important;
+    background-color: #fff !important;
+    caret-color: #212529 !important;
+}
+
+.form-control,
+.form-control:focus,
+input,
+textarea,
+select {
+    color: #212529 !important;
+    background-color: #ffffff !important;
+    caret-color: #212529 !important;
+}
+
+.form-control::placeholder {
+    color: #6c757d !important;
+}

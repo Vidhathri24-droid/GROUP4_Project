@@ -47,7 +47,7 @@ class SearchService:
             response["researchers"] = [
                 {
                     "id": str(r.id),
-                    "name": r.full_name,
+                    "name": f"{r.first_name} {r.last_name}",
                     "bio": r.bio,
                     "experience": r.experience,
                     "publication_count": len(r.publications),

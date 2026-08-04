@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 function InstitutionForm({
-  initialData = {},
+  initialData = null,
   onSubmit,
   loading = false,
 }) {
@@ -18,26 +18,28 @@ function InstitutionForm({
   });
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        name: initialData.name || "",
-        abbreviation: initialData.abbreviation || "",
-        website: initialData.website || "",
-        email: initialData.email || "",
-        phone: initialData.phone || "",
-        address: initialData.address || "",
-        city: initialData.city || "",
-        state: initialData.state || "",
-        country: initialData.country || "",
-      });
-    }
+    if (!initialData) return;
+
+    setFormData({
+      name: initialData.name || "",
+      abbreviation: initialData.abbreviation || "",
+      website: initialData.website || "",
+      email: initialData.email || "",
+      phone: initialData.phone || "",
+      address: initialData.address || "",
+      city: initialData.city || "",
+      state: initialData.state || "",
+      country: initialData.country || "",
+    });
   }, [initialData]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
@@ -54,35 +56,44 @@ function InstitutionForm({
       <div className="card-body">
         <form onSubmit={handleSubmit}>
           <div className="row">
+
             <div className="col-md-6 mb-3">
-              <label className="form-label">Institution Name</label>
+              <label className="form-label">
+                Institution Name
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="name"
+                className="form-control"
                 value={formData.name}
                 onChange={handleChange}
+                autoComplete="off"
                 required
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">Abbreviation</label>
+              <label className="form-label">
+                Abbreviation
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="abbreviation"
+                className="form-control"
                 value={formData.abbreviation}
                 onChange={handleChange}
+                autoComplete="off"
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">Website</label>
+              <label className="form-label">
+                Website
+              </label>
               <input
                 type="url"
-                className="form-control"
                 name="website"
+                className="form-control"
                 value={formData.website}
                 onChange={handleChange}
                 placeholder="https://example.com"
@@ -90,33 +101,39 @@ function InstitutionForm({
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">Email</label>
+              <label className="form-label">
+                Email
+              </label>
               <input
                 type="email"
-                className="form-control"
                 name="email"
+                className="form-control"
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">Phone</label>
+              <label className="form-label">
+                Phone
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="phone"
+                className="form-control"
                 value={formData.phone}
                 onChange={handleChange}
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">Country</label>
+              <label className="form-label">
+                Country
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="country"
+                className="form-control"
                 value={formData.country}
                 onChange={handleChange}
                 required
@@ -124,37 +141,44 @@ function InstitutionForm({
             </div>
 
             <div className="col-md-12 mb-3">
-              <label className="form-label">Address</label>
+              <label className="form-label">
+                Address
+              </label>
               <textarea
-                className="form-control"
-                rows="3"
+                rows={3}
                 name="address"
+                className="form-control"
                 value={formData.address}
                 onChange={handleChange}
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">City</label>
+              <label className="form-label">
+                City
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="city"
+                className="form-control"
                 value={formData.city}
                 onChange={handleChange}
               />
             </div>
 
             <div className="col-md-6 mb-3">
-              <label className="form-label">State</label>
+              <label className="form-label">
+                State
+              </label>
               <input
                 type="text"
-                className="form-control"
                 name="state"
+                className="form-control"
                 value={formData.state}
                 onChange={handleChange}
               />
             </div>
+
           </div>
 
           <div className="mt-4">

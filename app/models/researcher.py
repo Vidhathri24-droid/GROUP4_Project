@@ -48,10 +48,16 @@ class Researcher(TimestampMixin, Base):
         nullable=False,
     )
 
-    full_name: Mapped[str] = mapped_column(
+    first_name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
+
+    last_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
 
     phone: Mapped[str | None] = mapped_column(
         String(20),

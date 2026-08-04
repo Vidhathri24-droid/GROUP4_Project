@@ -10,8 +10,7 @@ class UserRepository:
     @staticmethod
     def create(db: Session, user: User):
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        db.flush()          # Generate user.id without committing
         return user
 
     @staticmethod
@@ -63,9 +62,7 @@ class UserRepository:
         )
 
     @staticmethod
-    def get_all(
-        db: Session,
-    ):
+    def get_all(db: Session):
         return db.query(User).all()
 
     @staticmethod
