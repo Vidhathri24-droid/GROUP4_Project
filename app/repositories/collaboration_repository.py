@@ -1,7 +1,7 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
 
-from app.models.collaboration import Collaboration
+from app.models.collaboration import Collaboration, CollaborationStatus
 
 
 class CollaborationRepository:
@@ -25,7 +25,10 @@ class CollaborationRepository:
     def get_pending_requests(db: Session, receiver_id: UUID):
         return (
             db.query(Collaboration)
-            .filter(Collaboration.receiver_id == receiver_id)
+            .filter(
+                Collaboration.receiver_id == receiver_id,
+                Collaboration.status == CollaborationStatus.PENDING,
+            )
             .all()
         )
 

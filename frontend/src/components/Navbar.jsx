@@ -147,32 +147,30 @@ export default function Navbar() {
                   </NavLink>
                 </li>
                 <li className="nav-item">
-  <NavLink
-    className={({ isActive }) =>
-      isActive
-        ? "nav-link active fw-bold"
-        : "nav-link"
-    }
-    to="/collaborations"
-  >
-    <i className="bi bi-people-fill me-1"></i>
-    Collaboration
-  </NavLink>
-</li>
+                  <NavLink
+                    className={({ isActive }) =>
+                      isActive
+                        ? "nav-link active fw-bold"
+                        : "nav-link"
+                    }
+                    to="/collaborations"
+                  >
+                    <i className="bi bi-people-fill me-1"></i>
+                    Collaboration
+                  </NavLink>
+                </li>
 
                 <li className="nav-item ms-lg-2">
-                  <button
+                  <NavLink
+                    to="/notifications"
                     className="btn btn-outline-light rounded-circle position-relative"
                   >
                     <i className="bi bi-bell"></i>
 
-                    <span
-                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                    >
-                      3
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      0
                     </span>
-
-                  </button>
+                  </NavLink>
                 </li>
 
                 <li className="nav-item ms-lg-2">

@@ -1,4 +1,7 @@
 from sqlalchemy.orm import Session
+from app.services.notification_service import NotificationService
+from app.models.notification import NotificationType
+from app.repositories.user_repository import UserRepository
 
 from app.models.collaboration import (
     Collaboration,
@@ -23,10 +26,22 @@ class CollaborationService:
             status=CollaborationStatus.PENDING,
         )
 
-        return CollaborationRepository.create(
+        collaboration = CollaborationRepository.create(
             db,
             collaboration,
         )
+
+        sender = UserRepository.get_by_id(db, sender_id)
+
+        NotificationService.create_notification(
+            db=db,
+            user_id=receiver_id,
+            title="New Collaboration Request",
+            message=f"{sender.email} sent you a collaboration request.",
+            notification_type=NotificationType.COLLABORATION,
+        )
+
+        return collaboration
 
     @staticmethod
     def get_pending_requests(
