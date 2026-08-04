@@ -36,38 +36,6 @@ export default function ResearcherForm({
 
         <form onSubmit={submit}>
 
-<<<<<<< HEAD
-            <div className="row">
-
-                <div className="col-md-6 mb-3">
-
-                    <label>First Name</label>
-
-                    <input
-                        className="form-control"
-                        name="first_name"
-                        value={form.first_name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                </div>
-
-                <div className="col-md-6 mb-3">
-
-                    <label>Last Name</label>
-
-                    <input
-                        className="form-control"
-                        name="last_name"
-                        value={form.last_name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                </div>
-
-=======
             <div className="mb-3">
                 <label className="form-label">
                     First Name
@@ -94,7 +62,6 @@ export default function ResearcherForm({
                     onChange={handleChange}
                     required
                 />
->>>>>>> Harshini_V
             </div>
 
             <div className="mb-3">

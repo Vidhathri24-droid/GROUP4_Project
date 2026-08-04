@@ -8,12 +8,8 @@ class ResearcherBase(BaseModel):
     user_id: UUID
 
     first_name: str
-<<<<<<< HEAD
-    last_name: str
-=======
     last_name: Optional[str] = None
     bio: Optional[str] = None
->>>>>>> Harshini_V
 
     bio: Optional[str] = None
     phone: Optional[str] = None
@@ -32,10 +28,7 @@ class ResearcherCreate(ResearcherBase):
 class ResearcherUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-<<<<<<< HEAD
-=======
     bio: Optional[str] = None
->>>>>>> Harshini_V
 
     bio: Optional[str] = None
     phone: Optional[str] = None
