@@ -9,7 +9,8 @@ class ResearcherBase(BaseModel):
     user_id: UUID
 
     first_name: str
-    last_name: str
+    last_name: Optional[str] = None
+    bio: Optional[str] = None
 
     bio: Optional[str] = None
     phone: Optional[str] = None
@@ -28,6 +29,7 @@ class ResearcherCreate(ResearcherBase):
 class ResearcherUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    bio: Optional[str] = None
 
     bio: Optional[str] = None
     phone: Optional[str] = None

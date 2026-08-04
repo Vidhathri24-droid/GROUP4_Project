@@ -42,8 +42,8 @@ export default function Researchers() {
 
         return researchers.filter((r) =>
 
-            `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-
+            r.first_name?.toLowerCase().includes(search.toLowerCase()) ||
+            r.last_name?.toLowerCase().includes(search.toLowerCase()) ||
             r.phone?.includes(search) ||
 
             r.orcid?.toLowerCase().includes(search.toLowerCase())
@@ -63,7 +63,6 @@ export default function Researchers() {
     );
 
     return (
-
         <div className="container py-5">
 
             <div className="d-flex justify-content-between align-items-center mb-4">

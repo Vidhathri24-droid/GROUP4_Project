@@ -36,36 +36,32 @@ export default function ResearcherForm({
 
         <form onSubmit={submit}>
 
-            <div className="row">
+            <div className="mb-3">
+                <label className="form-label">
+                    First Name
+                </label>
 
-                <div className="col-md-6 mb-3">
+                <input
+                    className="form-control"
+                    name="first_name"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
 
-                    <label>First Name</label>
+            <div className="mb-3">
+                <label className="form-label">
+                    Last Name
+                </label>
 
-                    <input
-                        className="form-control"
-                        name="first_name"
-                        value={form.first_name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                </div>
-
-                <div className="col-md-6 mb-3">
-
-                    <label>Last Name</label>
-
-                    <input
-                        className="form-control"
-                        name="last_name"
-                        value={form.last_name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                </div>
-
+                <input
+                    className="form-control"
+                    name="last_name"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    required
+                />
             </div>
 
             <div className="mb-3">

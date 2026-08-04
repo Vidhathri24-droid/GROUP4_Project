@@ -93,10 +93,26 @@ function Register() {
 
             <input
               type="text"
-              name="full_name"
+              name="first_name"
               className="form-control"
-              placeholder="Enter your full name"
-              value={formData.full_name}
+              placeholder="Enter your first name"
+              value={formData.first_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-bold">
+              Last Name
+            </label>
+
+            <input
+              type="text"
+              name="last_name"
+              className="form-control"
+              placeholder="Enter your last name"
+              value={formData.last_name}
               onChange={handleChange}
               required
             />

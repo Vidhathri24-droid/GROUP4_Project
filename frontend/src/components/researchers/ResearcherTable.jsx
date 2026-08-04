@@ -75,6 +75,7 @@ export default function ResearcherTable({ researchers }) {
                             <td>{researcher.first_name}</td>
 
                             <td>{researcher.last_name}</td>
+                            <td>{researcher.first_name} {researcher.last_name}</td>
 
                             <td>
                                 {researcher.experience} Years
