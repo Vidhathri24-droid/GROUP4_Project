@@ -20,6 +20,7 @@ import AdminRoute from "./components/AdminRoute";
 // Researchers
 import Researchers from "./pages/researchers/Researchers";
 import CreateResearcher from "./pages/researchers/CreateResearcher";
+import ResearcherDetails from "./pages/researchers/ResearcherDetails";
 
 // Publications
 import Publications from "./pages/Publications";
@@ -104,6 +105,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+	<Route
+	  path="/researchers/:id"
+	  element={
+	    <ProtectedRoute>
+		<ResearcherDetails />
+	    </ProtectedRoute>
+	  }
+	/>
 
         <Route
           path="/researchers/create"

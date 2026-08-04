@@ -21,7 +21,7 @@ function CitationForm({
   });
 
   useEffect(() => {
-    if (initialData) {
+    if (Object.keys(initialData).length == 0) return;
       setFormData({
         publication_id: initialData.publication_id || "",
         title: initialData.title || "",
@@ -36,7 +36,6 @@ function CitationForm({
         citation_style:
           initialData.citation_style || "APA",
       });
-    }
   }, [initialData]);
 
   const handleChange = (e) => {

@@ -2,6 +2,7 @@ from uuid import UUID
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
+from app.schemas.publication import PublicationResponse
 
 
 class ResearcherBase(BaseModel):
@@ -40,7 +41,7 @@ class ResearcherUpdate(BaseModel):
 
 class ResearcherResponse(ResearcherBase):
     id: UUID
-
+    publications: list[PublicationResponse] = []
     model_config = ConfigDict(
         from_attributes=True
     )
