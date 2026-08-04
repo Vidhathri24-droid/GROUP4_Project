@@ -112,6 +112,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+	<Route
+	  path="/researchers/:id"
+	  element={
+	    <ProtectedRoute>
+		<ResearcherDetails />
+	    </ProtectedRoute>
+	  }
+	/>
 
         <Route
           path="/researchers/create"

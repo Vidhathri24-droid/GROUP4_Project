@@ -60,21 +60,24 @@ class ResearcherService:
 
     @staticmethod
     def get_researcher(
-        db: Session,
-        researcher_id: UUID,
+    db: Session,
+    	researcher_id: UUID,
     ):
-        researcher = ResearcherRepository.get_by_id(
-            db,
-            researcher_id,
-        )
+    	researcher = ResearcherRepository.get_by_id(
+        	db,
+        	researcher_id,
+    	)
 
-        if researcher is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Researcher not found",
-            )
+    	if researcher is None:
+        	raise HTTPException(
+            		status_code=404,
+            		detail="Researcher not found",
+        	)
 
-        return researcher
+    	# Force publications to load
+    	_ = researcher.publications
+
+    	return researcher
 
     @staticmethod
     def update_researcher(

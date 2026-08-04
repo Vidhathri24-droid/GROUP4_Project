@@ -1,45 +1,82 @@
-function CitationPagination({
-  totalItems,
-  itemsPerPage,
-  currentPage,
-  paginate,
+export default function CitationPagination({
+    totalItems,
+    itemsPerPage,
+    currentPage,
+    paginate,
 }) {
-  const totalPages = Math.ceil(
-    totalItems / itemsPerPage
-  );
 
-  if (totalPages <= 1) return null;
+    const pageNumbers = [];
 
-  return (
-    <nav className="mt-4">
-      <ul className="pagination justify-content-center">
+    for (
+        let i = 1;
+        i <= Math.ceil(totalItems / itemsPerPage);
+        i++
+    ) {
+        pageNumbers.push(i);
+    }
 
-        {Array.from(
-          { length: totalPages },
-          (_, index) => (
-            <li
-              key={index}
-              className={`page-item ${
-                currentPage === index + 1
-                  ? "active"
-                  : ""
-              }`}
-            >
-              <button
-                className="page-link"
-                onClick={() =>
-                  paginate(index + 1)
-                }
-              >
-                {index + 1}
-              </button>
-            </li>
-          )
-        )}
+    if (pageNumbers.length <= 1) {
+        return null;
+    }
 
-      </ul>
-    </nav>
-  );
+    return (
+
+        <nav>
+
+            <ul className="pagination justify-content-center">
+
+                <li
+                    className={`page-item ${
+                        currentPage === 1 ? "disabled" : ""
+                    }`}
+                >
+                    <button
+                        className="page-link"
+                        onClick={() => paginate(currentPage - 1)}
+                    >
+                        Previous
+                    </button>
+                </li>
+
+                {pageNumbers.map((number) => (
+
+                    <li
+                        key={number}
+                        className={`page-item ${
+                            currentPage === number
+                                ? "active"
+                                : ""
+                        }`}
+                    >
+                        <button
+                            className="page-link"
+                            onClick={() => paginate(number)}
+                        >
+                            {number}
+                        </button>
+                    </li>
+
+                ))}
+
+                <li
+                    className={`page-item ${
+                        currentPage === pageNumbers.length
+                            ? "disabled"
+                            : ""
+                    }`}
+                >
+                    <button
+                        className="page-link"
+                        onClick={() => paginate(currentPage + 1)}
+                    >
+                        Next
+                    </button>
+                </li>
+
+            </ul>
+
+        </nav>
+
+    );
+
 }
-
-export default CitationPagination;
