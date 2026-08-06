@@ -15,15 +15,12 @@ from app.api.routes import analytics
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.home import router as home_router
 from app.api.routes.search import router as search_router
-<<<<<<< HEAD
 from app.api.routes.citations import router as citation_router
 from app.models.citation import Citation
 from app.api.routes.collaborations import (
     router as collaboration_router,
 )
 from app.models.conference_participant import ConferenceParticipant
-=======
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
@@ -52,11 +49,8 @@ app.include_router(analytics.router)
 app.include_router(dashboard_router)
 app.include_router(home_router)
 app.include_router(search_router)
-<<<<<<< HEAD
 app.include_router(citation_router)
 app.include_router(collaboration_router)
-=======
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 @app.get("/")
 def root():

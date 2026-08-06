@@ -110,16 +110,16 @@ class Researcher(TimestampMixin, Base):
     	back_populates="researchers",
     )
 
-    collaborations_as_first = relationship(
+    sent_collaborations = relationship(
         "Collaboration",
-        foreign_keys="Collaboration.researcher1_id",
-	back_populates="researcher1",
+        foreign_keys="Collaboration.sender_id",
+	back_populates="sender",
         cascade="all, delete",
     )
 
     collaborations_as_second = relationship(
         "Collaboration",
-        foreign_keys="Collaboration.researcher2_id",
-	back_populates="researcher2",
+        foreign_keys="Collaboration.receiver_id",
+	back_populates="receiver",
         cascade="all, delete",
     )
