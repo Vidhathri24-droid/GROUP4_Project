@@ -1,3 +1,4 @@
+import { Link} from "react-router-dom" 
 import React, { useEffect, useState } from "react";
 import api from "../api/api";
 
@@ -62,9 +63,7 @@ function Researchers() {
             <div className="card shadow h-100">
               <div className="card-body">
 
-                <h5>{researcher.first_name}</h5>
-                <h5>{researcher.last_name}</h5>
-
+                <h5>{researcher.first_name} {researcher.last_name}</h5>
 
                 <p>
                   <strong>Bio:</strong>
@@ -90,9 +89,13 @@ function Researchers() {
                   {researcher.orcid}
                 </p>
 
-                <button className="btn btn-primary">
-                  View Profile
-                </button>
+                <Link
+  to={`/researchers/${researcher.id}`}
+  className="btn btn-primary"
+>
+  View
+</Link>
+
 
               </div>
             </div>

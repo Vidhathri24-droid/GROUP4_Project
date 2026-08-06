@@ -20,6 +20,9 @@ function CreateCitation() {
   const fetchPublications = async () => {
     try {
       const data = await getPublications();
+
+      console.log("Publications:", data);
+
       setPublications(data);
     } catch (err) {
       console.error(err);

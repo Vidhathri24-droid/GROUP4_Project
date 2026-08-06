@@ -36,9 +36,18 @@ class CitationUpdate(BaseModel):
     formatted_citation: str | None = None
 
 
-class CitationResponse(CitationBase):
+class CitationResponse(BaseModel):
     id: UUID
     publication_id: UUID
+
+    title: str
+    authors:str
+    journal: str | None = None
+    year: int | None = None
+    doi: str | None=None
+    url: str | None=None
+    citation_style: str | None=None
+
     created_at: datetime
     updated_at: datetime
 

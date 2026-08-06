@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
-  getCitations,
-  deleteCitation,
-  exportBibtex,
+    getCitations,
+    deleteCitation,
+    exportBibtex,
 } from "../../services/citationService";
 
 import CitationCard from "../../components/citations/CitationCard";
@@ -12,6 +12,7 @@ import CitationSearch from "../../components/citations/CitationSearch";
 import CitationPagination from "../../components/citations/CitationPagination";
 
 import {
+<<<<<<< HEAD
   isSystemAdmin,
   isInstitutionAdmin,
   isResearcher,
@@ -24,16 +25,36 @@ function Citations() {
 
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+=======
+    isSystemAdmin,
+    isInstitutionAdmin,
+    isResearcher,
+} from "../../utils/auth";
 
-  const citationsPerPage = 6;
+export default function Citations() {
 
+    const [citations, setCitations] = useState([]);
+    const [filtered, setFiltered] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+    const citationsPerPage = 6;
+
+<<<<<<< HEAD
   const canManage =
     isSystemAdmin() || isInstitutionAdmin() || isResearcher();
+=======
+    const canManage =
+        isSystemAdmin() || isInstitutionAdmin() || isResearcher();
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
-  useEffect(() => {
-    fetchCitations();
-  }, []);
+    useEffect(() => {
+        fetchCitations();
+    }, []);
 
+<<<<<<< HEAD
   useEffect(() => {
     const results = citations.filter((citation) =>
       (
@@ -52,9 +73,26 @@ function Citations() {
   const fetchCitations = async () => {
     try {
       setLoading(true);
+=======
+    useEffect(() => {
 
-      const data = await getCitations();
+        const results = citations.filter((citation) =>
+            citation.title
+                ?.toLowerCase()
+                .includes(search.toLowerCase())
+        );
 
+        setFiltered(results);
+        setCurrentPage(1);
+
+    }, [search, citations]);
+
+    const fetchCitations = async () => {
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+        try {
+
+<<<<<<< HEAD
       setCitations(data);
       setFiltered(data);
     } catch (err) {
@@ -82,41 +120,101 @@ function Citations() {
   const handleExportBibtex = async (id) => {
     try {
       const bibtex = await exportBibtex(id);
+=======
+            setLoading(true);
 
-      const blob = new Blob(
-        [bibtex],
-        { type: "text/plain" }
-      );
+            const data = await getCitations();
 
+            setCitations(data);
+            setFiltered(data);
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Unable to load citations.");
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+
+    const handleDelete = async (id) => {
+
+        if (!window.confirm("Delete this citation?")) {
+            return;
+        }
+
+        try {
+
+            await deleteCitation(id);
+
+            fetchCitations();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Unable to delete citation.");
+
+        }
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+    };
+
+<<<<<<< HEAD
       const url =
         window.URL.createObjectURL(blob);
+=======
+    const handleExportBibtex = async (id) => {
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
-      const a = document.createElement("a");
+        try {
 
-      a.href = url;
-      a.download = "citation.bib";
+            const bibtex = await exportBibtex(id);
 
-      a.click();
+            const blob = new Blob(
+                [bibtex],
+                {
+                    type: "text/plain",
+                }
+            );
 
+<<<<<<< HEAD
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
       alert("Unable to export BibTeX.");
     }
   };
+=======
+            const url =
+                window.URL.createObjectURL(blob);
 
-  const indexOfLast =
-    currentPage * citationsPerPage;
+            const a =
+                document.createElement("a");
 
-  const indexOfFirst =
-    indexOfLast - citationsPerPage;
+            a.href = url;
+            a.download = "citation.bib";
+            a.click();
 
-  const currentCitations =
-    filtered.slice(
-      indexOfFirst,
-      indexOfLast
-    );
+            window.URL.revokeObjectURL(url);
 
+        } catch (error) {
+
+            console.error(error);
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+            alert("Unable to export BibTeX.");
+
+        }
+
+    };
+
+<<<<<<< HEAD
   return (
     <div className="container mt-4">
 
@@ -153,9 +251,31 @@ function Citations() {
           )}
 
         </div>
+=======
+    const indexOfLast =
+        currentPage * citationsPerPage;
 
-      </div>
+    const indexOfFirst =
+        indexOfLast - citationsPerPage;
 
+    const currentCitations =
+        filtered.slice(
+            indexOfFirst,
+            indexOfLast
+        );
+
+    return (
+
+        <div className="container py-4">
+
+            {/* Header */}
+
+            <div className="d-flex justify-content-between align-items-center mb-4">
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+                <div>
+
+<<<<<<< HEAD
       {/* Search */}
 
       <CitationSearch
@@ -223,6 +343,128 @@ function Citations() {
       )}
     </div>
   );
-}
+=======
+                    <h1 className="fw-bold">
+                        Citation Management
+                    </h1>
 
-export default Citations;
+                    <p className="text-muted mb-0">
+                        Manage citations and export them in multiple formats.
+                    </p>
+
+                </div>
+
+                <div className="d-flex gap-2">
+
+                    {canManage && (
+
+                        <Link
+                            to="/citations/create"
+                            className="btn btn-success"
+                        >
+                            <i className="bi bi-plus-circle me-2"></i>
+                            Add Citation
+                        </Link>
+
+                    )}
+
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={fetchCitations}
+                    >
+                        <i className="bi bi-arrow-clockwise me-2"></i>
+                        Refresh
+                    </button>
+
+                </div>
+
+            </div>
+
+            {/* Search */}
+
+            <CitationSearch
+                search={search}
+                setSearch={setSearch}
+            />
+
+            {/* Loading */}
+
+            {loading ? (
+
+                <div className="text-center mt-5">
+
+                    <div
+                        className="spinner-border text-primary"
+                        role="status"
+                    />
+
+                </div>
+
+            ) : (
+
+                <>
+
+                    <div className="row mt-4">
+
+                        {currentCitations.length === 0 ? (
+
+                            <div className="col-12">
+
+                                <div className="alert alert-warning">
+
+                                    <h5 className="mb-2">
+                                        No citations found
+                                    </h5>
+
+                                    <p className="mb-0">
+                                        There are no citations available yet.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            currentCitations.map((citation) => (
+
+                                <div
+                                    key={citation.id}
+                                    className="col-md-6 col-lg-4 mb-4"
+                                >
+
+                                    <CitationCard
+                                        citation={citation}
+                                        onDelete={handleDelete}
+                                        onExportBibtex={handleExportBibtex}
+                                    />
+
+                                </div>
+
+                            ))
+
+                        )}
+
+                    </div>
+
+                    <div className="mt-4">
+
+                        <CitationPagination
+                            totalItems={filtered.length}
+                            itemsPerPage={citationsPerPage}
+                            currentPage={currentPage}
+                            paginate={setCurrentPage}
+                        />
+
+                    </div>
+
+                </>
+
+            )}
+
+        </div>
+
+    );
+
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+}

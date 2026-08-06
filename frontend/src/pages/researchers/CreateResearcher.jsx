@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import ResearcherForm from "../../components/researchers/ResearcherForm";
 
@@ -42,15 +42,29 @@ export default function CreateResearcher() {
     };
 
     return (
-        <div className="container py-5">
+	<div className="container py-5">
+		<div className="d-flex justify-content-between align-items-center mb-4">
 
-            <h2>Create Researcher</h2>
+			<div>
 
-            <ResearcherForm
-                loading={loading}
-                onSubmit={submit}
-            />
+				<Link
+					to="/researchers"
+					className="btn btn-outline-secondary mb-3"
+				>
+					<i className="bi bi-arrow-left"></i> Back to Researchers
+				</Link>
 
-        </div>
+				<h2>Create Researcher</h2>
+
+			</div>
+
+		</div>
+
+		<ResearcherForm
+			loading={loading}
+			onSubmit={submit}
+		/>
+
+	</div>
     );
 }

@@ -1,4 +1,5 @@
 import uuid
+<<<<<<< HEAD
 from enum import Enum
 
 from sqlalchemy import (
@@ -12,11 +13,19 @@ from sqlalchemy.orm import (
     mapped_column,
     relationship,
 )
+=======
+import enum
+
+from sqlalchemy import Enum, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
 
 
+<<<<<<< HEAD
 class CollaborationType(str, Enum):
     COAUTHOR = "Co-Author"
     PROJECT = "Project"
@@ -29,6 +38,12 @@ class CollaborationStatus(str, Enum):
     ACTIVE = "Active"
     COMPLETED = "Completed"
     PENDING = "Pending"
+=======
+class CollaborationStatus(str, enum.Enum):
+    PENDING = "Pending"
+    ACCEPTED = "Accepted"
+    REJECTED = "Rejected"
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 
 class Collaboration(TimestampMixin, Base):
@@ -40,7 +55,11 @@ class Collaboration(TimestampMixin, Base):
         default=uuid.uuid4,
     )
 
+<<<<<<< HEAD
     researcher1_id: Mapped[uuid.UUID] = mapped_column(
+=======
+    sender_id: Mapped[uuid.UUID] = mapped_column(
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
         UUID(as_uuid=True),
         ForeignKey(
             "researchers.id",
@@ -49,7 +68,11 @@ class Collaboration(TimestampMixin, Base):
         nullable=False,
     )
 
+<<<<<<< HEAD
     researcher2_id: Mapped[uuid.UUID] = mapped_column(
+=======
+    receiver_id: Mapped[uuid.UUID] = mapped_column(
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
         UUID(as_uuid=True),
         ForeignKey(
             "researchers.id",
@@ -58,6 +81,7 @@ class Collaboration(TimestampMixin, Base):
         nullable=False,
     )
 
+<<<<<<< HEAD
     publication_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey(
@@ -97,3 +121,20 @@ class Collaboration(TimestampMixin, Base):
         "Publication",
 	back_populates="collaborations"
     )
+=======
+    status: Mapped[CollaborationStatus] = mapped_column(
+        Enum(CollaborationStatus),
+        default=CollaborationStatus.PENDING,
+        nullable=False,
+    )
+
+    sender = relationship(
+        "Researcher",
+        foreign_keys=[sender_id],
+    )
+
+    receiver = relationship(
+        "Researcher",
+        foreign_keys=[receiver_id],
+    )
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab

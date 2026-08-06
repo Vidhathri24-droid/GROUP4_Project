@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -5,10 +6,22 @@ from sqlalchemy.orm import Session
 
 from app.models.collaboration import Collaboration
 
+=======
+from sqlalchemy.orm import Session
+from app.services.notification_service import NotificationService
+from app.models.notification import NotificationType
+from app.repositories.user_repository import UserRepository
+
+from app.models.collaboration import (
+    Collaboration,
+    CollaborationStatus,
+)
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 from app.repositories.collaboration_repository import (
     CollaborationRepository,
 )
 
+<<<<<<< HEAD
 from app.repositories.researcher_repository import (
     ResearcherRepository,
 )
@@ -22,10 +35,13 @@ from app.schemas.collaboration import (
     CollaborationUpdate,
 )
 
+=======
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 class CollaborationService:
 
     @staticmethod
+<<<<<<< HEAD
     def create(
         db: Session,
         data: CollaborationCreate,
@@ -70,12 +86,71 @@ class CollaborationService:
         )
 
         return CollaborationRepository.create(
+=======
+    def send_request(
+        db: Session,
+        sender_id,
+        receiver_id,
+    ):
+        collaboration = Collaboration(
+            sender_id=sender_id,
+            receiver_id=receiver_id,
+            status=CollaborationStatus.PENDING,
+        )
+
+        collaboration = CollaborationRepository.create(
+            db,
+            collaboration,
+        )
+
+        sender = UserRepository.get_by_id(db, sender_id)
+
+        NotificationService.create_notification(
+            db=db,
+            user_id=receiver_id,
+            title="New Collaboration Request",
+            message=f"{sender.email} sent you a collaboration request.",
+            notification_type=NotificationType.COLLABORATION,
+        )
+
+        return collaboration
+
+    @staticmethod
+    def get_pending_requests(
+        db: Session,
+        receiver_id,
+    ):
+        return CollaborationRepository.get_pending_requests(
+            db,
+            receiver_id,
+        )
+
+    @staticmethod
+    def accept_request(
+        db: Session,
+        collaboration,
+    ):
+        collaboration.status = CollaborationStatus.ACCEPTED
+        return CollaborationRepository.update(
+            db,
+            collaboration,
+        )
+
+    @staticmethod
+    def reject_request(
+        db: Session,
+        collaboration,
+    ):
+        collaboration.status = CollaborationStatus.REJECTED
+        return CollaborationRepository.update(
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
             db,
             collaboration,
         )
 
     @staticmethod
     def get_all(db: Session):
+<<<<<<< HEAD
         return CollaborationRepository.get_all(db)
 
     @staticmethod
@@ -167,3 +242,6 @@ class CollaborationService:
         return {
             "message": "Collaboration deleted successfully"
         }
+=======
+        return CollaborationRepository.get_all(db)
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab

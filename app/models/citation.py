@@ -45,16 +45,27 @@ class Citation(Base):
 
     journal = Column(
         String,
-        nullable=True,
     )
 
     year = Column(
         Integer,
-        nullable=True,
     )
 
     volume = Column(
         String,
+    )
+
+    issue = Column(
+        String,
+    )
+
+    pages = Column(
+        String,
+    )
+
+    volume = Column(
+        String,
+<<<<<<< HEAD
         nullable=True,
     )
 
@@ -70,18 +81,22 @@ class Citation(Base):
 
     doi = Column(
         String,
+=======
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
         unique=True,
         nullable=True,
     )
 
     url = Column(
         String,
-        nullable=True,
     )
 
     citation_style = Column(
         String,
-        nullable=True,
+    )
+
+    formatted_citation = Column(
+        Text,
     )
 
     formatted_citation = Column(

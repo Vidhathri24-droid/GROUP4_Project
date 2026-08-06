@@ -72,18 +72,26 @@ class AuthService:
             if user.role == UserRole.RESEARCHER:
 
                 researcher = Researcher(
+<<<<<<< HEAD
                     user_id=user.id,
                     first_name=user_data.first_name,
                     last_name=user_data.last_name,
                     experience=0,
                 )
+=======
+    user_id=user.id,
+    first_name=user_data.first_name,
+    last_name=user_data.last_name,
+    experience=0,
+)
+>>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
                 db.add(researcher)
 
-            EmailService.send_verification_email(
-                user.email,
-                verification_token,
-            )
+            #EmailService.send_verification_email(
+               # user.email,
+               # verification_token,
+            #)
 
             db.commit()
 
@@ -324,4 +332,3 @@ class AuthService:
         return {
             "message": "Password reset successfully."
         }
-
