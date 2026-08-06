@@ -130,6 +130,7 @@ function Conferences() {
                 <ConferenceCard
                   conference={conference}
                   onDelete={handleDelete}
+                  refreshConferences={fetchConferences}
                 />
               </div>
             ))}

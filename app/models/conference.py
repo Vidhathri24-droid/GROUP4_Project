@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-
+from app.models.conference_participant import ConferenceParticipant
 
 class Conference(TimestampMixin, Base):
     __tablename__ = "conferences"

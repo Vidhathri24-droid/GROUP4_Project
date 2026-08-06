@@ -11,6 +11,8 @@ function Publications() {
   const [publications, setPublications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const publicationsPerPage = 6;
 
   useEffect(() => {
     loadPublications();
@@ -78,6 +80,13 @@ function Publications() {
     );
   }
 };
+const indexOfLast = currentPage * publicationsPerPage;
+const indexOfFirst = indexOfLast - publicationsPerPage;
+
+const currentPublications = publications.slice(
+  indexOfFirst,
+  indexOfLast
+);
   if (loading) {
     return (
       <div className="container mt-5">
@@ -121,7 +130,7 @@ function Publications() {
             No publications found.
           </div>
         ) : (
-          publications.map((publication) => (
+          currentPublications.map((publication) => (
 
             <div
               className="col-lg-6 mb-4"
@@ -244,7 +253,36 @@ function Publications() {
         )}
 
       </div>
+    {publications.length > publicationsPerPage && (
+  <nav className="mt-4">
+    <ul className="pagination justify-content-center">
 
+      {Array.from(
+        {
+          length: Math.ceil(
+            publications.length / publicationsPerPage
+          ),
+        },
+        (_, index) => (
+          <li
+            key={index + 1}
+            className={`page-item ${
+              currentPage === index + 1 ? "active" : ""
+            }`}
+          >
+            <button
+              className="page-link"
+              onClick={() => setCurrentPage(index + 1)}
+            >
+              {index + 1}
+            </button>
+          </li>
+        )
+      )}
+
+    </ul>
+  </nav>
+)}
     </div>
   );
 }

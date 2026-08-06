@@ -10,7 +10,8 @@ from app.schemas.conference import (
     ConferenceCreate,
     ConferenceUpdate,
 )
-
+from app.models.conference_registration import ConferenceRegistration
+from app.models.researcher import Researcher
 
 class ConferenceService:
 
@@ -135,3 +136,74 @@ class ConferenceService:
         return {
             "message": "Conference deleted successfully"
         }
+
+    @staticmethod
+    def join_conference(db: Session, conference_id: UUID, researcher_id: UUID):
+
+        conference = ConferenceRepository.get_by_id(db, conference_id)
+
+        if conference is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Conference not found",
+            )
+
+        researcher = db.query(Researcher).filter(
+            Researcher.id == researcher_id
+        ).first()
+
+        if researcher is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Researcher not found",
+            )
+
+        existing = db.query(ConferenceRegistration).filter(
+            ConferenceRegistration.conference_id == conference_id,
+            ConferenceRegistration.user_id == researcher.user_id,
+        ).first()
+
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail="Already joined this conference",
+            )
+
+        registration = ConferenceRegistration(
+            conference_id=conference_id,
+            user_id=researcher.user_id,
+        )
+
+        db.add(registration)
+        db.commit()
+        db.refresh(registration)
+        return {"message": "Successfully joined conference"}
+
+    @staticmethod
+    def leave_conference(db: Session, conference_id: UUID, researcher_id: UUID):
+
+        researcher = db.query(Researcher).filter(
+            Researcher.id == researcher_id
+        ).first()
+
+        if researcher is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Researcher not found",
+            )
+
+        registration = db.query(ConferenceRegistration).filter(
+            ConferenceRegistration.conference_id == conference_id,
+            ConferenceRegistration.user_id == researcher.user_id,
+        ).first()
+
+        if registration is None:
+            raise HTTPException(
+                status_code=404,
+                detail="You haven't joined this conference",
+            )
+
+        db.delete(registration)
+        db.commit()
+
+        return {"message": "Conference left successfully"}

@@ -6,6 +6,7 @@ from sqlalchemy import (
     String,
     Integer,
     DateTime,
+    Text,
     ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -25,16 +26,19 @@ class Citation(Base):
 
     publication_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("publications.id", ondelete="CASCADE"),
+        ForeignKey(
+            "publications.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
 
-    citing_title = Column(
+    title = Column(
         String,
         nullable=False,
     )
 
-    citing_authors = Column(
+    authors = Column(
         String,
         nullable=False,
     )
@@ -49,10 +53,25 @@ class Citation(Base):
         nullable=True,
     )
 
-    doi = Column(
+    volume = Column(
         String,
         nullable=True,
+    )
+
+    issue = Column(
+        String,
+        nullable=True,
+    )
+
+    pages = Column(
+        String,
+        nullable=True,
+    )
+
+    doi = Column(
+        String,
         unique=True,
+        nullable=True,
     )
 
     url = Column(
@@ -60,8 +79,13 @@ class Citation(Base):
         nullable=True,
     )
 
-    citation_type = Column(
+    citation_style = Column(
         String,
+        nullable=True,
+    )
+
+    formatted_citation = Column(
+        Text,
         nullable=True,
     )
 

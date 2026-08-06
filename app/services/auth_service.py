@@ -73,7 +73,8 @@ class AuthService:
 
                 researcher = Researcher(
                     user_id=user.id,
-                    full_name=user_data.full_name,
+                    first_name=user_data.first_name,
+                    last_name=user_data.last_name,
                     experience=0,
                 )
 

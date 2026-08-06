@@ -101,7 +101,7 @@ class SearchService:
                     "doi": p.doi,
                     "url": p.url,
                     "authors": [
-                        researcher.full_name
+                        f"{researcher.first_name} {researcher.last_name}"
                         for researcher in p.researchers
                     ],
                 }

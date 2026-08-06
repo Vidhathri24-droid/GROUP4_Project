@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   login,
@@ -11,8 +11,20 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [rememberMe, setRememberMe] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const rememberedEmail =
+      localStorage.getItem("remembered_email");
+
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,20 +38,53 @@ function Login() {
 
       // Save JWT
       if (response.access_token) {
-        localStorage.setItem(
-          "access_token",
-          response.access_token
-        );
+
+        if (rememberMe) {
+
+          localStorage.setItem(
+            "access_token",
+            response.access_token
+          );
+
+        } else {
+
+          sessionStorage.setItem(
+            "access_token",
+            response.access_token
+          );
+
+        }
+
       }
 
       // Fetch logged-in user
       const user = await getCurrentUser();
 
       // Save user information (including role)
-      localStorage.setItem(
-        "user",
-        JSON.stringify(user)
-      );
+      if (rememberMe) {
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(user)
+        );
+
+        localStorage.setItem(
+          "remembered_email",
+          email
+        );
+
+      } else {
+
+        sessionStorage.setItem(
+          "user",
+          JSON.stringify(user)
+        );
+
+        localStorage.removeItem(
+          "remembered_email"
+        );
+
+      }
 
       navigate("/dashboard");
 
@@ -47,16 +92,25 @@ function Login() {
       console.error(err);
 
       if (err.response?.status === 403) {
+
         setError(
           "Please verify your email before logging in."
         );
+
       } else if (err.response?.data?.detail) {
+
         setError(err.response.data.detail);
+
       } else {
+
         setError("Login failed.");
+
       }
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
@@ -135,11 +189,17 @@ function Login() {
           </div>
 
           <div className="d-flex justify-content-between align-items-center mb-3">
+
             <div className="form-check">
+
               <input
                 className="form-check-input"
                 type="checkbox"
                 id="remember"
+                checked={rememberMe}
+                onChange={(e) =>
+                  setRememberMe(e.target.checked)
+                }
               />
 
               <label
@@ -148,6 +208,7 @@ function Login() {
               >
                 Remember Me
               </label>
+
             </div>
 
             <Link
@@ -156,6 +217,7 @@ function Login() {
             >
               Forgot Password?
             </Link>
+
           </div>
 
           <button
@@ -177,6 +239,7 @@ function Login() {
               Register
             </Link>
           </p>
+
         </form>
       </div>
     </div>

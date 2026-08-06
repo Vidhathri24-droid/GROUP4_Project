@@ -154,3 +154,9 @@ class Publication(TimestampMixin, Base):
     	back_populates="publication",
     	cascade="all, delete-orphan",
     )
+
+    collaborations = relationship(
+        "Collaboration",
+        back_populates="publication",
+        cascade="all, delete",
+    )

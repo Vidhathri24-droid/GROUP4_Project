@@ -16,7 +16,7 @@ from sqlalchemy.orm import (
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-
+from app.models.collaboration import Collaboration
 
 class Researcher(TimestampMixin, Base):
     __tablename__ = "researchers"
@@ -103,4 +103,18 @@ class Researcher(TimestampMixin, Base):
     	"Publication",
     	secondary="publication_authors",
     	back_populates="researchers",
+    )
+
+    collaborations_as_first = relationship(
+        "Collaboration",
+        foreign_keys="Collaboration.researcher1_id",
+	back_populates="researcher1",
+        cascade="all, delete",
+    )
+
+    collaborations_as_second = relationship(
+        "Collaboration",
+        foreign_keys="Collaboration.researcher2_id",
+	back_populates="researcher2",
+        cascade="all, delete",
     )

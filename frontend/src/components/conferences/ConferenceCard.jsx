@@ -11,6 +11,8 @@ import {
   isResearcher,
 } from "../../utils/auth";
 
+import { getCurrentUser } from "../../utils/auth";
+
 function ConferenceCard({
   conference,
   onDelete,
@@ -21,44 +23,51 @@ function ConferenceCard({
     isSystemAdmin() || isInstitutionAdmin();
 
   const researcher = isResearcher();
-
+  const user = getCurrentUser();
+  const researcherId = user?.researcher_id;
   const handleJoin = async () => {
+    if (!researcherId) {
+      alert("Researcher profile not found.");
+      return;
+    }
+
     try {
-      await joinConference(conference.id);
+      await joinConference(conference.id, researcherId);
 
       alert("Successfully joined conference.");
 
-      if (refreshConferences) {
-        refreshConferences();
-      }
+      refreshConferences?.();
+
     } catch (err) {
       console.error(err);
 
-      if (err.response?.data?.detail) {
-        alert(err.response.data.detail);
-      } else {
-        alert("Unable to join conference.");
-      }
+      alert(
+        err.response?.data?.detail ||
+        "Unable to join conference."
+      );
     }
-  };
+    };
 
   const handleLeave = async () => {
+    if (!researcherId) {
+      alert("Researcher profile not found.");
+      return;
+    }
+
     try {
-      await leaveConference(conference.id);
+      await leaveConference(conference.id, researcherId);
 
       alert("Successfully left conference.");
 
-      if (refreshConferences) {
-        refreshConferences();
-      }
+      refreshConferences?.();
+
     } catch (err) {
       console.error(err);
 
-      if (err.response?.data?.detail) {
-        alert(err.response.data.detail);
-      } else {
-        alert("Unable to leave conference.");
-      }
+      alert(
+        err.response?.data?.detail ||
+        "Unable to leave conference."
+      );
     }
   };
 

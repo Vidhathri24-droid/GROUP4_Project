@@ -14,20 +14,21 @@ import CitationPagination from "../../components/citations/CitationPagination";
 import {
   isSystemAdmin,
   isInstitutionAdmin,
+  isResearcher,
 } from "../../utils/auth";
 
 function Citations() {
-
   const [citations, setCitations] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
   const citationsPerPage = 6;
 
   const canManage =
-    isSystemAdmin() || isInstitutionAdmin();
+    isSystemAdmin() || isInstitutionAdmin() || isResearcher();
 
   useEffect(() => {
     fetchCitations();
@@ -35,64 +36,51 @@ function Citations() {
 
   useEffect(() => {
     const results = citations.filter((citation) =>
-      citation.title
-        ?.toLowerCase()
+      (
+        citation.title ||
+        citation.citing_title ||
+        ""
+      )
+        .toLowerCase()
         .includes(search.toLowerCase())
     );
 
     setFiltered(results);
     setCurrentPage(1);
-
   }, [search, citations]);
 
   const fetchCitations = async () => {
     try {
-
       setLoading(true);
 
       const data = await getCitations();
 
       setCitations(data);
       setFiltered(data);
-
     } catch (err) {
-
       console.error(err);
       alert("Unable to load citations.");
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
   const handleDelete = async (id) => {
-
     if (!window.confirm("Delete this citation?")) {
       return;
     }
 
     try {
-
       await deleteCitation(id);
-
       fetchCitations();
-
     } catch (err) {
-
       console.error(err);
-
       alert("Unable to delete citation.");
-
     }
-
   };
 
   const handleExportBibtex = async (id) => {
-
     try {
-
       const bibtex = await exportBibtex(id);
 
       const blob = new Blob(
@@ -100,7 +88,8 @@ function Citations() {
         { type: "text/plain" }
       );
 
-      const url = window.URL.createObjectURL(blob);
+      const url =
+        window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
 
@@ -110,15 +99,10 @@ function Citations() {
       a.click();
 
       window.URL.revokeObjectURL(url);
-
     } catch (err) {
-
       console.error(err);
-
       alert("Unable to export BibTeX.");
-
     }
-
   };
 
   const indexOfLast =
@@ -134,54 +118,78 @@ function Citations() {
     );
 
   return (
-
     <div className="container mt-4">
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      {/* Header */}
 
-        <h2>Citation Management</h2>
+      <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
 
-        {canManage && (
+        <div>
+          <h2 className="mb-1">
+            Citation Management
+          </h2>
 
-          <Link
-            to="/citations/create"
-            className="btn btn-success"
+          <p className="text-muted mb-0">
+            Manage and organize publication citations.
+          </p>
+        </div>
+
+        <div className="d-flex gap-2 mt-3 mt-md-0">
+
+          <button
+            className="btn btn-outline-primary"
+            onClick={fetchCitations}
           >
-            + Add Citation
-          </Link>
+            🔄 Refresh
+          </button>
 
-        )}
+          {canManage && (
+            <Link
+              to="/citations/create"
+              className="btn btn-success"
+            >
+              + Add Citation
+            </Link>
+          )}
+
+        </div>
 
       </div>
+
+      {/* Search */}
 
       <CitationSearch
         search={search}
         setSearch={setSearch}
       />
 
-      {loading ? (
+      {/* Loading */}
 
-        <div className="text-center mt-5">
+      {loading ? (
+        <div className="text-center py-5">
 
           <div
             className="spinner-border text-primary"
             role="status"
-          />
+          ></div>
+
+          <p className="mt-3">
+            Loading citations...
+          </p>
 
         </div>
-
       ) : currentCitations.length === 0 ? (
-
         <div className="alert alert-warning mt-4">
 
-          No citations found.
+          <h5>No citations found.</h5>
+
+          <p className="mb-0">
+            Try changing your search or create a new citation.
+          </p>
 
         </div>
-
       ) : (
-
         <>
-
           <div className="row">
 
             {currentCitations.map((citation) => (
@@ -211,13 +219,9 @@ function Citations() {
             currentPage={currentPage}
             paginate={setCurrentPage}
           />
-
         </>
-
       )}
-
     </div>
-
   );
 }
 

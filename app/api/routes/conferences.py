@@ -61,6 +61,30 @@ def get_conferences(
 ):
     return ConferenceService.get_all_conferences(db)
 
+@router.post("/{conference_id}/join/{researcher_id}")
+def join_conference(
+    conference_id: UUID,
+    researcher_id: UUID,
+    db: Session = Depends(get_db),
+):
+    return ConferenceService.join_conference(
+        db,
+        conference_id,
+        researcher_id,
+    )
+
+
+@router.post("/{conference_id}/leave/{researcher_id}")
+def leave_conference(
+    conference_id: UUID,
+    researcher_id: UUID,
+    db: Session = Depends(get_db),
+):
+    return ConferenceService.leave_conference(
+        db,
+        conference_id,
+        researcher_id,
+    )
 
 @router.get(
     "/{conference_id}",
@@ -155,4 +179,29 @@ def get_joined_conferences(
     return ConferenceRegistrationService.get_joined_conferences(
         db=db,
         current_user=current_user,
+    )
+
+@router.post("/{conference_id}/join/{researcher_id}")
+def join_conference(
+    conference_id: UUID,
+    researcher_id: UUID,
+    db: Session = Depends(get_db),
+):
+    return ConferenceService.join(
+        db,
+        conference_id,
+        researcher_id,
+    )
+
+
+@router.post("/{conference_id}/leave/{researcher_id}")
+def leave_conference(
+    conference_id: UUID,
+    researcher_id: UUID,
+    db: Session = Depends(get_db),
+):
+    return ConferenceService.leave(
+        db,
+        conference_id,
+        researcher_id,
     )

@@ -48,6 +48,9 @@ import CreateCitation from "./pages/citations/CreateCitation";
 import EditCitation from "./pages/citations/EditCitation";
 import CitationDetails from "./pages/citations/CitationDetails";
 
+// Collaborations
+import Collaborations from "./pages/Collaborations";
+
 function App() {
   return (
     <BrowserRouter>
@@ -285,6 +288,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+	{/* ================== Collaborations ================= */}
+	<Route
+	  path="/collaborations"
+	  elements={<Collaborations />}
+	/>
 
       </Routes>
     </BrowserRouter>

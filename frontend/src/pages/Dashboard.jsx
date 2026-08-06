@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import DashboardStats from "../components/dashboard/DashboardStats";
 import QuickActions from "../components/dashboard/QuickActions";
 import DashboardCharts from "../components/dashboard/DashboardCharts";
-
+import DashboardCollaborations from "../components/dashboard/DashboardCollaborations";
 import {
   getDashboardStats,
   getPublicationsPerYear,
@@ -63,6 +63,7 @@ export default function Dashboard() {
         publicationTypes={publicationTypes}
       />
 
+      <DashboardCollaborations />
     </div>
   );
 }
