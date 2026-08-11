@@ -1,15 +1,127 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Bell,
+  Search,
+  UserCircle,
+} from "lucide-react";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
   const isLoggedIn = !!localStorage.getItem("access_token");
 
+  // Get the currently logged-in user
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error("Unable to read logged-in user:", error);
+      return null;
+    }
+  });
+
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const logout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user");
+
+    setCurrentUser(null);
+    setNotifications([]);
+    setUnreadCount(0);
+
     navigate("/login");
   };
+
+  /*
+   * Keep the user information synchronized with localStorage.
+   * This is useful when the user logs in without a full page refresh.
+   */
+  useEffect(() => {
+    const updateUser = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        setCurrentUser(
+          storedUser ? JSON.parse(storedUser) : null
+        );
+      } catch (error) {
+        console.error(
+          "Unable to read logged-in user:",
+          error
+        );
+        setCurrentUser(null);
+      }
+    };
+
+    window.addEventListener("storage", updateUser);
+
+    return () => {
+      window.removeEventListener("storage", updateUser);
+    };
+  }, []);
+
+  /*
+   * Real-time notifications using WebSocket
+   */
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.id) {
+      return;
+    }
+
+    const socket = new WebSocket(
+      `ws://127.0.0.1:8000/notifications/ws?user_id=${currentUser.id}`
+    );
+
+    socket.onopen = () => {
+      console.log("Notification WebSocket connected.");
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const notification = JSON.parse(event.data);
+
+        setNotifications((previous) => [
+          notification,
+          ...previous,
+        ]);
+
+        setUnreadCount((previous) => previous + 1);
+      } catch (error) {
+        console.error(
+          "Unable to process notification:",
+          error
+        );
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error(
+        "Notification WebSocket error:",
+        error
+      );
+    };
+
+    socket.onclose = () => {
+      console.log("Notification WebSocket disconnected.");
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [isLoggedIn, currentUser?.id]);
 
   return (
     <nav
@@ -19,7 +131,7 @@ export default function Navbar() {
         paddingBottom: "12px",
       }}
     >
-      <div className="container">
+      <div className="container-fluid px-4">
 
         <Link
           className="navbar-brand fw-bold fs-2"
@@ -41,7 +153,6 @@ export default function Navbar() {
           className="collapse navbar-collapse"
           id="navbar"
         >
-
           <ul className="navbar-nav ms-auto align-items-lg-center">
 
             <li className="nav-item">
@@ -60,7 +171,6 @@ export default function Navbar() {
 
             {isLoggedIn && (
               <>
-
                 <li className="nav-item">
                   <NavLink
                     className={({ isActive }) =>
@@ -88,8 +198,6 @@ export default function Navbar() {
                     Publications
                   </NavLink>
                 </li>
-
-                {/* NEW CITATIONS MENU */}
 
                 <li className="nav-item">
                   <NavLink
@@ -146,6 +254,7 @@ export default function Navbar() {
                     Dashboard
                   </NavLink>
                 </li>
+
                 <li className="nav-item">
                   <NavLink
                     className={({ isActive }) =>
@@ -160,36 +269,66 @@ export default function Navbar() {
                   </NavLink>
                 </li>
 
+                {/* ================= NOTIFICATIONS ================= */}
                 <li className="nav-item ms-lg-2">
                   <NavLink
                     to="/notifications"
-                    className="btn btn-outline-light rounded-circle position-relative"
+                    className="nav-link position-relative"
+                    title="Notifications"
+                    style={{
+                      fontSize: "22px",
+                      padding: "8px 12px",
+                      color: "white",
+                    }}
                   >
-                    <i className="bi bi-bell"></i>
+                    <Bell size={22} />
 
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                      0
-                    </span>
+                    {unreadCount > 0 && (
+                      <span
+                        className="position-absolute badge rounded-pill bg-danger"
+                        style={{
+                          top: "0px",
+                          right: "0px",
+                          fontSize: "10px",
+                        }}
+                      >
+                        {unreadCount}
+                      </span>
+                    )}
                   </NavLink>
                 </li>
 
+                {/* ================= SEARCH ================= */}
                 <li className="nav-item ms-lg-2">
                   <button
-                    className="btn btn-outline-light rounded-circle"
+                    type="button"
+                    onClick={() => navigate("/search")}
+                    title="Search"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "white",
+                      fontSize: "22px",
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                    }}
                   >
-                    <i className="bi bi-search"></i>
+                    <Search size={22} />
                   </button>
                 </li>
 
+                {/* User menu */}
                 <li className="nav-item dropdown ms-lg-3">
-
                   <a
                     className="nav-link dropdown-toggle"
                     href="#"
                     role="button"
                     data-bs-toggle="dropdown"
+                    onClick={(event) =>
+                      event.preventDefault()
+                    }
                   >
-                    <i className="bi bi-person-circle fs-5"></i>
+                    <UserCircle size={22} className="me-1" />
                   </a>
 
                   <ul className="dropdown-menu dropdown-menu-end shadow">
@@ -229,29 +368,23 @@ export default function Navbar() {
                     </li>
 
                   </ul>
-
                 </li>
-
               </>
             )}
 
             {!isLoggedIn && (
               <li className="nav-item ms-lg-3">
-
                 <Link
                   className="btn btn-light"
                   to="/login"
                 >
                   Login
                 </Link>
-
               </li>
             )}
 
           </ul>
-
         </div>
-
       </div>
     </nav>
   );

@@ -36,7 +36,7 @@ class DashboardRepository:
                 db.query(func.count(Collaboration.id))
                 .filter(
                     Collaboration.status
-                    == CollaborationStatus.ACTIVE
+                    == CollaborationStatus.ACCEPTED
                 )
                 .scalar()
                 or 0

@@ -59,17 +59,28 @@ class Collaboration(TimestampMixin, Base):
     )
 
     collaboration_type: Mapped[CollaborationType] = mapped_column(
-        SqlEnum(CollaborationType),
+        SqlEnum(
+            CollaborationType,
+            native_enum=False,
+            length=50,
+        ),
         default=CollaborationType.PROJECT,
+        nullable=False,
     )
 
     description: Mapped[str | None] = mapped_column(
         String(1000),
+        nullable=True,
     )
 
     status: Mapped[CollaborationStatus] = mapped_column(
-        SqlEnum(CollaborationStatus),
+        SqlEnum(
+            CollaborationStatus,
+            native_enum=False,
+            length=50,
+        ),
         default=CollaborationStatus.PENDING,
+        nullable=False,
     )
 
     sender = relationship(

@@ -101,11 +101,7 @@ class SearchService:
                     "doi": p.doi,
                     "url": p.url,
                     "authors": [
-<<<<<<< HEAD
-                        f"{researcher.first_name} {researcher.last_name}"
-=======
                         {"name": f"{researcher.first_name} {researcher.last_name}"}
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
                         for researcher in p.researchers
                     ],
                 }

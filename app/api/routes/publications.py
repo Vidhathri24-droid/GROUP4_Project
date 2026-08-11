@@ -2,6 +2,7 @@ from uuid import UUID
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     File,
     Query,
@@ -21,6 +22,10 @@ from app.schemas.publication import (
     PublicationUpdate,
 )
 from app.services.publication_service import publication_service
+from app.services.notification_service import (
+    NotificationService,
+    notification_manager,
+)
 
 router = APIRouter(
     prefix="/publications",
@@ -54,11 +59,95 @@ def get_all_publications(
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
-    return publication_service.get_all_publications(
+    return publication_service.get_accepted_publications(
         db=db,
         skip=skip,
         limit=limit,
     )
+
+
+@router.get(
+    "/reviewer",
+    response_model=list[PublicationResponse],
+)
+def get_reviewer_publications(
+    status_filter: str | None = Query(
+        default=None,
+        alias="status"
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return publication_service.get_reviewer_publications(
+        db=db,
+        current_user=current_user,
+        status_filter=status_filter,
+    )
+
+
+# ============================================================
+# REVIEW PUBLICATION
+# ============================================================
+
+@router.put(
+    "/{publication_id}/review",
+    response_model=PublicationResponse,
+)
+def review_publication(
+    publication_id: UUID,
+    review_status: str = Query(..., alias="status"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    background_tasks: BackgroundTasks = None,
+):
+    # Reviewer accepts/rejects the publication
+    publication = publication_service.review_publication(
+        db=db,
+        publication_id=publication_id,
+        current_user=current_user,
+        new_status=review_status,
+    )
+
+    # Normalize status
+    normalized_status = str(publication.status).upper()
+
+    # Only create notification for ACCEPTED / REJECTED
+    if normalized_status in {"ACCEPTED", "REJECTED"}:
+
+        if normalized_status == "ACCEPTED":
+            title = "Publication Accepted"
+            message = (
+                f'Your publication "{publication.title}" '
+                "has been accepted by the reviewer."
+            )
+        else:
+            title = "Publication Rejected"
+            message = (
+                f'Your publication "{publication.title}" '
+                "has been rejected by the reviewer."
+            )
+
+        # Save notification in database
+        notification = NotificationService.create_notification(
+            db=db,
+            user_id=publication.owner_id,
+            title=title,
+            message=message,
+            notification_type="PUBLICATION_REVIEW",
+            reference_id=publication.id,
+        )
+
+        # Send notification immediately through WebSocket
+        if background_tasks is not None:
+            background_tasks.add_task(
+                notification_manager.send_to_user,
+                publication.owner_id,
+                NotificationService.notification_to_dict(
+                    notification
+                ),
+            )
+
+    return publication
 
 
 @router.get(
@@ -144,7 +233,7 @@ def delete_publication(
     return publication_service.delete_publication(
         db=db,
         publication_id=publication_id,
-        current_user_id=current_user.id,
+        current_user=current_user,
     )
 
 

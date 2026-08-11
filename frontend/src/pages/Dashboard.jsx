@@ -9,6 +9,7 @@ import {
   getPublicationsPerYear,
   getPublicationTypes,
 } from "../services/dashboardService";
+import { getCollaborationStats } from "../services/collaborationService";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -17,6 +18,10 @@ export default function Dashboard() {
 
   const [publicationTypes, setPublicationTypes] =
     useState([]);
+  const [collaborationStats, setCollaborationStats] = useState({
+    collaborations: 0,
+    pending_collaborations: 0,
+  });
 
   useEffect(() => {
     loadDashboard();
@@ -43,6 +48,27 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    const loadCollaborationStats = async () => {
+      try {
+        const data = await getCollaborationStats();
+
+        setCollaborationStats({
+          collaborations: data.collaborations ?? 0,
+          pending_collaborations:
+            data.pending_collaborations ?? 0,
+        });
+      } catch (error) {
+        console.error(
+          "Failed to load collaboration statistics:",
+          error
+        );
+      }
+    };
+
+    loadCollaborationStats();
+  }, []);
+
   return (
     <div className="container py-5">
 
@@ -56,7 +82,9 @@ export default function Dashboard() {
 
       <QuickActions />
 
-      <DashboardStats stats={stats} />
+      <DashboardStats stats={stats} 
+        collaborationStats={collaborationStats}
+      />
 
       <DashboardCharts
         yearlyData={yearlyData}

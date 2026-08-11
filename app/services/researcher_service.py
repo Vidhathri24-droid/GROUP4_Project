@@ -11,6 +11,7 @@ from app.schemas.researcher import (
     ResearcherUpdate,
 )
 
+from app.models.user import User, UserRole
 
 class ResearcherService:
 
@@ -18,6 +19,7 @@ class ResearcherService:
     def create_researcher(
         db: Session,
         researcher_data: ResearcherCreate,
+        current_user: User,
     ):
         # Check if the user exists
         user = UserRepository.get_by_id(
@@ -84,7 +86,11 @@ class ResearcherService:
         db: Session,
         researcher_id: UUID,
         data: ResearcherUpdate,
+        current_user: User,
     ):
+
+
+
         researcher = ResearcherRepository.get_by_id(
             db,
             researcher_id,
@@ -95,7 +101,14 @@ class ResearcherService:
                 status_code=404,
                 detail="Researcher not found",
             )
-
+        if (
+            current_user.role == UserRole.RESEARCHER
+            and researcher.user_id != current_user.id
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="You cannot edit another researcher's profile.",
+            )
         update_data = data.model_dump(
             exclude_unset=True
         )
@@ -116,6 +129,7 @@ class ResearcherService:
     def delete_researcher(
         db: Session,
         researcher_id: UUID,
+        current_user: User,
     ):
         researcher = ResearcherRepository.get_by_id(
             db,
@@ -127,7 +141,14 @@ class ResearcherService:
                 status_code=404,
                 detail="Researcher not found",
             )
-
+        if (
+            current_user.role == UserRole.RESEARCHER
+            and researcher.user_id != current_user.id
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="You cannot delete another researcher's profile.",
+            )
         ResearcherRepository.delete(
             db,
             researcher,
@@ -136,3 +157,12 @@ class ResearcherService:
         return {
             "message": "Researcher deleted successfully"
         }
+    @staticmethod
+    def search_researchers(
+        db: Session,
+        query: str,
+    ):
+        return ResearcherRepository.search(
+            db,
+            query,
+        )

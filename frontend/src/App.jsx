@@ -11,6 +11,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
 // Dashboard
 import Dashboard from "./pages/Dashboard";
+import Network from "./pages/network/Network";
 
 // Navbar & Protection
 import Navbar from "./components/Navbar";
@@ -22,7 +23,7 @@ import Researchers from "./pages/researchers/Researchers";
 import CreateResearcher from "./pages/researchers/CreateResearcher";
 import ResearcherDetails from "./pages/researchers/ResearcherDetails";
 import EditResearcher from "./pages/researchers/EditResearcher";
-
+import ResearcherProfile from "./pages/researchers/ResearcherProfile";
 // Publications
 import Publications from "./pages/Publications";
 import CreatePublication from "./pages/CreatePublication";
@@ -52,14 +53,12 @@ import CreateCitation from "./pages/citations/CreateCitation";
 import EditCitation from "./pages/citations/EditCitation";
 import CitationDetails from "./pages/citations/CitationDetails";
 
-<<<<<<< HEAD
 // Collaborations
 import Collaborations from "./pages/Collaborations";
-=======
 import Collaboration from "./pages/Collaboration";
 
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
-
+// Reviewer
+import ReviewerDashboard from "./pages/ReviewerDashboard";
 function App() {
   return (
     <BrowserRouter>
@@ -107,6 +106,11 @@ function App() {
           }
         />
 
+        <Route
+          path="/network"
+          element={<Network />}
+        />
+
         {/* ================= Researchers ================= */}
 
         <Route
@@ -117,14 +121,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-	<Route
-	  path="/researchers/:id"
-	  element={
-	    <ProtectedRoute>
-		<ResearcherDetails />
-	    </ProtectedRoute>
-	  }
-	/>
 
         <Route
           path="/researchers/create"
@@ -134,14 +130,25 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
-  path="/researchers/:id"
-  element={
-    <ProtectedRoute>
-      <ResearcherDetails />
-    </ProtectedRoute>
-  }
-/>
+          path="/researchers/:id"
+          element={
+            <ProtectedRoute>
+              <ResearcherProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ResearcherProfile />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/researchers/edit/:id"
           element={
@@ -332,11 +339,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-	{/* ================== Collaborations ================= */}
-	<Route
-	  path="/collaborations"
-	  elements={<Collaborations />}
-	/>
 
         {/* ================= User Management ================= */}
 
@@ -360,6 +362,15 @@ function App() {
             } 
           />
 
+            {/* ================= Reviewer ================= */}
+            <Route
+              path="/reviewer"
+              element={
+                <ProtectedRoute>
+                  <ReviewerDashboard />
+                </ProtectedRoute>
+              }
+            />
       </Routes>
     </BrowserRouter>
   );

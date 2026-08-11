@@ -1,27 +1,19 @@
-<<<<<<< HEAD
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-
-from app.models.collaboration import Collaboration
-
-=======
-from sqlalchemy.orm import Session
+from app.models.researcher import Researcher
 from app.services.notification_service import NotificationService
-from app.models.notification import NotificationType
 from app.repositories.user_repository import UserRepository
-
+from app.models.researcher import Researcher
 from app.models.collaboration import (
     Collaboration,
     CollaborationStatus,
 )
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 from app.repositories.collaboration_repository import (
     CollaborationRepository,
 )
 
-<<<<<<< HEAD
 from app.repositories.researcher_repository import (
     ResearcherRepository,
 )
@@ -35,13 +27,10 @@ from app.schemas.collaboration import (
     CollaborationUpdate,
 )
 
-=======
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 
 class CollaborationService:
 
     @staticmethod
-<<<<<<< HEAD
     def create(
         db: Session,
         data: CollaborationCreate,
@@ -85,17 +74,56 @@ class CollaborationService:
             description=data.description,
         )
 
-        return CollaborationRepository.create(
-=======
+        return CollaborationRepository.create
+        (
+            db,
+            collaboration,
+        )
+
+    @staticmethod
     def send_request(
         db: Session,
-        sender_id,
-        receiver_id,
+        sender_id: UUID,
+        receiver_id: UUID,
+        publication_id: UUID | None,
+        collaboration_type,
+        description: str | None = None,
     ):
+        # receiver_id coming from frontend is Researcher.id
+        receiver = (
+            db.query(Researcher)
+            .filter(
+                Researcher.id == receiver_id
+            )
+            .first()
+        )
+
+        if receiver is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Receiver researcher not found.",
+            )
+
+        # Convert Researcher.id -> User.id
+        receiver_user_id = receiver.user_id
+
+        # Prevent sending request to yourself
+        if sender_id == receiver_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "You cannot send a collaboration "
+                    "request to yourself."
+                ),
+            )
+
         collaboration = Collaboration(
             sender_id=sender_id,
-            receiver_id=receiver_id,
-            status=CollaborationStatus.PENDING,
+            receiver_id=receiver_user_id,
+            publication_id=publication_id,
+            collaboration_type=collaboration_type,
+            description=description,
+            status="PENDING",
         )
 
         collaboration = CollaborationRepository.create(
@@ -103,14 +131,36 @@ class CollaborationService:
             collaboration,
         )
 
-        sender = UserRepository.get_by_id(db, sender_id)
+        # ========================================================
+        # CREATE NOTIFICATION
+        # ========================================================
+
+        sender_researcher = (
+            db.query(Researcher)
+            .filter(
+                Researcher.user_id == sender_id
+            )
+            .first()
+        )
+
+        if sender_researcher:
+            sender_name = (
+                f"{sender_researcher.first_name or ''} "
+                f"{sender_researcher.last_name or ''}"
+            ).strip()
+        else:
+            sender_name = "A researcher"
 
         NotificationService.create_notification(
             db=db,
-            user_id=receiver_id,
+            user_id=receiver_user_id,
             title="New Collaboration Request",
-            message=f"{sender.email} sent you a collaboration request.",
-            notification_type=NotificationType.COLLABORATION,
+            message=(
+                f"{sender_name} sent you a "
+                "collaboration request."
+            ),
+            notification_type="COLLABORATION_REQUEST",
+            reference_id=collaboration.id,
         )
 
         return collaboration
@@ -143,14 +193,12 @@ class CollaborationService:
     ):
         collaboration.status = CollaborationStatus.REJECTED
         return CollaborationRepository.update(
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
             db,
             collaboration,
         )
 
     @staticmethod
     def get_all(db: Session):
-<<<<<<< HEAD
         return CollaborationRepository.get_all(db)
 
     @staticmethod
@@ -242,6 +290,102 @@ class CollaborationService:
         return {
             "message": "Collaboration deleted successfully"
         }
-=======
-        return CollaborationRepository.get_all(db)
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+
+    @staticmethod
+    def get_sent_pending_requests(
+        db: Session,
+        current_user_id: UUID,
+    ):
+        collaborations = (
+            db.query(Collaboration)
+            .filter(
+                Collaboration.sender_id == current_user_id,
+                Collaboration.status == CollaborationStatus.PENDING,
+            )
+            .all()
+        )
+
+        return [
+            CollaborationService._format_collaboration(db, collaboration)
+            for collaboration in collaborations
+        ]
+
+    @staticmethod
+    def get_received_pending_requests(
+        db: Session,
+        current_user_id: UUID,
+    ):
+        collaborations = (
+            db.query(Collaboration)
+            .filter(
+                Collaboration.receiver_id == current_user_id,
+                Collaboration.status == CollaborationStatus.PENDING,
+            )
+            .all()
+        )
+
+        return [
+            CollaborationService._format_collaboration(db, collaboration)
+            for collaboration in collaborations
+        ]
+
+    @staticmethod
+    def get_accepted_collaborations(
+        db: Session,
+        current_user_id: UUID,
+    ):
+        collaborations = (
+            db.query(Collaboration)
+            .filter(
+                Collaboration.status == CollaborationStatus.ACCEPTED,
+                (
+                    (Collaboration.sender_id == current_user_id)
+                    |
+                    (Collaboration.receiver_id == current_user_id)
+                ),
+            )
+            .all()
+        )
+
+        return [
+            CollaborationService._format_collaboration(db, collaboration)
+            for collaboration in collaborations
+        ]
+    
+    @staticmethod
+    def _format_collaboration(db: Session, collaboration):
+        sender = (
+            db.query(Researcher)
+            .filter(Researcher.user_id == collaboration.sender_id)
+            .first()
+        )
+
+        receiver = (
+            db.query(Researcher)
+            .filter(Researcher.user_id == collaboration.receiver_id)
+            .first()
+        )
+
+        return {
+            "id": collaboration.id,
+            "sender_id": collaboration.sender_id,
+            "receiver_id": collaboration.receiver_id,
+
+            "sender_name": (
+                f"{sender.first_name} {sender.last_name}"
+                if sender
+                else "Unknown Researcher"
+            ),
+
+            "receiver_name": (
+                f"{receiver.first_name} {receiver.last_name}"
+                if receiver
+                else "Unknown Researcher"
+            ),
+
+            "publication_id": collaboration.publication_id,
+            "collaboration_type": collaboration.collaboration_type,
+            "description": collaboration.description,
+            "status": collaboration.status,
+            "created_at": collaboration.created_at,
+        }

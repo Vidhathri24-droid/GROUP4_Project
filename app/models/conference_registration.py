@@ -1,11 +1,17 @@
 import uuid
+from enum import Enum
 
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import ForeignKey, UniqueConstraint, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
+
+
+class ParticipationType(str, Enum):
+    ATTENDEE = "Attendee"
+    PRESENTER = "Presenter"
 
 
 class ConferenceRegistration(TimestampMixin, Base):
@@ -35,6 +41,12 @@ class ConferenceRegistration(TimestampMixin, Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+    )
+
+    participation_type: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default=ParticipationType.ATTENDEE.value,
     )
 
     conference = relationship(

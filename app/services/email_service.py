@@ -1,236 +1,235 @@
-import secrets
+import os
 import smtplib
 
-from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from email.message import EmailMessage
+from datetime import datetime, timedelta, timezone
+import secrets
 
-from app.core.config import settings
+from dotenv import load_dotenv
+
+
+# Load .env
+load_dotenv()
 
 
 class EmailService:
 
     @staticmethod
-    def generate_verification_token() -> str:
-        return secrets.token_urlsafe(32)
-
-    @staticmethod
-    def verification_expiry() -> datetime:
-        return datetime.utcnow() + timedelta(minutes=30)
-
-    @staticmethod
-    def generate_reset_token() -> str:
-        return secrets.token_urlsafe(32)
-
-    @staticmethod
-    def reset_token_expiry() -> datetime:
-        return datetime.utcnow() + timedelta(minutes=15)
-
-    @staticmethod
-    def send_email(
-        recipient: str,
-        subject: str,
-        html_content: str,
-    ):
-        message = MIMEMultipart("alternative")
-
-        message["Subject"] = subject
-        message["From"] = settings.MAIL_FROM
-        message["To"] = recipient
-
-        message.attach(
-            MIMEText(
-                html_content,
-                "html",
-            )
-        )
-
-        try:
-            with smtplib.SMTP(
-                settings.SMTP_HOST,
-                settings.SMTP_PORT,
-            ) as server:
-
-                server.starttls()
-
-                server.login(
-                    settings.SMTP_USERNAME,
-                    settings.SMTP_PASSWORD,
-                )
-
-                server.sendmail(
-                    settings.MAIL_FROM,
-                    recipient,
-                    message.as_string(),
-                )
-
-            print(f"Email sent successfully to {recipient}")
-
-        except Exception as e:
-            print(f"Failed to send email: {e}")
-            raise
-
-    @staticmethod
-    def send_verification_email(
-        email: str,
-        token: str,
-    ):
-        verification_link = (
-            f"{settings.FRONTEND_URL}/verify-email?token={token}"
-        )
-
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-        </head>
-
-        <body style="font-family:Arial,sans-serif;background:#f4f6f8;padding:40px;">
-
-            <div style="
-                max-width:600px;
-                margin:auto;
-                background:white;
-                border-radius:10px;
-                padding:40px;
-                box-shadow:0 2px 10px rgba(0,0,0,.1);
-            ">
-
-                <h2 style="color:#0d6efd;">
-                    Scientific Collaboration Network Analyzer
-                </h2>
-
-                <p>Hello,</p>
-
-                <p>
-                    Thank you for registering.
-                </p>
-
-                <p>
-                    Please verify your email address by clicking the button below.
-                </p>
-
-                <p style="text-align:center;margin:40px 0;">
-
-                    <a
-                        href="{verification_link}"
-                        style="
-                            background:#0d6efd;
-                            color:white;
-                            text-decoration:none;
-                            padding:14px 28px;
-                            border-radius:6px;
-                            display:inline-block;
-                            font-weight:bold;
-                        "
-                    >
-                        Verify Email
-                    </a>
-
-                </p>
-
-                <p>
-                    This verification link will expire in
-                    <strong>30 minutes</strong>.
-                </p>
-
-                <p>
-                    If you did not create this account,
-                    you can safely ignore this email.
-                </p>
-
-                <hr>
-
-                <small style="color:gray;">
-                    Scientific Collaboration Network Analyzer
-                </small>
-
-            </div>
-
-        </body>
-        </html>
+    def generate_reset_token():
         """
-        EmailService.send_email(
-            recipient=email,
-            subject="Verify Your Email Address",
-            html_content=html,
+        Generate a secure password reset token.
+        """
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def reset_token_expiry():
+        """
+        Password reset token expires after 30 minutes.
+        """
+        return datetime.now(timezone.utc) + timedelta(
+            minutes=30
         )
 
     @staticmethod
     def send_reset_password_email(
-        email: str,
+        recipient_email: str,
         token: str,
     ):
+
+        # ==========================================
+        # SMTP CONFIGURATION
+        # ==========================================
+
+        smtp_host = os.getenv(
+            "SMTP_HOST",
+            "smtp-relay.brevo.com"
+        )
+
+        smtp_port = int(
+            os.getenv(
+                "SMTP_PORT",
+                "587"
+            )
+        )
+
+        smtp_username = os.getenv(
+            "SMTP_USERNAME"
+        )
+
+        smtp_password = os.getenv(
+            "SMTP_PASSWORD"
+        )
+
+        # ==========================================
+        # SENDER CONFIGURATION
+        # ==========================================
+
+        mail_from = os.getenv(
+            "MAIL_FROM"
+        )
+
+        frontend_url = os.getenv(
+            "FRONTEND_URL",
+            "http://localhost:5173"
+        )
+
+        # ==========================================
+        # VALIDATE CONFIGURATION
+        # ==========================================
+
+        if not smtp_username:
+            raise RuntimeError(
+                "SMTP_USERNAME is not configured."
+            )
+
+        if not smtp_password:
+            raise RuntimeError(
+                "SMTP_PASSWORD is not configured."
+            )
+
+        if not mail_from:
+            raise RuntimeError(
+                "MAIL_FROM is not configured."
+            )
+
+        # ==========================================
+        # RESET LINK
+        # ==========================================
+
         reset_link = (
-            f"{settings.FRONTEND_URL}/reset-password?token={token}"
+            f"{frontend_url}"
+            f"/reset-password"
+            f"?token={token}"
         )
 
-        html = f"""
-        <!DOCTYPE html>
-        <html>
+        # ==========================================
+        # CREATE EMAIL
+        # ==========================================
 
-        <body style="font-family:Arial;background:#f4f6f8;padding:40px;">
+        message = EmailMessage()
 
-            <div style="
-                max-width:600px;
-                margin:auto;
-                background:white;
-                padding:40px;
-                border-radius:10px;
-                box-shadow:0 2px 10px rgba(0,0,0,.1);
-            ">
-
-                <h2 style="color:#dc3545;">
-                    Password Reset
-                </h2>
-
-                <p>
-                    We received a request to reset your password.
-                </p>
-
-                <p style="text-align:center;margin:40px 0;">
-
-                    <a
-                        href="{reset_link}"
-                        style="
-                            background:#dc3545;
-                            color:white;
-                            padding:14px 28px;
-                            border-radius:6px;
-                            text-decoration:none;
-                            font-weight:bold;
-                        "
-                    >
-                        Reset Password
-                    </a>
-
-                </p>
-
-                <p>
-                    This link expires in
-                    <strong>15 minutes</strong>.
-                </p>
-
-                <p>
-                    If you didn't request a password reset,
-                    simply ignore this email.
-                </p>
-
-                <hr>
-
-                <small style="color:gray;">
-                    Scientific Collaboration Network Analyzer
-                </small>
-
-            </div>
-
-        </body>
-        </html>
-        """
-
-        EmailService.send_email(
-            recipient=email,
-            subject="Reset Your Password",
-            html_content=html,
+        message["Subject"] = (
+            "SCNA - Password Reset"
         )
+
+        # IMPORTANT:
+        # MAIL_FROM is the verified Brevo sender.
+        message["From"] = mail_from
+
+        message["To"] = recipient_email
+
+        message.set_content(
+            f"""
+Hello,
+
+We received a request to reset your SCNA
+account password.
+
+Click the link below to reset your password:
+
+{reset_link}
+
+This password reset link will expire in
+30 minutes.
+
+If you did not request a password reset,
+you can safely ignore this email.
+
+Regards,
+
+SCNA
+Scientific Collaboration Network Analyzer
+"""
+        )
+
+        # ==========================================
+        # SEND THROUGH BREVO SMTP
+        # ==========================================
+
+        try:
+
+            print("\n========== BREVO SMTP ==========")
+
+            print(
+                "SMTP HOST:",
+                smtp_host
+            )
+
+            print(
+                "SMTP PORT:",
+                smtp_port
+            )
+
+            print(
+                "SMTP USERNAME:",
+                smtp_username
+            )
+
+            print(
+                "MAIL FROM:",
+                mail_from
+            )
+
+            print(
+                "RECIPIENT:",
+                recipient_email
+            )
+
+            print(
+                "SMTP PASSWORD SET:",
+                bool(smtp_password)
+            )
+
+            print(
+                "Connecting to Brevo..."
+            )
+
+            with smtplib.SMTP(
+                smtp_host,
+                smtp_port,
+                timeout=30
+            ) as server:
+
+                server.ehlo()
+
+                print(
+                    "Starting TLS..."
+                )
+
+                server.starttls()
+
+                server.ehlo()
+
+                print(
+                    "Logging into Brevo..."
+                )
+
+                server.login(
+                    smtp_username,
+                    smtp_password
+                )
+
+                print(
+                    "Brevo SMTP login successful."
+                )
+
+                print(
+                    "Sending email..."
+                )
+
+                server.send_message(
+                    message
+                )
+
+                print(
+                    "PASSWORD RESET EMAIL SENT!"
+                )
+
+        except Exception as e:
+
+            print(
+                "BREVO EMAIL ERROR:",
+                repr(e)
+            )
+
+            raise

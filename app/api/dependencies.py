@@ -65,3 +65,12 @@ def require_researcher(current_user=Depends(get_current_user)):
 
     return current_user
 
+def require_reviewer(current_user=Depends(get_current_user)):
+
+    if current_user.role != UserRole.REVIEWER:
+        raise HTTPException(
+            status_code=403,
+            detail="Reviewer access required"
+        )
+
+    return current_user

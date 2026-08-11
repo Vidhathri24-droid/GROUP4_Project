@@ -15,7 +15,7 @@ from app.schemas.researcher import (
 )
 
 from app.services.researcher_service import ResearcherService
-
+from fastapi import Query
 router = APIRouter(
     prefix="/researchers",
     tags=["Researchers"],
@@ -35,6 +35,7 @@ def create_researcher(
     return ResearcherService.create_researcher(
         db,
         researcher,
+        current_user,
     )
 
 
@@ -44,12 +45,22 @@ def create_researcher(
 )
 def get_researchers(
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     return ResearcherService.get_all_researchers(
         db,
     )
 
-
+@router.get("/search")
+def search_researchers(
+    query: str = Query(""),
+    db: Session = Depends(get_db),
+):
+    return ResearcherService.search_researchers(
+        db,
+        query,
+    )
+    
 @router.get(
     "/{researcher_id}",
     response_model=ResearcherResponse,
@@ -78,6 +89,7 @@ def update_researcher(
         db,
         researcher_id,
         researcher,
+        current_user,
     )
 
 
@@ -92,4 +104,5 @@ def delete_researcher(
     return ResearcherService.delete_researcher(
         db,
         researcher_id,
+        current_user,
     )

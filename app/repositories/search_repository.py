@@ -37,15 +37,9 @@ class SearchRepository:
             )
 
         if sort == "oldest":
-<<<<<<< HEAD
             q = q.order_by(Researcher.first_name.asc(), Researcher.last_name.asc())
         else:
-            q = q.order_by(Researcher.first_name.asc(), Researcher.last_name.asc())
-=======
-            q = q.order_by(Researcher.first_name.asc())
-        else:
-            q = q.order_by(Researcher.last_name.asc())
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
+            q = q.order_by(Researcher.last_name.asc(), Researcher.first_name.asc())
 
         total = q.count()
 

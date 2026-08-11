@@ -15,7 +15,7 @@ from app.schemas.institution import (
 )
 
 from app.services.institution_service import InstitutionService
-
+from app.models.user import User
 router = APIRouter(
     prefix="/institutions",
     tags=["Institutions"],
@@ -30,11 +30,12 @@ router = APIRouter(
 def create_institution(
     institution: InstitutionCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user:User=Depends(get_current_user),
 ):
     return InstitutionService.create_institution(
         db,
         institution,
+        current_user,
     )
 
 
@@ -70,18 +71,31 @@ def update_institution(
     institution_id: UUID,
     institution: InstitutionUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user:User=Depends(get_current_user),
 ):
     return InstitutionService.update_institution(
         db,
         institution_id,
         institution,
+        current_user,
     )
 
 
 @router.delete(
     "/{institution_id}",
+    response_model=InstitutionResponse,
 )
+def delete_institution(
+    institution_id: UUID,
+    db: Session = Depends(get_db),
+    current_user:User=Depends(get_current_user),
+):
+    return InstitutionService.delete_institution(
+        db,
+        institution_id,
+        current_user,
+    )
+
 def delete_institution(
     institution_id: UUID,
     db: Session = Depends(get_db),

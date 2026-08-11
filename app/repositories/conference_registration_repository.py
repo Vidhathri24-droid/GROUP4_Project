@@ -12,10 +12,12 @@ class ConferenceRegistrationRepository:
         db: Session,
         conference_id: UUID,
         user_id: UUID,
+        participation_type: str,
     ):
         registration = ConferenceRegistration(
             conference_id=conference_id,
             user_id=user_id,
+            participation_type=participation_type,
         )
 
         db.add(registration)
@@ -71,4 +73,34 @@ class ConferenceRegistrationRepository:
                 ConferenceRegistration.conference_id == conference_id
             )
             .count()
+        )
+
+    @staticmethod
+    def get_presenters(
+        db: Session,
+        conference_id: UUID,
+    ):
+        return (
+            db.query(ConferenceRegistration)
+            .filter(
+                ConferenceRegistration.conference_id == conference_id,
+                ConferenceRegistration.participation_type == "Presenter",
+            )
+            .all()
+        )
+
+    @staticmethod
+    def is_registered(
+        db: Session,
+        conference_id: UUID,
+        user_id: UUID,
+    ):
+        return (
+            db.query(ConferenceRegistration)
+            .filter(
+                ConferenceRegistration.conference_id == conference_id,
+                ConferenceRegistration.user_id == user_id,
+            )
+            .first()
+            is not None
         )

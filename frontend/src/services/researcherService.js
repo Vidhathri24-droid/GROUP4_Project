@@ -10,6 +10,16 @@ export const getResearcher = async (id) => {
     return response.data;
 };
 
+export const searchResearchers = async (query) => {
+    const response = await api.get("/researchers/search", {
+        params: {
+            query,
+        },
+    });
+
+    return response.data;
+};
+
 export const createResearcher = async (data) => {
     const response = await api.post("/researchers/", data);
     return response.data;

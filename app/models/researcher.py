@@ -16,7 +16,7 @@ from sqlalchemy.orm import (
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-from app.models.collaboration import Collaboration
+
 
 class Researcher(TimestampMixin, Base):
     __tablename__ = "researchers"
@@ -32,11 +32,19 @@ class Researcher(TimestampMixin, Base):
         ),
     )
 
+    # ==========================================
+    # Primary Key
+    # ==========================================
+
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
+
+    # ==========================================
+    # User Relationship
+    # ==========================================
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -48,6 +56,10 @@ class Researcher(TimestampMixin, Base):
         nullable=False,
     )
 
+    # ==========================================
+    # Basic Information
+    # ==========================================
+
     first_name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -58,40 +70,68 @@ class Researcher(TimestampMixin, Base):
         nullable=False,
     )
 
-    last_name: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-    )
-
-
     phone: Mapped[str | None] = mapped_column(
         String(20),
+        nullable=True,
     )
 
     experience: Mapped[int] = mapped_column(
         Integer,
         default=0,
-    )
-
-    orcid: Mapped[str | None] = mapped_column(
-        String(50),
-    )
-
-    google_scholar: Mapped[str | None] = mapped_column(
-        String(500),
-    )
-
-    research_gate: Mapped[str | None] = mapped_column(
-        String(500),
-    )
-
-    linkedin: Mapped[str | None] = mapped_column(
-        String(500),
+        nullable=False,
     )
 
     bio: Mapped[str | None] = mapped_column(
         String(1000),
+        nullable=True,
     )
+
+    profile_photo: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    # ==========================================
+    # Researcher Profiles
+    # ==========================================
+
+    orcid: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    google_scholar: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    research_gate: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    linkedin: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    # ==========================================
+    # Skills & Research Interests
+    # ==========================================
+
+    skills: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+    )
+
+    interests: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+    )
+
+    # ==========================================
+    # Relationships
+    # ==========================================
 
     user = relationship(
         "User",
@@ -99,27 +139,27 @@ class Researcher(TimestampMixin, Base):
     )
 
     departments = relationship(
-    	"Department",
-    	secondary="researcher_departments",
-    	back_populates="researchers",
+        "Department",
+        secondary="researcher_departments",
+        back_populates="researchers",
     )
 
     publications = relationship(
-    	"Publication",
-    	secondary="publication_authors",
-    	back_populates="researchers",
+        "Publication",
+        secondary="publication_authors",
+        back_populates="researchers",
     )
 
     sent_collaborations = relationship(
         "Collaboration",
         foreign_keys="Collaboration.sender_id",
-	back_populates="sender",
+        back_populates="sender",
         cascade="all, delete",
     )
 
-    collaborations_as_second = relationship(
+    received_collaborations = relationship(
         "Collaboration",
         foreign_keys="Collaboration.receiver_id",
-	back_populates="receiver",
+        back_populates="receiver",
         cascade="all, delete",
     )

@@ -71,12 +71,9 @@ export const isAdmin = () => {
 };
 
 export const isLoggedIn = () => {
-<<<<<<< HEAD
   return !!(
     localStorage.getItem("access_token") ||
     sessionStorage.getItem("access_token")
   );
-=======
   return !!localStorage.getItem("access_token");
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
 };

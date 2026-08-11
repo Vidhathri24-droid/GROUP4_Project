@@ -3,10 +3,13 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.user import User
+from app.models.user import User, UserRole
+from app.models.conference_registration import ConferenceRegistration
+
 from app.repositories.conference_registration_repository import (
     ConferenceRegistrationRepository,
 )
+
 from app.services.conference_service import ConferenceService
 
 
@@ -17,15 +20,26 @@ class ConferenceRegistrationService:
         db: Session,
         conference_id: UUID,
         current_user: User,
+        participation_type: str,
     ):
-        # Verify conference exists
-        ConferenceService.get_conference(db = db, conference_id=conference_id,)
 
-        # Prevent duplicate registration
-        existing = ConferenceRegistrationRepository.get_registration(
+        if current_user.role != UserRole.RESEARCHER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only researchers can join conferences.",
+            )
+
+        ConferenceService.get_conference(
             db=db,
             conference_id=conference_id,
-            user_id=current_user.id,
+        )
+
+        existing = (
+            ConferenceRegistrationRepository.get_registration(
+                db=db,
+                conference_id=conference_id,
+                user_id=current_user.id,
+            )
         )
 
         if existing:
@@ -38,6 +52,7 @@ class ConferenceRegistrationService:
             db=db,
             conference_id=conference_id,
             user_id=current_user.id,
+            participation_type=participation_type,
         )
 
     @staticmethod
@@ -46,10 +61,19 @@ class ConferenceRegistrationService:
         conference_id: UUID,
         current_user: User,
     ):
-        registration = ConferenceRegistrationRepository.get_registration(
-            db=db,
-            conference_id=conference_id,
-            user_id=current_user.id,
+
+        if current_user.role != UserRole.RESEARCHER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only researchers can leave conferences.",
+            )
+
+        registration = (
+            ConferenceRegistrationRepository.get_registration(
+                db=db,
+                conference_id=conference_id,
+                user_id=current_user.id,
+            )
         )
 
         if registration is None:
@@ -72,21 +96,49 @@ class ConferenceRegistrationService:
         db: Session,
         current_user: User,
     ):
+
+        if current_user.role != UserRole.RESEARCHER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only researchers can view joined conferences.",
+            )
+
         registrations = (
-            ConferenceRegistrationRepository.get_user_registrations(
+            ConferenceRegistrationRepository
+            .get_user_registrations(
                 db=db,
                 user_id=current_user.id,
             )
         )
 
-        return [registration.conference for registration in registrations]
+        conferences = [
+            registration.conference
+            for registration in registrations
+        ]
+
+        for conference in conferences:
+
+            conference.participant_count = (
+                db.query(ConferenceRegistration)
+                .filter(
+                    ConferenceRegistration.conference_id
+                    == conference.id
+                )
+                .count()
+            )
+
+        return conferences
 
     @staticmethod
     def participant_count(
         db: Session,
         conference_id: UUID,
     ):
-        return ConferenceRegistrationRepository.count_participants(
-            db=db,
-            conference_id=conference_id,
+
+        return (
+            ConferenceRegistrationRepository
+            .count_participants(
+                db=db,
+                conference_id=conference_id,
+            )
         )

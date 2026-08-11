@@ -65,7 +65,6 @@ class Citation(Base):
 
     volume = Column(
         String,
-<<<<<<< HEAD
         nullable=True,
     )
 
@@ -81,8 +80,6 @@ class Citation(Base):
 
     doi = Column(
         String,
-=======
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
         unique=True,
         nullable=True,
     )

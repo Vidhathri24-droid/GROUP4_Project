@@ -9,6 +9,7 @@ import UpcomingConferences from "../components/home/UpcomingConferences";
 import Footer from "../components/home/Footer";
 
 import { getHomeData } from "../services/homeService";
+import { getCollaborationStats } from "../services/collaborationService";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -18,10 +19,34 @@ export default function Home() {
   const [publications, setPublications] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [conferences, setConferences] = useState([]);
-
+  const [collaborationStats, setCollaborationStats] = useState({
+    collaborations: 0,
+    pending_collaborations: 0,
+  });
   useEffect(() => {
     loadHome();
   }, []);
+
+useEffect(() => {
+  const loadCollaborationStats = async () => {
+    try {
+      const data = await getCollaborationStats();
+
+      setCollaborationStats({
+        collaborations: data.collaborations ?? 0,
+        pending_collaborations:
+          data.pending_collaborations ?? 0,
+      });
+    } catch (error) {
+      console.error(
+        "Failed to load collaboration statistics:",
+        error
+      );
+    }
+  };
+
+  loadCollaborationStats();
+}, []);
 
   const loadHome = async () => {
     try {

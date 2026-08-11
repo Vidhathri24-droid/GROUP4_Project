@@ -1,6 +1,5 @@
 from uuid import UUID
-
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.institution import Institution
@@ -9,6 +8,7 @@ from app.schemas.institution import (
     InstitutionCreate,
     InstitutionUpdate,
 )
+from app.models.user import User, UserRole
 
 
 class InstitutionService:
@@ -17,7 +17,15 @@ class InstitutionService:
     def create_institution(
         db: Session,
         data: InstitutionCreate,
+        current_user: User,
     ):
+        # Only System Admin can create institutions
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can create institutions.",
+            )
+
         existing = InstitutionRepository.get_by_name(
             db,
             data.name,
@@ -67,7 +75,15 @@ class InstitutionService:
         db: Session,
         institution_id: UUID,
         data: InstitutionUpdate,
+        current_user: User,
     ):
+        # Only System Admin can update institutions
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can update institutions.",
+            )
+
         institution = InstitutionRepository.get_by_id(
             db,
             institution_id,
@@ -93,7 +109,15 @@ class InstitutionService:
     def delete_institution(
         db: Session,
         institution_id: UUID,
+        current_user: User,
     ):
+        # Only System Admin can delete institutions
+        if current_user.role != UserRole.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only System Admin can delete institutions.",
+            )
+
         institution = InstitutionRepository.get_by_id(
             db,
             institution_id,

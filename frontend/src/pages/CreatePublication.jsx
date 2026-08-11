@@ -38,26 +38,65 @@ function CreatePublication() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      // Create publication
-      const publication = await createPublication(form);
+    console.log("CREATE PUBLICATION BUTTON CLICKED");
+    console.log("FORM DATA:", form);
 
-      // Upload PDF if selected
-      if (pdf) {
-        await uploadPublication(publication.id, pdf);
+    try {
+      const data = {
+        title: form.title,
+        abstract: form.abstract,
+        doi: form.doi,
+        journal: form.journal,
+        conference: form.conference,
+        publication_year: Number(form.publication_year),
+        publication_type: form.publication_type,
+        status: form.status
+          ? form.status.charAt(0).toUpperCase() + form.status.slice(1).toLowerCase()
+          : "Submitted",
+        url: form.url,
+        citation_count: Number(form.citation_count || 0),
+      };
+
+      console.log("SENDING PUBLICATION:", data);
+
+      // Create publication as JSON
+      const createdPublication = await createPublication(data);
+
+      console.log("PUBLICATION CREATED:", createdPublication);
+
+      // Upload PDF separately if selected
+      if (pdf && createdPublication?.id) {
+        console.log("Uploading PDF...");
+
+        await uploadPublication(
+          createdPublication.id,
+          pdf
+        );
+
+        console.log("PDF UPLOADED SUCCESSFULLY");
       }
 
-      alert("Publication created successfully.");
+      alert("Publication created successfully!");
 
       navigate("/publications");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to create publication.");
+
+    } catch (error) {
+      console.error("CREATE PUBLICATION ERROR:", error);
+      console.error(
+        "BACKEND RESPONSE:",
+        error?.response?.data
+      );
+
+      alert(
+        error?.response?.data?.detail
+          ? JSON.stringify(error.response.data.detail)
+          : "Failed to create publication."
+      );
     }
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-4">
 
       <h2 className="mb-4 text-primary">
         Create Publication
@@ -67,6 +106,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Title</label>
+
           <input
             className="form-control"
             name="title"
@@ -78,6 +118,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Abstract</label>
+
           <textarea
             className="form-control"
             rows="4"
@@ -90,6 +131,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>DOI</label>
+
           <input
             className="form-control"
             name="doi"
@@ -100,6 +142,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Journal</label>
+
           <input
             className="form-control"
             name="journal"
@@ -110,6 +153,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Conference</label>
+
           <input
             className="form-control"
             name="conference"
@@ -120,6 +164,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Publication Year</label>
+
           <input
             type="number"
             className="form-control"
@@ -131,6 +176,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Publication Type</label>
+
           <input
             className="form-control"
             name="publication_type"
@@ -141,16 +187,19 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Status</label>
+
           <input
             className="form-control"
             name="status"
             value={form.status}
             onChange={handleChange}
+            placeholder="SUBMITTED"
           />
         </div>
 
         <div className="mb-3">
           <label>URL</label>
+
           <input
             className="form-control"
             name="url"
@@ -161,6 +210,7 @@ function CreatePublication() {
 
         <div className="mb-3">
           <label>Citation Count</label>
+
           <input
             type="number"
             className="form-control"
@@ -177,7 +227,9 @@ function CreatePublication() {
             type="file"
             accept=".pdf"
             className="form-control"
-            onChange={(e) => setPdf(e.target.files[0])}
+            onChange={(e) =>
+              setPdf(e.target.files[0])
+            }
           />
         </div>
 

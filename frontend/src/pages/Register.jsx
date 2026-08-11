@@ -91,44 +91,12 @@ function Register() {
             </div>
           )}
 
-<<<<<<< HEAD
           <form onSubmit={handleSubmit}>
-=======
-            <input
-              type="text"
-              name="first_name"
-              className="form-control"
-              placeholder="Enter your first name"
-              value={formData.first_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label fw-bold">
-              Last Name
-            </label>
-
-            <input
-              type="text"
-              name="last_name"
-              className="form-control"
-              placeholder="Enter your last name"
-              value={formData.last_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
->>>>>>> 626098bf379b3e68d1d64c3dde03b1a0268c27ab
-
             <div className="row">
-
               <div className="col-md-6 mb-3">
                 <label className="form-label fw-semibold">
                   First Name
                 </label>
-
                 <input
                   type="text"
                   className="form-control"
@@ -144,7 +112,6 @@ function Register() {
                 <label className="form-label fw-semibold">
                   Last Name
                 </label>
-
                 <input
                   type="text"
                   className="form-control"
@@ -155,7 +122,6 @@ function Register() {
                   required
                 />
               </div>
-
             </div>
 
             <div className="mb-3">

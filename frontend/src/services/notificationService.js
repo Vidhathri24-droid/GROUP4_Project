@@ -1,19 +1,37 @@
 import api from "./api";
 
-// Get logged-in user's notifications
 export const getNotifications = async () => {
-  const response = await api.get("/notifications/me");
-  return response.data;
+    const response = await api.get("/notifications/");
+    return response.data;
 };
 
-// Mark notification as read
-export const markAsRead = async (id) => {
-  const response = await api.put(`/notifications/${id}/read`);
-  return response.data;
+export const getUnreadNotificationCount = async () => {
+    const response = await api.get(
+        "/notifications/unread-count"
+    );
+
+    return response.data;
 };
 
-// Delete notification
-export const deleteNotification = async (id) => {
-  const response = await api.delete(`/notifications/${id}`);
-  return response.data;
+export const markAsRead = async (
+    notificationId
+) => {
+    const response = await api.patch(
+        `/notifications/${notificationId}/read`
+    );
+
+    return response.data;
+};
+
+export const markAllNotificationsAsRead = async () => {
+    const response = await api.patch(
+        "/notifications/read-all"
+    );
+
+    return response.data;
+};
+
+export const deleteNotification = async (notificationId) => {
+    const response = await api.delete(`/notifications/${notificationId}`);
+    return response.data;
 };

@@ -19,7 +19,9 @@ from sqlalchemy.orm import (
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime
 
 class PublicationType(str, enum.Enum):
     JOURNAL = "Journal"
@@ -96,7 +98,7 @@ class Publication(TimestampMixin, Base):
     status: Mapped[PublicationStatus] = mapped_column(
         Enum(PublicationStatus),
         nullable=False,
-        default=PublicationStatus.DRAFT,
+        default=PublicationStatus.SUBMITTED,
     )
 
     url: Mapped[str | None] = mapped_column(
@@ -140,6 +142,7 @@ class Publication(TimestampMixin, Base):
 
     owner = relationship(
         "User",
+        foreign_keys=[owner_id],
         back_populates="publications",
     )
 
@@ -159,4 +162,25 @@ class Publication(TimestampMixin, Base):
         "Collaboration",
         back_populates="publication",
         cascade="all, delete",
+    )
+    reviewed_by = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=True,
+    )
+    
+    reviewer = relationship(
+        "User",
+        foreign_keys=[reviewed_by],
+        back_populates="reviewed_publications",
+    )
+
+    reviewed_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
+    reviewer_comment = Column(
+        Text,
+        nullable=True,
     )

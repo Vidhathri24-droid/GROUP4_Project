@@ -5,12 +5,13 @@ import uuid
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.models.publication import Publication
+from app.models.publication import (Publication, PublicationStatus)
 from app.repositories.publication_repository import publication_repository
 from app.schemas.publication import (
     PublicationCreate,
     PublicationUpdate,
 )
+from app.models.user import User, UserRole
 
 UPLOAD_DIRECTORY = "uploads/publications"
 
@@ -47,7 +48,7 @@ class PublicationService:
             conference=publication.conference,
             publication_year=publication.publication_year,
             publication_type=publication.publication_type,
-            status=publication.status,
+            status=PublicationStatus.SUBMITTED,
             url=str(publication.url) if publication.url else None,
             citation_count=publication.citation_count,
             owner_id=owner_id,
@@ -82,10 +83,17 @@ class PublicationService:
         skip: int = 0,
         limit: int = 100,
     ):
-        return publication_repository.get_all(
-            db,
-            skip,
-            limit,
+        return (
+            db.query(Publication)
+            .filter(
+                Publication.status == PublicationStatus.ACCEPTED
+            )
+            .order_by(
+                Publication.publication_year.desc()
+            )
+            .offset(skip)
+            .limit(limit)
+            .all()
         )
 
     @staticmethod
@@ -157,8 +165,16 @@ class PublicationService:
     def delete_publication(
         db: Session,
         publication_id: uuid.UUID,
-        current_user_id: uuid.UUID,
+        current_user,
     ):
+        if current_user.role not in (
+            UserRole.SYSTEM_ADMIN,
+            UserRole.INSTITUTION_ADMIN,
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="Only System Admin and Institution Admin can delete publications.",
+            )
         publication = publication_repository.get_by_id(
             db,
             publication_id,
@@ -287,5 +303,110 @@ class PublicationService:
             order=order,
         )
 
+    def get_accepted_publications(
+        self,
+        db: Session,
+        skip: int = 0,
+        limit: int = 100,
+    ):
+        return (
+            db.query(Publication)
+            .filter(
+                Publication.status == PublicationStatus.ACCEPTED
+            )
+            .order_by(
+                Publication.publication_year.desc()
+            )
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
+    @staticmethod
+    def get_reviewer_publications(
+        db: Session,
+        current_user: User,
+        status_filter: str | None = None,
+    ):
+        if current_user.role != UserRole.REVIEWER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only reviewers can access reviewer publications.",
+            )
+
+        query = db.query(Publication)
+
+        if status_filter:
+            try:
+                publication_status = PublicationStatus[status_filter.upper()]
+            except KeyError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid publication status.",
+                )
+
+            query = query.filter(
+                Publication.status == publication_status
+            )
+
+        else:
+            query = query.filter(
+                Publication.status.in_(
+                    [
+                        PublicationStatus.SUBMITTED,
+                        PublicationStatus.ACCEPTED,
+                        PublicationStatus.REJECTED,
+                    ]
+                )
+            )
+
+        return query.order_by(
+            Publication.created_at.desc()
+        ).all()
+
+    @staticmethod
+    def review_publication(
+        db: Session,
+        publication_id: uuid.UUID,
+        current_user: User,
+        new_status: str,
+    ):
+        if current_user.role != UserRole.REVIEWER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only reviewers can review publications.",
+            )
+
+        if new_status not in ("ACCEPTED", "REJECTED"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Review status must be ACCEPTED or REJECTED.",
+            )
+
+        publication = publication_repository.get_by_id(
+            db,
+            publication_id,
+        )
+
+        if not publication:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Publication not found.",
+            )
+
+        if publication.status != PublicationStatus.SUBMITTED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only submitted publications can be reviewed.",
+            )
+
+        if new_status == "ACCEPTED":
+            publication.status = PublicationStatus.ACCEPTED
+        else:
+            publication.status = PublicationStatus.REJECTED
+
+        return publication_repository.update(
+            db,
+            publication,
+        )
 publication_service = PublicationService()

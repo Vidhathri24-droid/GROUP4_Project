@@ -8,37 +8,34 @@ from app.models.notification import Notification
 class NotificationRepository:
 
     @staticmethod
-    def create(db: Session, notification: Notification):
+    def create(
+        db: Session,
+        notification: Notification,
+    ):
         db.add(notification)
         db.commit()
         db.refresh(notification)
+
         return notification
 
     @staticmethod
-    def get_by_id(
-        db: Session,
-        notification_id: UUID,
-    ):
-        return (
-            db.query(Notification)
-            .filter(Notification.id == notification_id)
-            .first()
-        )
-
-    @staticmethod
-    def get_by_user_id(
+    def get_user_notifications(
         db: Session,
         user_id: UUID,
     ):
         return (
             db.query(Notification)
-            .filter(Notification.user_id == user_id)
-            .order_by(Notification.created_at.desc())
+            .filter(
+                Notification.user_id == user_id
+            )
+            .order_by(
+                Notification.created_at.desc()
+            )
             .all()
         )
 
     @staticmethod
-    def get_unread_by_user_id(
+    def get_unread_count(
         db: Session,
         user_id: UUID,
     ):
@@ -46,25 +43,48 @@ class NotificationRepository:
             db.query(Notification)
             .filter(
                 Notification.user_id == user_id,
-                Notification.is_read == False
+                Notification.is_read == False,
             )
-            .order_by(Notification.created_at.desc())
-            .all()
+            .count()
         )
 
     @staticmethod
-    def update(
+    def mark_as_read(
         db: Session,
-        notification: Notification,
+        notification_id: UUID,
+        user_id: UUID,
     ):
-        db.commit()
-        db.refresh(notification)
+        notification = (
+            db.query(Notification)
+            .filter(
+                Notification.id == notification_id,
+                Notification.user_id == user_id,
+            )
+            .first()
+        )
+
+        if notification:
+            notification.is_read = True
+            db.commit()
+            db.refresh(notification)
+
         return notification
 
     @staticmethod
-    def delete(
+    def mark_all_as_read(
         db: Session,
-        notification: Notification,
+        user_id: UUID,
     ):
-        db.delete(notification)
+        (
+            db.query(Notification)
+            .filter(
+                Notification.user_id == user_id,
+                Notification.is_read == False,
+            )
+            .update(
+                {"is_read": True},
+                synchronize_session=False,
+            )
+        )
+
         db.commit()

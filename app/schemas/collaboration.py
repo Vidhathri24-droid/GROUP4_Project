@@ -13,17 +13,15 @@ class CollaborationType(str, Enum):
 
 
 class CollaborationStatus(str, Enum):
-    ACTIVE = "Active"
-    COMPLETED = "Completed"
     PENDING = "Pending"
+    ACCEPTED = "Accepted"
+    REJECTED = "Rejected"
 
 
 class CollaborationCreate(BaseModel):
-    researcher1_id: UUID
-    researcher2_id: UUID
+    receiver_id: UUID
     publication_id: UUID | None = None
-    collaboration_type: CollaborationType
-    status: CollaborationStatus = CollaborationStatus.ACTIVE
+    collaboration_type: CollaborationType = CollaborationType.PROJECT
     description: str | None = None
 
 
@@ -36,11 +34,11 @@ class CollaborationUpdate(BaseModel):
 
 class CollaborationResponse(BaseModel):
     id: UUID
-    researcher1_id: UUID
-    researcher2_id: UUID
-    publication_id: UUID | None
+    sender_id: UUID
+    receiver_id: UUID
+    publication_id: UUID | None = None
     collaboration_type: CollaborationType
     status: CollaborationStatus
-    description: str | None
+    description: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

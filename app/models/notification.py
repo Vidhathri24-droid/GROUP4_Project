@@ -1,19 +1,11 @@
 import uuid
-import enum
 
-from sqlalchemy import String, Boolean, Enum, ForeignKey
+from sqlalchemy import String, Text, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-
-
-class NotificationType(str, enum.Enum):
-    COLLABORATION = "Collaboration"
-    CONFERENCE = "Conference"
-    PUBLICATION = "Publication"
-    SYSTEM = "System"
 
 
 class Notification(TimestampMixin, Base):
@@ -37,14 +29,18 @@ class Notification(TimestampMixin, Base):
     )
 
     message: Mapped[str] = mapped_column(
-        String(500),
+        Text,
         nullable=False,
     )
 
-    notification_type: Mapped[NotificationType] = mapped_column(
-        Enum(NotificationType),
-        default=NotificationType.SYSTEM,
+    notification_type: Mapped[str] = mapped_column(
+        String(50),
         nullable=False,
+    )
+
+    reference_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
     )
 
     is_read: Mapped[bool] = mapped_column(

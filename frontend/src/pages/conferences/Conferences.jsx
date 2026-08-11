@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import {
-  getConferences,
-  deleteConference,
-} from "../../services/conferenceService";
-
 import ConferenceSearch from "../../components/conferences/ConferenceSearch";
 import ConferencePagination from "../../components/conferences/ConferencePagination";
 import ConferenceCard from "../../components/conferences/ConferenceCard";
@@ -15,13 +10,21 @@ import {
   isInstitutionAdmin,
 } from "../../utils/auth";
 
+import {
+  getConferences,
+  getJoinedConferences,
+  getUpcomingConferences,
+  getPastConferences,
+  deleteConference,
+} from "../../services/conferenceService";
+
 function Conferences() {
   const [conferences, setConferences] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [filter, setFilter] = useState("all");
   const conferencesPerPage = 6;
 
   const canManage =
@@ -29,7 +32,7 @@ function Conferences() {
 
   useEffect(() => {
     fetchConferences();
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     const results = conferences.filter((conference) =>
@@ -46,10 +49,21 @@ function Conferences() {
     try {
       setLoading(true);
 
-      const data = await getConferences();
+      let data;
+
+      if (filter === "registered") {
+        data = await getJoinedConferences();
+      } else if (filter === "upcoming") {
+        data = await getUpcomingConferences();
+      } else if (filter === "past") {
+        data = await getPastConferences();
+      } else {
+        data = await getConferences();
+      }
 
       setConferences(data);
       setFiltered(data);
+
     } catch (err) {
       console.error(err);
       alert("Unable to load conferences.");
@@ -65,7 +79,7 @@ function Conferences() {
 
     try {
       await deleteConference(id);
-      fetchConferences();
+      await fetchConferences();
     } catch (err) {
       console.error(err);
 
@@ -86,7 +100,7 @@ function Conferences() {
   );
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-5">
 
       <div className="d-flex justify-content-between align-items-center mb-4">
 
@@ -100,6 +114,36 @@ function Conferences() {
             + Add Conference
           </Link>
         )}
+
+      </div>
+
+      <div className="mb-3">
+
+        <label className="form-label">
+          Filter Conferences
+        </label>
+
+        <select
+          className="form-select"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">
+            All Conferences
+          </option>
+
+          <option value="registered">
+            Registered Conferences
+          </option>
+
+          <option value="upcoming">
+            Upcoming Conferences
+          </option>
+
+          <option value="past">
+            Past Conferences
+          </option>
+        </select>
 
       </div>
 

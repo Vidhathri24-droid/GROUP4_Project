@@ -1,32 +1,17 @@
-import uuid
+from uuid import UUID
 from datetime import datetime
-from enum import Enum
 
-from pydantic import BaseModel
-
-
-class NotificationType(str, Enum):
-    COLLABORATION = "Collaboration"
-    CONFERENCE = "Conference"
-    PUBLICATION = "Publication"
-    SYSTEM = "System"
+from pydantic import BaseModel, ConfigDict
 
 
-class NotificationBase(BaseModel):
+class NotificationResponse(BaseModel):
+    id: UUID
+    user_id: UUID
     title: str
     message: str
-    notification_type: NotificationType
-
-
-class NotificationCreate(NotificationBase):
-    user_id: uuid.UUID
-
-
-class NotificationResponse(NotificationBase):
-    id: uuid.UUID
-    user_id: uuid.UUID
+    notification_type: str
+    reference_id: UUID | None = None
     is_read: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

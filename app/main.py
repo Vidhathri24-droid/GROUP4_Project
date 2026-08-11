@@ -21,7 +21,8 @@ from app.api.routes.collaborations import (
     router as collaboration_router,
 )
 from app.models.conference_participant import ConferenceParticipant
-
+from app.api.routes.notification import router as notifications_router
+from app.api.routes.reviewer import router as reviewer_router
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
     version="1.0.0",
@@ -43,7 +44,7 @@ app.include_router(department_router)
 app.include_router(conference_router)
 app.include_router(publication_router)
 app.include_router(collaboration_router)
-app.include_router(notification_router)
+app.include_router(notifications_router)
 app.include_router(citation_router)
 app.include_router(analytics.router)
 app.include_router(dashboard_router)
@@ -51,7 +52,7 @@ app.include_router(home_router)
 app.include_router(search_router)
 app.include_router(citation_router)
 app.include_router(collaboration_router)
-
+app.include_router(reviewer_router)
 @app.get("/")
 def root():
     return {

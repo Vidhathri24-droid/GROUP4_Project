@@ -17,6 +17,8 @@ export default function ResearcherForm({
             google_scholar: "",
             research_gate: "",
             linkedin: "",
+            skills: "",
+            interests: "",
         }
     );
 
@@ -78,6 +80,44 @@ export default function ResearcherForm({
 
             </div>
 
+            <div className="mb-3">
+                <label className="form-label">
+                    Skills
+                </label>
+
+                <input
+                    type="text"
+                    className="form-control"
+                    name="skills"
+                    value={form.skills || ""}
+                    onChange={handleChange}
+                    placeholder="Python, Machine Learning, NLP, Deep Learning"
+                />
+
+                <small className="text-muted">
+                    Separate skills with commas.
+                </small>
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">
+                    Research Interests
+                </label>
+
+                <input
+                    type="text"
+                    className="form-control"
+                    name="interests"
+                    value={form.interests || ""}
+                    onChange={handleChange}
+                    placeholder="Healthcare AI, Computer Vision, NLP"
+                />
+
+                <small className="text-muted">
+                    Separate interests with commas.
+                </small>
+            </div>
+            
             <div className="row">
 
                 <div className="col-md-6 mb-3">

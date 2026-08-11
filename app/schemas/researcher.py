@@ -11,16 +11,16 @@ class ResearcherBase(BaseModel):
     first_name: str
     last_name: Optional[str] = None
     bio: Optional[str] = None
-
-    bio: Optional[str] = None
     phone: Optional[str] = None
     experience: Optional[int] = None
-
+    profile_photo: Optional[str] = None
     orcid: Optional[str] = None
     google_scholar: Optional[str] = None
     research_gate: Optional[str] = None
     linkedin: Optional[str] = None
 
+    skills: Optional[str] = None
+    interests: Optional[str] = None
 
 class ResearcherCreate(ResearcherBase):
     pass
@@ -30,16 +30,15 @@ class ResearcherUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     bio: Optional[str] = None
-
-    bio: Optional[str] = None
     phone: Optional[str] = None
     experience: Optional[int] = None
-
+    profile_photo: Optional[str] = None
     orcid: Optional[str] = None
     google_scholar: Optional[str] = None
     research_gate: Optional[str] = None
     linkedin: Optional[str] = None
-
+    skills: Optional[str] = None
+    interests: Optional[str] = None
 
 class ResearcherResponse(ResearcherBase):
     id: UUID

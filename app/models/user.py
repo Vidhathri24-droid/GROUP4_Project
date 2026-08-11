@@ -16,6 +16,7 @@ from app.db.database import Base
 from app.db.database import Base
 from datetime import datetime
 
+
 class UserRole(str, enum.Enum):
     RESEARCHER = "Researcher"
     REVIEWER = "Reviewer"
@@ -23,11 +24,12 @@ class UserRole(str, enum.Enum):
     SYSTEM_ADMIN = "SystemAdmin"
 
 
-class User(TimestampMixin,Base):
+class User(TimestampMixin, Base):
     __tablename__ = "users"
+
     __table_args__ = (
-	UniqueConstraint("email",name="uq_user_email"),
-)
+        UniqueConstraint("email", name="uq_user_email"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -56,44 +58,53 @@ class User(TimestampMixin,Base):
     is_active = mapped_column(
         Boolean,
         default=False,
-	nullable=False
+        nullable=False
     )
+
     email_verified = mapped_column(
-    	Boolean,
-    	default=False,
-    	nullable=False,
+        Boolean,
+        default=False,
+        nullable=False,
     )
 
     verification_token = mapped_column(
-    	String(255),
-    	nullable=True,
+        String(255),
+        nullable=True,
     )
 
     verification_token_expiry = mapped_column(
-    	DateTime,
-    	nullable=True,
+        DateTime,
+        nullable=True,
     )
 
     password_reset_token = mapped_column(
-    	String(255),
-    	nullable=True,
+        String(255),
+        nullable=True,
     )
 
     password_reset_expiry = mapped_column(
-    	DateTime,
-    	nullable=True,
+        DateTime,
+        nullable=True,
     )
 
     researcher = relationship(
         "Researcher",
         back_populates="user",
-	cascade="all, delete-orphan",
+        cascade="all, delete-orphan",
         uselist=False
     )
+
     publications = relationship(
-    	"Publication",
-    	back_populates="owner",
-	cascade="all, delete-orphan"
+        "Publication",
+        foreign_keys="Publication.owner_id",
+        back_populates="owner",
+        cascade="all, delete-orphan"
+    )
+
+    reviewed_publications = relationship(
+        "Publication",
+        foreign_keys="Publication.reviewed_by",
+        back_populates="reviewer",
     )
 
     conference_registrations = relationship(
@@ -101,6 +112,7 @@ class User(TimestampMixin,Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
     notifications = relationship(
         "Notification",
         back_populates="user",

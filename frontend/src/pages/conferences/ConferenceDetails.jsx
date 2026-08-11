@@ -1,176 +1,339 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
-  getConference,
-  deleteConference,
+  getConferenceDetails,
+  joinConference,
+  leaveConference,
 } from "../../services/conferenceService";
 
-import { isAdmin } from "../../utils/auth";
+import { isResearcher } from "../../utils/auth";
 
 function ConferenceDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const admin = isAdmin();
-
   const [conference, setConference] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [participationType, setParticipationType] =
+    useState("Attendee");
 
-  useEffect(() => {
-    fetchConference();
-  }, []);
+  const researcher = isResearcher();
 
-  const fetchConference = async () => {
+  const loadConference = async () => {
     try {
       setLoading(true);
 
-      const data = await getConference(id);
+      const data = await getConferenceDetails(id);
 
       setConference(data);
     } catch (err) {
       console.error(err);
-      setError("Unable to load conference details.");
+
+      alert(
+        err.response?.data?.detail ||
+        "Unable to load conference."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this conference?"
-    );
+  useEffect(() => {
+    loadConference();
+  }, [id]);
 
-    if (!confirmDelete) return;
-
+  const handleJoin = async () => {
     try {
-      await deleteConference(id);
+      await joinConference(
+        id,
+        participationType
+      );
 
-      alert("Conference deleted successfully.");
+      alert("Successfully joined the conference.");
 
-      navigate("/conferences");
+      await loadConference();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete conference.");
+
+      alert(
+        err.response?.data?.detail ||
+        "Unable to join conference."
+      );
     }
   };
 
-  const handleJoin = () => {
-    alert(
-      "Join Conference feature will be connected to the backend."
-    );
+  const handleLeave = async () => {
+    try {
+      await leaveConference(id);
+
+      alert("You have left the conference.");
+
+      await loadConference();
+    } catch (err) {
+      console.error(err);
+
+      alert(
+        err.response?.data?.detail ||
+        "Unable to leave conference."
+      );
+    }
   };
 
-  const formatDate = (date) => {
-    if (!date) return "N/A";
+  const handleShare = async () => {
+    const shareData = {
+      title: conference.title,
+      text: `Check out this conference: ${conference.title}`,
+      url: window.location.href,
+    };
 
     try {
-      return new Date(date).toLocaleDateString();
-    } catch {
-      return date;
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(
+          window.location.href
+        );
+
+        alert("Conference link copied!");
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
   if (loading) {
     return (
-      <div className="container mt-5 text-center">
+      <div className="text-center mt-5">
         <div
           className="spinner-border text-primary"
           role="status"
-        ></div>
+        />
       </div>
     );
   }
 
-  if (error) {
+  if (!conference) {
     return (
-      <div className="container mt-5">
-        <div className="alert alert-danger">
-          {error}
-        </div>
-
-        <Link
-          to="/conferences"
-          className="btn btn-secondary"
-        >
-          Back
-        </Link>
+      <div className="alert alert-danger">
+        Conference not found.
       </div>
     );
   }
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 mb-5">
 
-      <div className="card shadow">
+      {/* Back + Share */}
+
+      <div className="d-flex justify-content-between mb-4">
+
+        <button
+          className="btn btn-outline-secondary"
+          onClick={() => navigate("/conferences")}
+        >
+          ← Back to Conferences
+        </button>
+
+        <button
+          className="btn btn-outline-primary"
+          onClick={handleShare}
+        >
+          🔗 Share
+        </button>
+
+      </div>
+
+      {/* Conference Header */}
+
+      <div className="card shadow-sm">
 
         <div className="card-header bg-primary text-white">
-          <h3 className="mb-0">
+          <h2 className="mb-0">
             {conference.title}
-          </h3>
+          </h2>
         </div>
 
         <div className="card-body">
 
-          <div className="mb-3">
-            <h5>Location</h5>
-            <p>{conference.location}</p>
-          </div>
+          <div className="row">
 
-          <div className="mb-3">
-            <h5>Conference Date</h5>
-            <p>{formatDate(conference.conference_date)}</p>
-          </div>
+            <div className="col-md-6">
 
-          <div className="mb-4">
-            <h5>Description</h5>
-            <p>{conference.description}</p>
-          </div>
+              <h5>📅 Date</h5>
+              <p>
+                {conference.conference_date ||
+                  "Not specified"}
+              </p>
 
-        </div>
+              <h5>🕐 Time</h5>
+              <p>
+                {conference.conference_time ||
+                  "Not specified"}
+              </p>
 
-        <div className="card-footer">
+              <h5>📍 Venue</h5>
+              <p>
+                {conference.location ||
+                  "Not specified"}
+              </p>
 
-          <div className="d-flex flex-wrap gap-2">
+            </div>
 
-            <Link
-              to="/conferences"
-              className="btn btn-secondary"
-            >
-              Back
-            </Link>
+            <div className="col-md-6">
 
-            {admin && (
-              <Link
-                to={`/conferences/edit/${conference.id}`}
-                className="btn btn-warning"
-              >
-                Edit
-              </Link>
-            )}
+              <h5>👥 Participants</h5>
 
-            <button
-              className="btn btn-success"
-              onClick={handleJoin}
-            >
-              Join Conference
-            </button>
+              <p className="fs-4">
+                {conference.participant_count ?? 0}
+              </p>
 
-            {admin && (
-              <button
-                className="btn btn-danger"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
-            )}
+            </div>
 
           </div>
+
+          <hr />
+
+          <h4>About the Conference</h4>
+
+          <p>
+            {conference.description ||
+              "No description available."}
+          </p>
 
         </div>
 
       </div>
+
+      {/* Presenters */}
+
+      <div className="card shadow-sm mt-4">
+
+        <div className="card-header bg-light">
+          <h4 className="mb-0">
+            Presenters
+          </h4>
+        </div>
+
+        <div className="card-body">
+
+          {conference.presenters?.length > 0 ? (
+            <div className="row">
+
+              {conference.presenters.map(
+                (presenter) => (
+                  <div
+                    key={presenter.id}
+                    className="col-md-6 mb-3"
+                  >
+                    <div className="border rounded p-3">
+                      <strong>
+                        {presenter.name}
+                      </strong>
+
+                      <div className="text-muted">
+                        Presenter
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+
+            </div>
+          ) : (
+            <p className="text-muted mb-0">
+              No presenters registered yet.
+            </p>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* Registration */}
+
+      {researcher && (
+        <div className="card shadow-sm mt-4">
+
+          <div className="card-body">
+
+            {conference.is_registered ? (
+              <div className="d-flex justify-content-between align-items-center">
+
+                <div>
+                  <h5 className="text-success">
+                    ✓ You are registered
+                  </h5>
+
+                  <p className="mb-0">
+                    You have registered for this
+                    conference.
+                  </p>
+                </div>
+
+                <button
+                  className="btn btn-danger"
+                  onClick={handleLeave}
+                >
+                  Leave Conference
+                </button>
+
+              </div>
+            ) : (
+              <>
+
+                <h5>
+                  Join this Conference
+                </h5>
+
+                <div className="row align-items-end">
+
+                  <div className="col-md-6">
+
+                    <label className="form-label">
+                      Participation Type
+                    </label>
+
+                    <select
+                      className="form-select"
+                      value={participationType}
+                      onChange={(e) =>
+                        setParticipationType(
+                          e.target.value
+                        )
+                      }
+                    >
+                      <option value="Attendee">
+                        Attendee
+                      </option>
+
+                      <option value="Presenter">
+                        Presenter
+                      </option>
+                    </select>
+
+                  </div>
+
+                  <div className="col-md-6">
+
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={handleJoin}
+                    >
+                      Join Conference
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </>
+            )}
+
+          </div>
+
+        </div>
+      )}
 
     </div>
   );
