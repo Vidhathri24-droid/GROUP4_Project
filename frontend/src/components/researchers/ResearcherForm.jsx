@@ -1,206 +1,159 @@
 import { useState } from "react";
 
 export default function ResearcherForm({
-    initialValues,
-    onSubmit,
-    loading,
+  initialValues,
+  onSubmit,
+  loading,
 }) {
+  const [form, setForm] = useState(
+    initialValues || {
+      first_name: "",
+      last_name: "",
+      bio: "",
+      phone: "",
+      experience: 0,
+      orcid: "",
+      google_scholar: "",
+      research_gate: "",
+      linkedin: "",
+    }
+  );
 
-    const [form, setForm] = useState(
-        initialValues || {
-            first_name: "",
-            last_name: "",
-            bio: "",
-            phone: "",
-            experience: 0,
-            orcid: "",
-            google_scholar: "",
-            research_gate: "",
-            linkedin: "",
-        }
-    );
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        });
-    };
+  const submit = (e) => {
+    e.preventDefault();
+    onSubmit(form);
+  };
 
-    const submit = (e) => {
-        e.preventDefault();
-        onSubmit(form);
-    };
+  return (
+    <form onSubmit={submit}>
+      {/* First Name and Last Name */}
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label className="form-label">First Name</label>
+          <input
+            type="text"
+            className="form-control"
+            name="first_name"
+            value={form.first_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-    return (
+        <div className="col-md-6 mb-3">
+          <label className="form-label">Last Name</label>
+          <input
+            type="text"
+            className="form-control"
+            name="last_name"
+            value={form.last_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+      </div>
 
-        <form onSubmit={submit}>
+      {/* Bio */}
+      <div className="mb-3">
+        <label className="form-label">Bio</label>
+        <textarea
+          className="form-control"
+          rows="4"
+          name="bio"
+          value={form.bio}
+          onChange={handleChange}
+        />
+      </div>
 
-<<<<<<< HEAD
-            <div className="row">
+      {/* Phone and Experience */}
+      <div className="row">
+        <div className="col-md-6 mb-3">
+          <label className="form-label">Phone</label>
+          <input
+            type="text"
+            className="form-control"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+          />
+        </div>
 
-                <div className="col-md-6 mb-3">
+        <div className="col-md-6 mb-3">
+          <label className="form-label">Experience</label>
+          <input
+            type="number"
+            className="form-control"
+            name="experience"
+            value={form.experience}
+            onChange={handleChange}
+            min="0"
+          />
+        </div>
+      </div>
 
-                    <label>First Name</label>
+      {/* ORCID */}
+      <div className="mb-3">
+        <label className="form-label">ORCID</label>
+        <input
+          type="text"
+          className="form-control"
+          name="orcid"
+          value={form.orcid}
+          onChange={handleChange}
+        />
+      </div>
 
-                    <input
-                        className="form-control"
-                        name="first_name"
-                        value={form.first_name}
-                        onChange={handleChange}
-                        required
-                    />
+      {/* Google Scholar */}
+      <div className="mb-3">
+        <label className="form-label">Google Scholar</label>
+        <input
+          type="text"
+          className="form-control"
+          name="google_scholar"
+          value={form.google_scholar}
+          onChange={handleChange}
+        />
+      </div>
 
-                </div>
+      {/* ResearchGate */}
+      <div className="mb-3">
+        <label className="form-label">ResearchGate</label>
+        <input
+          type="text"
+          className="form-control"
+          name="research_gate"
+          value={form.research_gate}
+          onChange={handleChange}
+        />
+      </div>
 
-                <div className="col-md-6 mb-3">
+      {/* LinkedIn */}
+      <div className="mb-4">
+        <label className="form-label">LinkedIn</label>
+        <input
+          type="text"
+          className="form-control"
+          name="linkedin"
+          value={form.linkedin}
+          onChange={handleChange}
+        />
+      </div>
 
-                    <label>Last Name</label>
-
-                    <input
-                        className="form-control"
-                        name="last_name"
-                        value={form.last_name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                </div>
-
-=======
-            <div className="mb-3">
-                <label className="form-label">
-                    First Name
-                </label>
-
-                <input
-                    className="form-control"
-                    name="first_name"
-                    value={form.first_name}
-                    onChange={handleChange}
-                    required
-                />
-            </div>
-
-            <div className="mb-3">
-                <label className="form-label">
-                    Last Name
-                </label>
-
-                <input
-                    className="form-control"
-                    name="last_name"
-                    value={form.last_name}
-                    onChange={handleChange}
-                    required
-                />
->>>>>>> Harshini_V
-            </div>
-
-            <div className="mb-3">
-
-                <label>Bio</label>
-
-                <textarea
-                    className="form-control"
-                    rows="4"
-                    name="bio"
-                    value={form.bio}
-                    onChange={handleChange}
-                />
-
-            </div>
-
-            <div className="row">
-
-                <div className="col-md-6 mb-3">
-
-                    <label>Phone</label>
-
-                    <input
-                        className="form-control"
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                    />
-
-                </div>
-
-                <div className="col-md-6 mb-3">
-
-                    <label>Experience</label>
-
-                    <input
-                        type="number"
-                        className="form-control"
-                        name="experience"
-                        value={form.experience}
-                        onChange={handleChange}
-                    />
-
-                </div>
-
-            </div>
-
-            <div className="mb-3">
-
-                <label>ORCID</label>
-
-                <input
-                    className="form-control"
-                    name="orcid"
-                    value={form.orcid}
-                    onChange={handleChange}
-                />
-
-            </div>
-
-            <div className="mb-3">
-
-                <label>Google Scholar</label>
-
-                <input
-                    className="form-control"
-                    name="google_scholar"
-                    value={form.google_scholar}
-                    onChange={handleChange}
-                />
-
-            </div>
-
-            <div className="mb-3">
-
-                <label>ResearchGate</label>
-
-                <input
-                    className="form-control"
-                    name="research_gate"
-                    value={form.research_gate}
-                    onChange={handleChange}
-                />
-
-            </div>
-
-            <div className="mb-4">
-
-                <label>LinkedIn</label>
-
-                <input
-                    className="form-control"
-                    name="linkedin"
-                    value={form.linkedin}
-                    onChange={handleChange}
-                />
-
-            </div>
-
-            <button
-                className="btn btn-primary"
-                disabled={loading}
-            >
-                {loading ? "Saving..." : "Save Researcher"}
-            </button>
-
-        </form>
-    );
+      {/* Submit */}
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={loading}
+      >
+        {loading ? "Saving..." : "Save Researcher"}
+      </button>
+    </form>
+  );
 }

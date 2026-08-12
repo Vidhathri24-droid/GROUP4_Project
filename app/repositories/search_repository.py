@@ -22,30 +22,40 @@ class SearchRepository:
             db.query(Researcher)
             .filter(
                 or_(
-                    (Researcher.first_name + " " + Researcher.last_name).ilike(f"%{query}%"),
+                    (
+                        Researcher.first_name
+                        + " "
+                        + Researcher.last_name
+                    ).ilike(f"%{query}%"),
                     Researcher.bio.ilike(f"%{query}%"),
                     Researcher.orcid.ilike(f"%{query}%"),
                 )
             )
         )
 
+        # Filter by institution
         if institution:
             q = (
                 q.join(Researcher.departments)
                 .join(Department.institution)
-                .filter(Institution.name.ilike(f"%{institution}%"))
+                .filter(
+                    Institution.name.ilike(
+                        f"%{institution}%"
+                    )
+                )
             )
 
+        # Sorting
         if sort == "oldest":
-<<<<<<< HEAD
-            q = q.order_by(Researcher.full_name.asc(), Researcher.last_name.asc())
+            q = q.order_by(
+                Researcher.first_name.asc(),
+                Researcher.last_name.asc(),
+            )
         else:
-            q = q.order_by(Researcher.full_name.asc(), Researcher.last_name.asc())
-=======
-            q = q.order_by(Researcher.first_name.asc())
-        else:
-            q = q.order_by(Researcher.last_name.asc())
->>>>>>> Harshini_V
+            q = q.order_by(
+                Researcher.first_name.asc(),
+                Researcher.last_name.asc(),
+            )
 
         total = q.count()
 
@@ -81,10 +91,7 @@ class SearchRepository:
             )
         )
 
-        # -----------------------------
         # Filters
-        # -----------------------------
-
         if year:
             q = q.filter(
                 Publication.publication_year == year
@@ -100,10 +107,7 @@ class SearchRepository:
                 Publication.status == status
             )
 
-        # -----------------------------
         # Sorting
-        # -----------------------------
-
         if sort == "newest":
             q = q.order_by(
                 Publication.publication_year.desc()
@@ -154,10 +158,10 @@ class SearchRepository:
             )
         )
 
-        if sort == "oldest":
-            q = q.order_by(Institution.name.asc())
-        else:
-            q = q.order_by(Institution.name.asc())
+        # Sorting
+        q = q.order_by(
+            Institution.name.asc()
+        )
 
         total = q.count()
 

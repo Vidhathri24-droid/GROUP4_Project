@@ -1,3 +1,4 @@
+
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -13,6 +14,7 @@ from app.models.user import (
     User,
     UserRole,
 )
+
 from app.models.researcher import Researcher
 
 from app.repositories.user_repository import UserRepository
@@ -54,6 +56,7 @@ class AuthService:
 
         try:
 
+            # Create User
             user = User(
                 email=user_data.email,
                 password_hash=hash_password(
@@ -67,23 +70,31 @@ class AuthService:
             )
 
             db.add(user)
+
+            # Get generated user ID
             db.flush()
 
+            # Create Researcher profile
+            # Institution is optional during registration.
             if user.role == UserRole.RESEARCHER:
 
                 researcher = Researcher(
-    user_id=user.id,
-    first_name=user_data.first_name,
-    last_name=user_data.last_name,
-    experience=0,
-)
+                    user_id=user.id,
+                    first_name=user_data.first_name,
+                    last_name=user_data.last_name,
+                    experience=0,
+                    institution_id=None,
+                )
 
                 db.add(researcher)
 
-            #EmailService.send_verification_email(
-               # user.email,
-               # verification_token,
-            #)
+            # Email verification is currently disabled.
+            # Uncomment these lines when SMTP is configured.
+            #
+            # EmailService.send_verification_email(
+            #     user.email,
+            #     verification_token,
+            # )
 
             db.commit()
 
@@ -138,8 +149,7 @@ class AuthService:
 
         return token
 
-
-        # ---------------------------------------------------------
+    # ---------------------------------------------------------
     # Verify Email
     # ---------------------------------------------------------
 
@@ -180,6 +190,7 @@ class AuthService:
         user.verification_token_expiry = None
 
         db.commit()
+
         db.refresh(user)
 
         return {
@@ -228,14 +239,16 @@ class AuthService:
         )
 
         db.commit()
+
         db.refresh(user)
 
         return {
-            "message":
+            "message": (
                 "Verification email sent successfully."
+            )
         }
 
-        # ---------------------------------------------------------
+    # ---------------------------------------------------------
     # Forgot Password
     # ---------------------------------------------------------
 
@@ -250,7 +263,7 @@ class AuthService:
             email,
         )
 
-        # Return success even if the user doesn't exist
+        # Return success even if user doesn't exist
         # to avoid email enumeration.
         if user is None:
             return {
@@ -319,6 +332,7 @@ class AuthService:
         user.password_reset_expiry = None
 
         db.commit()
+
         db.refresh(user)
 
         return {

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -9,14 +8,8 @@ import {
   updateResearcher,
 } from "../../services/researcherService";
 
-import {
-  getCurrentUser,
-  isAdmin,
-} from "../../services/authService";
-
 export default function EditResearcher() {
   const { id } = useParams();
-
   const navigate = useNavigate();
 
   const [researcher, setResearcher] = useState(null);
@@ -25,7 +18,7 @@ export default function EditResearcher() {
 
   useEffect(() => {
     fetchResearcher();
-  }, []);
+  }, [id]);
 
   const fetchResearcher = async () => {
     try {
@@ -33,26 +26,9 @@ export default function EditResearcher() {
 
       const data = await getResearcher(id);
 
-      const currentUser = getCurrentUser();
-
-      // ==============================
-      // Access Control
-      // ==============================
-
-      if (
-        !isAdmin() &&
-        currentUser?.id !== data.user_id
-      ) {
-        alert("You are not authorized to edit this researcher.");
-
-        navigate("/researchers");
-
-        return;
-      }
-
       setResearcher(data);
     } catch (error) {
-      console.error(error);
+      console.error("Error loading researcher:", error);
 
       alert("Unable to load researcher.");
 
@@ -72,7 +48,7 @@ export default function EditResearcher() {
 
       navigate(`/researchers/${id}`);
     } catch (error) {
-      console.error(error);
+      console.error("Error updating researcher:", error);
 
       alert(
         error?.response?.data?.detail ||
@@ -98,9 +74,18 @@ export default function EditResearcher() {
     );
   }
 
+  if (!researcher) {
+    return (
+      <div className="container py-5">
+        <div className="alert alert-danger">
+          Researcher not found.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container py-5">
-
       <h2 className="mb-4">
         Edit Researcher
       </h2>
@@ -113,38 +98,15 @@ export default function EditResearcher() {
           phone: researcher.phone || "",
           experience: researcher.experience || 0,
           orcid: researcher.orcid || "",
-          google_scholar: researcher.google_scholar || "",
-          research_gate: researcher.research_gate || "",
+          google_scholar:
+            researcher.google_scholar || "",
+          research_gate:
+            researcher.research_gate || "",
           linkedin: researcher.linkedin || "",
         }}
         onSubmit={handleSubmit}
         loading={saving}
       />
-
     </div>
   );
 }
-=======
-import React from "react";
-import { useParams } from "react-router-dom";
-
-function EditResearcher() {
-  const { id } = useParams();
-
-  return (
-    <div className="container mt-5">
-      <h2>Edit Researcher</h2>
-
-      <div className="card p-4">
-        <p>
-          Editing researcher with ID: <strong>{id}</strong>
-        </p>
-
-        <p>This page is under development.</p>
-      </div>
-    </div>
-  );
-}
-
-export default EditResearcher;
->>>>>>> Harshini_V

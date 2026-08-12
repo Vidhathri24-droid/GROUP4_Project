@@ -8,117 +8,98 @@ import SearchResearcher from "../../components/researchers/SearchResearcher";
 import Pagination from "../../components/researchers/Pagination";
 
 export default function Researchers() {
+  const [researchers, setResearchers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-    const [researchers, setResearchers] = useState([]);
-    const [search, setSearch] = useState("");
+  const pageSize = 10;
 
-    const [page, setPage] = useState(1);
+  useEffect(() => {
+    loadResearchers();
+  }, []);
 
-    const pageSize = 10;
+  async function loadResearchers() {
+    try {
+      const data = await getResearchers();
 
-    useEffect(() => {
+      setResearchers(data || []);
+    } catch (error) {
+      console.error("Failed to load researchers:", error);
+      setResearchers([]);
+    }
+  }
 
-        loadResearchers();
+  const filtered = useMemo(() => {
+    const searchText = search.toLowerCase().trim();
 
-    }, []);
-
-    async function loadResearchers() {
-
-        try {
-
-            const data = await getResearchers();
-
-            setResearchers(data);
-
-        } catch (err) {
-
-            console.error(err);
-
-        }
-
+    if (!searchText) {
+      return researchers;
     }
 
-    const filtered = useMemo(() => {
+    return researchers.filter((researcher) => {
+      const firstName = researcher.first_name || "";
+      const lastName = researcher.last_name || "";
+      const phone = researcher.phone || "";
+      const orcid = researcher.orcid || "";
 
-        return researchers.filter((r) =>
+      const fullName =
+        `${firstName} ${lastName}`.toLowerCase();
 
-<<<<<<< HEAD
-            `${r.first_name} ${r.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
+      return (
+        fullName.includes(searchText) ||
+        firstName.toLowerCase().includes(searchText) ||
+        lastName.toLowerCase().includes(searchText) ||
+        phone.includes(searchText) ||
+        orcid.toLowerCase().includes(searchText)
+      );
+    });
+  }, [researchers, search]);
 
-=======
-            r.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-            r.last_name?.toLowerCase().includes(search.toLowerCase()) ||
->>>>>>> Harshini_V
-            r.phone?.includes(search) ||
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / pageSize)
+  );
 
-            r.orcid?.toLowerCase().includes(search.toLowerCase())
+  const paginated = filtered.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
-        );
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
-    }, [researchers, search]);
+  return (
+    <div className="container py-5">
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2>Researchers</h2>
 
-    const paginated = filtered.slice(
+        <Link
+          to="/researchers/create"
+          className="btn btn-primary"
+        >
+          + Add Researcher
+        </Link>
+      </div>
 
-        (page - 1) * pageSize,
+      <div className="mb-4">
+        <SearchResearcher
+          search={search}
+          setSearch={setSearch}
+        />
+      </div>
 
-        page * pageSize
+      <ResearcherTable
+        researchers={paginated}
+      />
 
-    );
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
-    return (
-
-        <div className="container py-5">
-
-            <div className="d-flex justify-content-between align-items-center mb-4">
-
-                <h2>Researchers</h2>
-
-                <Link
-
-                    to="/researchers/create"
-
-                    className="btn btn-primary"
-
-                >
-
-                    + Add Researcher
-
-                </Link>
-
-            </div>
-
-            <div className="mb-4">
-
-                <SearchResearcher
-
-                    search={search}
-
-                    setSearch={setSearch}
-
-                />
-
-            </div>
-
-            <ResearcherTable
-
-                researchers={paginated}
-
-            />
-
-            <Pagination
-
-                currentPage={page}
-
-                totalPages={totalPages}
-
-                onPageChange={setPage}
-
-            />
-
-        </div>
-
-    );
-
+    </div>
+  );
 }

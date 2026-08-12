@@ -48,15 +48,17 @@ class Researcher(TimestampMixin, Base):
         nullable=False,
     )
 
+    # Institution is optional during registration
+    institution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "institutions.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+
     first_name: Mapped[str] = mapped_column(
-<<<<<<< HEAD
-=======
-        String(255),
-        nullable=False,
-    )
-
-    last_name: Mapped[str] = mapped_column(
->>>>>>> Harshini_V
         String(255),
         nullable=False,
     )
@@ -65,35 +67,41 @@ class Researcher(TimestampMixin, Base):
         String(255),
         nullable=False,
     )
-
 
     phone: Mapped[str | None] = mapped_column(
         String(20),
+        nullable=True,
     )
 
     experience: Mapped[int] = mapped_column(
         Integer,
         default=0,
+        nullable=False,
     )
 
     orcid: Mapped[str | None] = mapped_column(
         String(50),
+        nullable=True,
     )
 
     google_scholar: Mapped[str | None] = mapped_column(
         String(500),
+        nullable=True,
     )
 
     research_gate: Mapped[str | None] = mapped_column(
         String(500),
+        nullable=True,
     )
 
     linkedin: Mapped[str | None] = mapped_column(
         String(500),
+        nullable=True,
     )
 
     bio: Mapped[str | None] = mapped_column(
         String(1000),
+        nullable=True,
     )
 
     user = relationship(
@@ -101,14 +109,19 @@ class Researcher(TimestampMixin, Base):
         back_populates="researcher",
     )
 
+    institution = relationship(
+        "Institution",
+        back_populates="researchers",
+    )
+
     departments = relationship(
-    	"Department",
-    	secondary="researcher_departments",
-    	back_populates="researchers",
+        "Department",
+        secondary="researcher_departments",
+        back_populates="researchers",
     )
 
     publications = relationship(
-    	"Publication",
-    	secondary="publication_authors",
-    	back_populates="researchers",
+        "Publication",
+        secondary="publication_authors",
+        back_populates="researchers",
     )
