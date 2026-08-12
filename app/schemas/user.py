@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     last_name: str
     email: EmailStr
     password: str
+    phone_number: str
     role: UserRole = UserRole.RESEARCHER
 
 
@@ -19,7 +20,8 @@ class UserResponse(BaseModel):
     role: UserRole
     is_active: bool
     email_verified: bool
-
+    phone_number: str | None = None
+    phone_verified: bool
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -28,3 +30,4 @@ class UserUpdate(BaseModel):
     last_name: str | None = None
     email: EmailStr | None = None
     password: str | None = None
+    phone_number: str | None = None

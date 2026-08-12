@@ -9,6 +9,7 @@ function Register() {
     first_name: "",
     last_name: "",
     email: "",
+    phone_number: "",
     password: "",
     role: "Researcher",
   });
@@ -141,7 +142,25 @@ function Register() {
             </div>
 
             <div className="mb-3">
+                  <div className="mb-3">
+                  <label className="form-label fw-semibold">
+                  Phone Number
+                  </label>
 
+                  <input
+                  type="tel"
+                  className="form-control"
+                  name="phone_number"
+                  placeholder="+91 9876543210"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  required
+                  />
+
+                  <small className="text-muted">
+                  Enter your phone number with country code.
+                  </small>
+                  </div>
               <label className="form-label fw-semibold">
                 Password
               </label>

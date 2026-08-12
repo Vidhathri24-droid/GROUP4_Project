@@ -15,6 +15,22 @@ load_dotenv()
 class EmailService:
 
     @staticmethod
+    def generate_verification_token():
+        """
+        Generate a secure email verification token.
+        """
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def verification_expiry():
+        """
+        Email verification token expires after 30 minutes.
+        """
+        return datetime.now(timezone.utc) + timedelta(
+            minutes=30
+        )
+
+    @staticmethod
     def generate_reset_token():
         """
         Generate a secure password reset token.
@@ -232,4 +248,104 @@ Scientific Collaboration Network Analyzer
                 repr(e)
             )
 
+            raise
+
+    @staticmethod
+    def send_verification_email(
+        recipient_email: str,
+        token: str,
+    ):
+        smtp_host = os.getenv(
+            "SMTP_HOST",
+            "smtp-relay.brevo.com"
+        )
+
+        smtp_port = int(
+            os.getenv("SMTP_PORT", "587")
+        )
+
+        smtp_username = os.getenv("SMTP_USERNAME")
+        smtp_password = os.getenv("SMTP_PASSWORD")
+        mail_from = os.getenv("MAIL_FROM")
+
+        frontend_url = os.getenv(
+            "FRONTEND_URL",
+            "http://localhost:5173"
+        )
+
+        if not smtp_username:
+            raise RuntimeError(
+                "SMTP_USERNAME is not configured."
+            )
+
+        if not smtp_password:
+            raise RuntimeError(
+                "SMTP_PASSWORD is not configured."
+            )
+
+        if not mail_from:
+            raise RuntimeError(
+                "MAIL_FROM is not configured."
+            )
+
+        verification_link = (
+            f"{frontend_url}/verify-email?token={token}"
+        )
+
+        message = EmailMessage()
+
+        message["Subject"] = "SCNA - Verify Your Email"
+        message["From"] = mail_from
+        message["To"] = recipient_email
+
+        message.set_content(
+            f"""
+    Hello,
+
+    Thank you for registering with SCNA.
+
+    Please verify your email address by clicking
+    the link below:
+
+    {verification_link}
+
+    This verification link will expire in 30 minutes.
+
+    If you did not create this account, you can
+    safely ignore this email.
+
+    Regards,
+
+    SCNA
+    Scientific Collaboration Network Analyzer
+    """
+        )
+
+        try:
+            with smtplib.SMTP(
+                smtp_host,
+                smtp_port,
+                timeout=30
+            ) as server:
+
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+
+                server.login(
+                    smtp_username,
+                    smtp_password
+                )
+
+                server.send_message(message)
+
+            print(
+                "VERIFICATION EMAIL SENT!"
+            )
+
+        except Exception as e:
+            print(
+                "BREVO EMAIL ERROR:",
+                repr(e)
+            )
             raise

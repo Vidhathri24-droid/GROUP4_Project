@@ -23,6 +23,16 @@ class UserRepository:
             .filter(User.email == email)
             .first()
         )
+    @staticmethod
+    def get_by_phone(
+        db: Session,
+        phone_number: str,
+    ):
+        return (
+            db.query(User)
+            .filter(User.phone_number == phone_number)
+            .first()
+        )
 
     @staticmethod
     def get_by_verification_token(

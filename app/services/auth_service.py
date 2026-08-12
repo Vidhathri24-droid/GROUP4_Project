@@ -25,7 +25,7 @@ from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
 
 from app.services.email_service import EmailService
-
+from app.services.phone_service import PhoneService
 
 class AuthService:
 
@@ -67,6 +67,8 @@ class AuthService:
                 role=user_data.role,
                 is_active=False,
                 email_verified=False,
+                phone_number=user_data.phone_number,
+                phone_verified=False,
                 verification_token=verification_token,
                 verification_token_expiry=verification_expiry,
             )
@@ -85,12 +87,12 @@ class AuthService:
 
                 db.add(researcher)
 
-            #EmailService.send_verification_email(
-               # user.email,
-               # verification_token,
-            #)
+                EmailService.send_verification_email(
+                user.email,
+                verification_token,
+                )
 
-            db.commit()
+                db.commit()
 
             db.refresh(user)
 
@@ -299,7 +301,9 @@ class AuthService:
             )
 
         user.email_verified = True
-        user.is_active = True
+
+        if user.phone_verified:
+            user.is_active = True
 
         user.verification_token = None
         user.verification_token_expiry = None
@@ -448,4 +452,80 @@ class AuthService:
 
         return {
             "message": "Password reset successfully."
+        }
+
+    @staticmethod
+    def send_phone_otp(
+        db: Session,
+        phone_number: str,
+    ):
+
+        user = UserRepository.get_by_phone(
+            db,
+            phone_number,
+        )
+
+        if user is None:
+            raise ValueError(
+                "No account is associated with this phone number."
+            )
+
+        if user.phone_verified:
+            raise ValueError(
+                "This phone number is already verified."
+            )
+
+        from app.services.phone_service import PhoneService
+
+        status = PhoneService.send_otp(
+            phone_number
+        )
+
+        if status != "pending":
+            raise ValueError(
+                "Unable to send verification code."
+            )
+
+        return {
+            "message": "Verification code sent successfully."
+        }
+
+
+    @staticmethod
+    def verify_phone_otp(
+        db: Session,
+        phone_number: str,
+        code: str,
+    ):
+
+        user = UserRepository.get_by_phone(
+            db,
+            phone_number,
+        )
+
+        if user is None:
+            raise ValueError(
+                "No account is associated with this phone number."
+            )
+
+        from app.services.phone_service import PhoneService
+
+        status = PhoneService.verify_otp(
+            phone_number,
+            code,
+        )
+
+        if status != "approved":
+            raise ValueError(
+                "Invalid or expired verification code."
+            )
+
+        user.phone_verified = True
+        user.phone_verification_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "message": "Phone number verified successfully."
         }

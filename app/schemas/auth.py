@@ -24,3 +24,11 @@ class ResetPasswordRequest(BaseModel):
 
 class GoogleLoginRequest(BaseModel):
     credential: str
+
+class SendPhoneOTPRequest(BaseModel):
+    phone_number: str
+
+
+class VerifyPhoneOTPRequest(BaseModel):
+    phone_number: str
+    code: str

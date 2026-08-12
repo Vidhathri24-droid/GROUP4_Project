@@ -11,6 +11,8 @@ from app.schemas.auth import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
     GoogleLoginRequest,
+    SendPhoneOTPRequest,
+    VerifyPhoneOTPRequest,
 )
 
 from app.schemas.user import (
@@ -120,7 +122,53 @@ def google_login(
             status_code=401,
             detail=str(e),
         )
-        
+# ------------------------------------------------------------------
+# Send Phone Verification OTP
+# ------------------------------------------------------------------
+
+@router.post("/phone/send-otp")
+def send_phone_otp(
+    request: SendPhoneOTPRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+
+        return AuthService.send_phone_otp(
+            db,
+            request.phone_number,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+
+# ------------------------------------------------------------------
+# Verify Phone OTP
+# ------------------------------------------------------------------
+
+@router.post("/phone/verify-otp")
+def verify_phone_otp(
+    request: VerifyPhoneOTPRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+
+        return AuthService.verify_phone_otp(
+            db,
+            request.phone_number,
+            request.code,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 # ------------------------------------------------------------------
 # Swagger Login
 # ------------------------------------------------------------------
