@@ -10,6 +10,7 @@ from app.schemas.auth import (
     Token,
     ForgotPasswordRequest,
     ResetPasswordRequest,
+    GoogleLoginRequest,
 )
 
 from app.schemas.user import (
@@ -89,7 +90,37 @@ def login(
         "token_type": "bearer",
     }
 
+# ------------------------------------------------------------------
+# Google Login
+# ------------------------------------------------------------------
 
+@router.post(
+    "/google",
+    response_model=Token,
+)
+def google_login(
+    request: GoogleLoginRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+
+        token = AuthService.google_login(
+            db,
+            request.credential,
+        )
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+        }
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=401,
+            detail=str(e),
+        )
+        
 # ------------------------------------------------------------------
 # Swagger Login
 # ------------------------------------------------------------------

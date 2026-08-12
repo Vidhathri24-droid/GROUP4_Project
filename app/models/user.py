@@ -66,7 +66,23 @@ class User(TimestampMixin, Base):
         default=False,
         nullable=False,
     )
+    phone_number = mapped_column(
+        String(20),
+        unique=True,
+        nullable=True,
+        index=True,
+    )
 
+    phone_verified = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    phone_verification_at = mapped_column(
+        DateTime,
+        nullable=True,
+    )
     verification_token = mapped_column(
         String(255),
         nullable=True,

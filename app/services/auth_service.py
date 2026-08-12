@@ -1,3 +1,8 @@
+import os
+import uuid
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
 from datetime import datetime
 
 from fastapi import HTTPException, status
@@ -138,8 +143,128 @@ class AuthService:
 
         return token
 
+    # ---------------------------------------------------------
+    # Google Login
+    # ---------------------------------------------------------
 
-        # ---------------------------------------------------------
+    @staticmethod
+    def google_login(
+        db: Session,
+        credential: str,
+    ):
+        google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+
+        if not google_client_id:
+            raise ValueError(
+                "GOOGLE_CLIENT_ID is not configured."
+            )
+
+        try:
+            # Verify Google ID token
+            idinfo = id_token.verify_oauth2_token(
+                credential,
+                requests.Request(),
+                google_client_id,
+            )
+
+        except ValueError:
+            raise ValueError(
+                "Invalid Google authentication token."
+            )
+
+        # Google account information
+        google_email = idinfo.get("email")
+        google_sub = idinfo.get("sub")
+        email_verified = idinfo.get("email_verified", False)
+
+        if not google_email:
+            raise ValueError(
+                "Google account email could not be obtained."
+            )
+
+        if not email_verified:
+            raise ValueError(
+                "Your Google email is not verified."
+            )
+
+        # -----------------------------------------------------
+        # Find existing user
+        # -----------------------------------------------------
+
+        user = UserRepository.get_by_email(
+            db,
+            google_email,
+        )
+
+        # -----------------------------------------------------
+        # Existing user
+        # -----------------------------------------------------
+
+        if user:
+
+            # Google has verified the email
+            user.email_verified = True
+            user.is_active = True
+
+            db.commit()
+            db.refresh(user)
+
+        # -----------------------------------------------------
+        # New Google user
+        # -----------------------------------------------------
+
+        else:
+
+            # User model requires a password_hash.
+            # Google users do not use this password for login,
+            # so generate a random unusable password hash.
+            random_password = str(uuid.uuid4())
+
+            user = User(
+                email=google_email,
+                password_hash=hash_password(
+                    random_password
+                ),
+                role=UserRole.RESEARCHER,
+                is_active=True,
+                email_verified=True,
+                verification_token=None,
+                verification_token_expiry=None,
+            )
+
+            db.add(user)
+            db.flush()
+
+            # Create researcher profile for the new user
+            researcher = Researcher(
+                user_id=user.id,
+                first_name=idinfo.get(
+                    "given_name",
+                    "",
+                ),
+                last_name=idinfo.get(
+                    "family_name",
+                    "",
+                ),
+                experience=0,
+            )
+
+            db.add(researcher)
+
+            db.commit()
+            db.refresh(user)
+
+        # -----------------------------------------------------
+        # Create SCNA JWT
+        # -----------------------------------------------------
+
+        token = create_access_token(
+            str(user.email)
+        )
+
+        return token
+
+    # ---------------------------------------------------------
     # Verify Email
     # ---------------------------------------------------------
 
