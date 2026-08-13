@@ -1,20 +1,21 @@
 import uuid
 import enum
 
+from datetime import datetime
+
 from sqlalchemy import (
     UniqueConstraint,
-    CheckConstraint,
     String,
     Boolean,
     Enum,
     DateTime,
 )
+
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.models.base_model import TimestampMixin
 from app.db.database import Base
-from app.db.database import Base
-from datetime import datetime
 
 
 class UserRole(str, enum.Enum):
@@ -25,11 +26,23 @@ class UserRole(str, enum.Enum):
 
 
 class User(TimestampMixin, Base):
+
     __tablename__ = "users"
 
     __table_args__ = (
-        UniqueConstraint("email", name="uq_user_email"),
+        UniqueConstraint(
+            "email",
+            name="uq_user_email"
+        ),
+        UniqueConstraint(
+            "username",
+            name="uq_user_username"
+        ),
     )
+
+    # ---------------------------------------------------------
+    # ID
+    # ---------------------------------------------------------
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -37,17 +50,40 @@ class User(TimestampMixin, Base):
         default=uuid.uuid4
     )
 
-    email = mapped_column(
+    # ---------------------------------------------------------
+    # Username
+    # ---------------------------------------------------------
+
+    username: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        unique=True,
+        index=True
+    )
+
+    # ---------------------------------------------------------
+    # Email
+    # ---------------------------------------------------------
+
+    email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
         nullable=False,
         index=True
     )
 
-    password_hash = mapped_column(
+    # ---------------------------------------------------------
+    # Password
+    # ---------------------------------------------------------
+
+    password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False
     )
+
+    # ---------------------------------------------------------
+    # Role
+    # ---------------------------------------------------------
 
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole),
@@ -55,53 +91,97 @@ class User(TimestampMixin, Base):
         nullable=False
     )
 
-    is_active = mapped_column(
+    # ---------------------------------------------------------
+    # Account status
+    # ---------------------------------------------------------
+
+    is_active: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
         nullable=False
     )
 
-    email_verified = mapped_column(
+    email_verified: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
-        nullable=False,
+        nullable=False
     )
-    phone_number = mapped_column(
+
+    # ---------------------------------------------------------
+    # Email verification
+    # ---------------------------------------------------------
+
+    verification_token: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
+    )
+
+    verification_token_expiry: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    # Email OTP
+    email_otp: Mapped[str | None] = mapped_column(
+        String(6),
+        nullable=True
+    )
+
+    email_otp_expiry: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    # ---------------------------------------------------------
+    # Phone
+    # ---------------------------------------------------------
+
+    phone_number: Mapped[str | None] = mapped_column(
         String(20),
         unique=True,
         nullable=True,
-        index=True,
+        index=True
     )
 
-    phone_verified = mapped_column(
+    phone_verified: Mapped[bool] = mapped_column(
         Boolean,
         default=False,
-        nullable=False,
+        nullable=False
     )
 
-    phone_verification_at = mapped_column(
-        DateTime,
-        nullable=True,
+    phone_verification_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
     )
-    verification_token = mapped_column(
+
+    # Phone OTP
+    phone_otp: Mapped[str | None] = mapped_column(
+        String(6),
+        nullable=True
+    )
+
+    phone_otp_expiry: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    # ---------------------------------------------------------
+    # Password reset
+    # ---------------------------------------------------------
+
+    password_reset_token: Mapped[str | None] = mapped_column(
         String(255),
-        nullable=True,
+        nullable=True
     )
 
-    verification_token_expiry = mapped_column(
-        DateTime,
-        nullable=True,
+    password_reset_expiry: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
     )
 
-    password_reset_token = mapped_column(
-        String(255),
-        nullable=True,
-    )
-
-    password_reset_expiry = mapped_column(
-        DateTime,
-        nullable=True,
-    )
+    # ---------------------------------------------------------
+    # Relationships
+    # ---------------------------------------------------------
 
     researcher = relationship(
         "Researcher",

@@ -31,6 +31,153 @@ class EmailService:
         )
 
     @staticmethod
+    def generate_email_otp():
+        """
+        Generate a secure 6-digit email OTP.
+        """
+        return str(secrets.randbelow(900000) + 100000)
+
+
+    @staticmethod
+    def email_otp_expiry():
+        """
+        Email OTP expires after 10 minutes.
+        """
+        return datetime.now(timezone.utc) + timedelta(
+            minutes=10
+        )
+
+
+    @staticmethod
+    def send_email_otp(
+        recipient_email: str,
+        otp: str,
+    ):
+        """
+        Send email verification OTP through Brevo SMTP.
+        """
+
+        smtp_host = os.getenv(
+            "SMTP_HOST",
+            "smtp-relay.brevo.com"
+        )
+
+        smtp_port = int(
+            os.getenv(
+                "SMTP_PORT",
+                "587"
+            )
+        )
+
+        smtp_username = os.getenv(
+            "SMTP_USERNAME"
+        )
+
+        smtp_password = os.getenv(
+            "SMTP_PASSWORD"
+        )
+
+        mail_from = os.getenv(
+            "MAIL_FROM"
+        )
+
+        if not smtp_username:
+            raise RuntimeError(
+                "SMTP_USERNAME is not configured."
+            )
+
+        if not smtp_password:
+            raise RuntimeError(
+                "SMTP_PASSWORD is not configured."
+            )
+
+        if not mail_from:
+            raise RuntimeError(
+                "MAIL_FROM is not configured."
+            )
+
+        message = EmailMessage()
+
+        message["Subject"] = "SCNA - Email Verification OTP"
+
+        message["From"] = mail_from
+
+        message["To"] = recipient_email
+
+        message.set_content(
+            f"""
+    Hello,
+
+    Your SCNA email verification OTP is:
+
+    {otp}
+
+    This OTP will expire in 10 minutes.
+
+    If you did not create an SCNA account, you can
+    safely ignore this email.
+
+    Regards,
+
+    SCNA
+    Scientific Collaboration Network Analyzer
+    """
+        )
+
+        try:
+
+            print("\n========== SCNA EMAIL OTP ==========")
+
+            print(
+                "SMTP HOST:",
+                smtp_host
+            )
+
+            print(
+                "SMTP PORT:",
+                smtp_port
+            )
+
+            print(
+                "RECIPIENT:",
+                recipient_email
+            )
+
+            with smtplib.SMTP(
+                smtp_host,
+                smtp_port,
+                timeout=30
+            ) as server:
+
+                server.ehlo()
+
+                server.starttls()
+
+                server.ehlo()
+
+                server.login(
+                    smtp_username,
+                    smtp_password
+                )
+
+                server.send_message(
+                    message
+                )
+
+            print(
+                "EMAIL OTP SENT SUCCESSFULLY"
+            )
+
+        except Exception as e:
+
+            print(
+                "EMAIL OTP ERROR:",
+                repr(e)
+            )
+
+            raise
+
+    @staticmethod
     def generate_reset_token():
         """
         Generate a secure password reset token.

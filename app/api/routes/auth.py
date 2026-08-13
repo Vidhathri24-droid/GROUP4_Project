@@ -18,6 +18,13 @@ from app.schemas.auth import (
 from app.schemas.user import (
     UserCreate,
     UserResponse,
+    UsernameCheckRequest,
+    RegistrationStart,
+    EmailOTPVerify,
+    SetRegistrationPassword,
+    RegistrationPhoneRequest,
+    RegistrationPhoneOTPRequest,
+    CompleteRegistrationRequest,
 )
 
 from app.services.auth_service import AuthService
@@ -298,6 +305,192 @@ def reset_password(
             detail=str(e),
         )
 
+# ------------------------------------------------------------------
+# Username Check
+# ------------------------------------------------------------------
+@router.post("/check-username")
+def check_username(
+    data: UsernameCheckRequest,
+    db: Session = Depends(get_db),
+):
+
+    return AuthService.check_username(
+        db,
+        data.username,
+    )
+#-------------------------------------------------------------------
+# Start Registration
+#-------------------------------------------------------------------
+@router.post("/register/start")
+def start_registration(
+    data: RegistrationStart,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.start_registration(
+            db=db,
+            username=data.username,
+            first_name=data.first_name,
+            last_name=data.last_name,
+            email=str(data.email),
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+#-------------------------------------------------------------------
+# Verify Email OTP
+#-------------------------------------------------------------------
+@router.post("/register/verify-email")
+def verify_registration_email(
+    data: EmailOTPVerify,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.verify_registration_email(
+            db=db,
+            email=str(data.email),
+            otp=data.otp,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+# -------------------------------------------------------------------
+# Set Registration Password
+# -------------------------------------------------------------------
+
+@router.post("/register/set-password")
+def set_registration_password(
+    data: SetRegistrationPassword,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.set_registration_password(
+            db=db,
+            email=str(data.email),
+            password=data.password,
+            confirm_password=data.confirm_password,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+# -------------------------------------------------------------------
+# Registration - Send Phone OTP
+# -------------------------------------------------------------------
+
+@router.post("/register/phone/send-otp")
+def send_registration_phone_otp(
+    data: RegistrationPhoneRequest,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.send_registration_phone_otp(
+            db=db,
+            email=str(data.email),
+            phone_number=data.phone_number,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+# -------------------------------------------------------------------
+# Registration - Verify Phone OTP
+# -------------------------------------------------------------------
+
+@router.post("/register/phone/verify-otp")
+def verify_registration_phone_otp(
+    data: RegistrationPhoneOTPRequest,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.verify_registration_phone_otp(
+            db=db,
+            email=str(data.email),
+            phone_number=data.phone_number,
+            code=data.code,
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+# -------------------------------------------------------------------
+# Registration - Skip Phone
+# -------------------------------------------------------------------
+
+@router.post("/register/phone/skip")
+def skip_registration_phone(
+    data: CompleteRegistrationRequest,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.skip_registration_phone(
+            db=db,
+            email=str(data.email),
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+# -------------------------------------------------------------------
+# Complete Registration
+# -------------------------------------------------------------------
+
+@router.post("/register/complete")
+def complete_registration(
+    data: CompleteRegistrationRequest,
+    db: Session = Depends(get_db),
+):
+
+    try:
+
+        return AuthService.complete_registration(
+            db=db,
+            email=str(data.email),
+        )
+
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
 # ------------------------------------------------------------------
 # Current User

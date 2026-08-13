@@ -23,6 +23,18 @@ class UserRepository:
             .filter(User.email == email)
             .first()
         )
+
+    @staticmethod
+    def get_by_username(
+        db: Session,
+        username: str,
+    ):
+        return (
+            db.query(User)
+            .filter(User.username == username)
+            .first()
+        )
+
     @staticmethod
     def get_by_phone(
         db: Session,
