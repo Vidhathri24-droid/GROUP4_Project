@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ForceGraph2D from "react-force-graph-2d";
 
@@ -6,7 +6,6 @@ import {
   getCollaborationNetwork,
   downloadCollaborationCSV,
 } from "../../services/collaborationService";
-
 
 function Network() {
   const navigate = useNavigate();
@@ -24,8 +23,11 @@ function Network() {
   });
 
   const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
+
+  // --------------------------------------------------
+  // LOAD COLLABORATION NETWORK
+  // --------------------------------------------------
 
   const loadNetwork = async () => {
     try {
@@ -33,18 +35,26 @@ function Network() {
 
       const data = await getCollaborationNetwork(scope);
 
+      const nodes = Array.isArray(data?.nodes)
+        ? data.nodes
+        : [];
+
+      const links = Array.isArray(data?.links)
+        ? data.links
+        : [];
+
       setGraphData({
-        nodes: data.nodes || [],
-        links: data.links || [],
+        nodes,
+        links,
       });
 
-      setStatistics(
-        data.statistics || {
-          researchers: 0,
-          collaborations: 0,
-        }
-      );
+      setStatistics({
+        researchers:
+          data?.statistics?.researchers ?? nodes.length,
 
+        collaborations:
+          data?.statistics?.collaborations ?? links.length,
+      });
     } catch (error) {
       console.error(
         "Failed to load collaboration network:",
@@ -52,71 +62,125 @@ function Network() {
       );
 
       alert(
-        error.response?.data?.detail ||
-        "Unable to load collaboration network."
+        error?.response?.data?.detail ||
+          "Unable to load collaboration network."
       );
 
+      setGraphData({
+        nodes: [],
+        links: [],
+      });
+
+      setStatistics({
+        researchers: 0,
+        collaborations: 0,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-
   useEffect(() => {
     loadNetwork();
   }, [scope]);
 
+  // --------------------------------------------------
+  // SEARCH + FILTER
+  // --------------------------------------------------
 
-  const filteredNodes = graphData.nodes.filter(
-    (node) =>
-      node.name
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
-  );
+  const filteredGraph = useMemo(() => {
+    const searchText = search.trim().toLowerCase();
 
+    // No search -> show complete network
+    if (!searchText) {
+      return {
+        nodes: graphData.nodes,
+        links: graphData.links,
+      };
+    }
 
-  const filteredNodeIds = new Set(
-    filteredNodes.map((node) => node.id)
-  );
+    // Search researcher by name, first name, last name or email
+    const filteredNodes = graphData.nodes.filter((node) => {
+      const name = String(node?.name ?? "");
+      const firstName = String(node?.first_name ?? "");
+      const lastName = String(node?.last_name ?? "");
+      const email = String(node?.email ?? "");
 
+      const searchableText = [
+        name,
+        firstName,
+        lastName,
+        email,
+      ]
+        .join(" ")
+        .toLowerCase();
 
-  const filteredLinks = graphData.links.filter(
-    (link) =>
-      filteredNodeIds.has(
-        typeof link.source === "object"
-          ? link.source.id
-          : link.source
-      ) &&
-      filteredNodeIds.has(
-        typeof link.target === "object"
-          ? link.target.id
-          : link.target
-      )
-  );
+      return searchableText.includes(searchText);
+    });
 
+    // Convert IDs to strings so UUID/string mismatches
+    // do not break the filtering.
+    const filteredNodeIds = new Set(
+      filteredNodes.map((node) => String(node.id))
+    );
 
-  const filteredGraph = {
-    nodes: filteredNodes,
-    links: filteredLinks,
-  };
+    const filteredLinks = graphData.links.filter((link) => {
+      const sourceId =
+        typeof link?.source === "object"
+          ? link.source?.id
+          : link?.source;
 
+      const targetId =
+        typeof link?.target === "object"
+          ? link.target?.id
+          : link?.target;
+
+      return (
+        filteredNodeIds.has(String(sourceId)) &&
+        filteredNodeIds.has(String(targetId))
+      );
+    });
+
+    return {
+      nodes: filteredNodes,
+      links: filteredLinks,
+    };
+  }, [graphData, search]);
+
+  // --------------------------------------------------
+  // CSV DOWNLOAD
+  // --------------------------------------------------
 
   const handleCSVDownload = async () => {
     try {
       await downloadCollaborationCSV(scope);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Failed to download collaboration CSV:",
+        error
+      );
 
       alert(
-        error.response?.data?.detail ||
-        "Unable to export collaboration data."
+        error?.response?.data?.detail ||
+          "Unable to export collaboration data."
       );
     }
   };
 
+  // --------------------------------------------------
+  // CLEAR SEARCH
+  // --------------------------------------------------
+
+  const handleClearSearch = () => {
+    setSearch("");
+  };
+
+  // --------------------------------------------------
+  // RENDER
+  // --------------------------------------------------
 
   return (
-    <div className="container py-4">
+    <div className="container-fluid py-4">
 
       {/* HEADER */}
 
@@ -133,6 +197,7 @@ function Network() {
         </div>
 
         <button
+          type="button"
           className="btn btn-outline-primary"
           onClick={() => navigate("/dashboard")}
         >
@@ -147,7 +212,7 @@ function Network() {
       <div className="row mb-4">
 
         <div className="col-md-6 mb-3">
-          <div className="card shadow-sm">
+          <div className="card shadow-sm h-100">
             <div className="card-body text-center">
 
               <h3 className="text-primary">
@@ -164,7 +229,7 @@ function Network() {
 
 
         <div className="col-md-6 mb-3">
-          <div className="card shadow-sm">
+          <div className="card shadow-sm h-100">
             <div className="card-body text-center">
 
               <h3 className="text-success">
@@ -190,20 +255,26 @@ function Network() {
 
           <div className="row align-items-end">
 
+            {/* NETWORK SCOPE */}
+
             <div className="col-md-4 mb-3">
 
-              <label className="form-label">
+              <label
+                htmlFor="networkScope"
+                className="form-label"
+              >
                 Network
               </label>
 
               <select
+                id="networkScope"
                 className="form-select"
                 value={scope}
-                onChange={(e) =>
-                  setScope(e.target.value)
-                }
+                onChange={(e) => {
+                  setScope(e.target.value);
+                  setSearch("");
+                }}
               >
-
                 <option value="all">
                   All Researchers
                 </option>
@@ -211,34 +282,56 @@ function Network() {
                 <option value="mine">
                   My Collaboration Network
                 </option>
-
               </select>
 
             </div>
 
 
+            {/* SEARCH */}
+
             <div className="col-md-5 mb-3">
 
-              <label className="form-label">
+              <label
+                htmlFor="researcherSearch"
+                className="form-label"
+              >
                 Search Researcher
               </label>
 
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search researcher..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-              />
+              <div className="input-group">
+
+                <input
+                  id="researcherSearch"
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by researcher name..."
+                  value={search}
+                  onChange={(e) =>
+                    setSearch(e.target.value)
+                  }
+                />
+
+                {search && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={handleClearSearch}
+                  >
+                    Clear
+                  </button>
+                )}
+
+              </div>
 
             </div>
 
 
+            {/* EXPORT */}
+
             <div className="col-md-3 mb-3">
 
               <button
+                type="button"
                 className="btn btn-success w-100"
                 onClick={handleCSVDownload}
               >
@@ -254,16 +347,28 @@ function Network() {
       </div>
 
 
+      {/* SEARCH RESULT INFORMATION */}
+
+      {!loading && search.trim() && (
+        <div className="alert alert-info">
+          Showing{" "}
+          <strong>
+            {filteredGraph.nodes.length}
+          </strong>{" "}
+          researcher(s) matching{" "}
+          <strong>"{search}"</strong>.
+        </div>
+      )}
+
+
       {/* NETWORK GRAPH */}
 
       <div className="card shadow-sm">
 
         <div className="card-header">
-
           <h5 className="mb-0">
             Collaboration Graph
           </h5>
-
         </div>
 
 
@@ -272,8 +377,11 @@ function Network() {
           style={{
             height: "650px",
             position: "relative",
+            overflow: "hidden",
           }}
         >
+
+          {/* LOADING */}
 
           {loading ? (
 
@@ -281,15 +389,19 @@ function Network() {
               className="d-flex justify-content-center align-items-center"
               style={{ height: "100%" }}
             >
-
               <div
                 className="spinner-border text-primary"
                 role="status"
-              />
-
+              >
+                <span className="visually-hidden">
+                  Loading...
+                </span>
+              </div>
             </div>
 
           ) : filteredGraph.nodes.length === 0 ? (
+
+            /* NO DATA */
 
             <div
               className="d-flex justify-content-center align-items-center"
@@ -302,9 +414,10 @@ function Network() {
                   No collaboration data found
                 </h5>
 
-                <p className="text-muted">
-                  There are no researchers or
-                  collaborations matching your search.
+                <p className="text-muted mb-0">
+                  {search.trim()
+                    ? `No researchers found matching "${search}".`
+                    : "There are no researchers or collaborations available."}
                 </p>
 
               </div>
@@ -313,32 +426,52 @@ function Network() {
 
           ) : (
 
+            /* FORCE GRAPH */
+
             <ForceGraph2D
               graphData={filteredGraph}
-              width={window.innerWidth > 1200 ? 1100 : 800}
+
+              width={Math.max(
+                300,
+                Math.min(
+                  window.innerWidth - 50,
+                  1200
+                )
+              )}
+
               height={650}
 
+              nodeId="id"
+
               nodeLabel={(node) =>
-                node.name
+                node.name ||
+                `${node.first_name || ""} ${
+                  node.last_name || ""
+                }`.trim() ||
+                "Researcher"
               }
 
               nodeAutoColorBy="id"
 
               nodeRelSize={7}
 
+              linkWidth={2}
+
+              linkColor={() => "#999999"}
+
               linkDirectionalParticles={2}
 
               linkDirectionalParticleSpeed={0.005}
 
-              linkWidth={2}
+              cooldownTicks={100}
+
+              d3VelocityDecay={0.3}
 
               onNodeClick={(node) => {
-
                 console.log(
                   "Selected researcher:",
                   node
                 );
-
               }}
 
               nodeCanvasObject={(
@@ -348,43 +481,68 @@ function Network() {
               ) => {
 
                 const label =
-                  node.name || "Researcher";
+                  node.name ||
+                  `${node.first_name || ""} ${
+                    node.last_name || ""
+                  }`.trim() ||
+                  "Researcher";
 
-                const fontSize =
-                  12 / globalScale;
+                const fontSize = Math.max(
+                  8,
+                  12 / globalScale
+                );
 
+                const radius = 7;
+
+                // Node
+                ctx.beginPath();
+
+                ctx.arc(
+                  node.x,
+                  node.y,
+                  radius,
+                  0,
+                  2 * Math.PI
+                );
+
+                ctx.fillStyle = "#0d6efd";
+                ctx.fill();
+
+                // Label
                 ctx.font =
                   `${fontSize}px Sans-Serif`;
 
                 ctx.textAlign = "center";
+                ctx.textBaseline = "top";
 
-                ctx.textBaseline =
-                  "middle";
+                ctx.fillStyle = "#212529";
+
+                ctx.fillText(
+                  label,
+                  node.x,
+                  node.y + radius + 3
+                );
+              }}
+
+              nodePointerAreaPaint={(
+                node,
+                color,
+                ctx
+              ) => {
+
+                ctx.fillStyle = color;
 
                 ctx.beginPath();
 
                 ctx.arc(
                   node.x,
                   node.y,
-                  7,
+                  10,
                   0,
                   2 * Math.PI
                 );
 
-                ctx.fillStyle =
-                  "#0d6efd";
-
                 ctx.fill();
-
-                ctx.fillStyle =
-                  "#212529";
-
-                ctx.fillText(
-                  label,
-                  node.x,
-                  node.y + 14
-                );
-
               }}
             />
 
@@ -422,6 +580,10 @@ function Network() {
             <li>
               Each connection represents an active
               collaboration.
+            </li>
+
+            <li>
+              Use the search box to filter researchers.
             </li>
 
             <li>
