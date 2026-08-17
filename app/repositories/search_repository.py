@@ -2,7 +2,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.models.researcher import Researcher
-from app.models.publication import Publication
+from app.models.publication import Publication, PublicationType, PublicationStatus
 from app.models.institution import Institution
 from app.models.department import Department
 
@@ -18,26 +18,40 @@ class SearchRepository:
         institution: str = None,
         sort: str = "relevance",
     ):
+        term = f"%{query.strip()}%"
+
         q = (
             db.query(Researcher)
+            .outerjoin(Researcher.publications)
+            .outerjoin(Researcher.departments)
+            .outerjoin(Department.institution)
             .filter(
                 or_(
-                    (Researcher.first_name + " " + Researcher.last_name).ilike(f"%{query}%"),
-                    Researcher.bio.ilike(f"%{query}%"),
-                    Researcher.orcid.ilike(f"%{query}%"),
+                    Researcher.first_name.ilike(term),
+                    Researcher.last_name.ilike(term),
+                    (Researcher.first_name + " " + Researcher.last_name).ilike(term),
+                    Researcher.bio.ilike(term),
+                    Researcher.orcid.ilike(term),
+                    Researcher.skills.ilike(term),
+                    Researcher.interests.ilike(term),
+                    Publication.title.ilike(term),
+                    Publication.abstract.ilike(term),
+                    Department.name.ilike(term),
+                    Institution.name.ilike(term),
                 )
             )
+            .distinct()
         )
 
         if institution:
-            q = (
-                q.join(Researcher.departments)
-                .join(Department.institution)
-                .filter(Institution.name.ilike(f"%{institution}%"))
+            q = q.filter(
+                Institution.name.ilike(f"%{institution.strip()}%")
             )
 
         if sort == "oldest":
             q = q.order_by(Researcher.first_name.asc(), Researcher.last_name.asc())
+        elif sort == "newest":
+            q = q.order_by(Researcher.created_at.desc())
         else:
             q = q.order_by(Researcher.last_name.asc(), Researcher.first_name.asc())
 
@@ -60,63 +74,64 @@ class SearchRepository:
         year: int = None,
         publication_type: str = None,
         status: str = None,
+        institution: str = None,
         sort: str = "relevance",
     ):
+        term = f"%{query.strip()}%"
+
         q = (
             db.query(Publication)
+            .outerjoin(Publication.researchers)
+            .outerjoin(Researcher.departments)
+            .outerjoin(Department.institution)
             .filter(
                 or_(
-                    Publication.title.ilike(f"%{query}%"),
-                    Publication.abstract.ilike(f"%{query}%"),
-                    Publication.doi.ilike(f"%{query}%"),
-                    Publication.journal.ilike(f"%{query}%"),
-                    Publication.conference.ilike(f"%{query}%"),
+                    Publication.title.ilike(term),
+                    Publication.abstract.ilike(term),
+                    Publication.doi.ilike(term),
+                    Publication.journal.ilike(term),
+                    Publication.conference.ilike(term),
+                    Researcher.first_name.ilike(term),
+                    Researcher.last_name.ilike(term),
+                    (Researcher.first_name + " " + Researcher.last_name).ilike(term),
+                    Institution.name.ilike(term),
                 )
             )
+            .distinct()
         )
 
-        # -----------------------------
-        # Filters
-        # -----------------------------
-
         if year:
-            q = q.filter(
-                Publication.publication_year == year
-            )
+            q = q.filter(Publication.publication_year == year)
 
         if publication_type:
-            q = q.filter(
-                Publication.publication_type == publication_type
-            )
+            try:
+                q = q.filter(
+                    Publication.publication_type == PublicationType(publication_type)
+                )
+            except ValueError:
+                return 0, []
 
         if status:
-            q = q.filter(
-                Publication.status == status
-            )
+            try:
+                q = q.filter(
+                    Publication.status == PublicationStatus(status)
+                )
+            except ValueError:
+                return 0, []
 
-        # -----------------------------
-        # Sorting
-        # -----------------------------
+        if institution:
+            q = q.filter(
+                Institution.name.ilike(f"%{institution.strip()}%")
+            )
 
         if sort == "newest":
-            q = q.order_by(
-                Publication.publication_year.desc()
-            )
-
+            q = q.order_by(Publication.publication_year.desc())
         elif sort == "oldest":
-            q = q.order_by(
-                Publication.publication_year.asc()
-            )
-
+            q = q.order_by(Publication.publication_year.asc())
         elif sort == "citations":
-            q = q.order_by(
-                Publication.citation_count.desc()
-            )
-
+            q = q.order_by(Publication.citation_count.desc())
         else:
-            q = q.order_by(
-                Publication.publication_year.desc()
-            )
+            q = q.order_by(Publication.publication_year.desc())
 
         total = q.count()
 
@@ -136,20 +151,31 @@ class SearchRepository:
         page_size: int,
         sort: str = "relevance",
     ):
+        term = f"%{query.strip()}%"
+
         q = (
             db.query(Institution)
+            .outerjoin(Institution.departments)
             .filter(
                 or_(
-                    Institution.name.ilike(f"%{query}%"),
-                    Institution.city.ilike(f"%{query}%"),
-                    Institution.state.ilike(f"%{query}%"),
-                    Institution.country.ilike(f"%{query}%"),
+                    Institution.name.ilike(term),
+                    Institution.abbreviation.ilike(term),
+                    Institution.website.ilike(term),
+                    Institution.email.ilike(term),
+                    Institution.address.ilike(term),
+                    Institution.city.ilike(term),
+                    Institution.state.ilike(term),
+                    Institution.country.ilike(term),
+                    Department.name.ilike(term),
                 )
             )
+            .distinct()
         )
 
         if sort == "oldest":
             q = q.order_by(Institution.name.asc())
+        elif sort == "newest":
+            q = q.order_by(Institution.created_at.desc())
         else:
             q = q.order_by(Institution.name.asc())
 

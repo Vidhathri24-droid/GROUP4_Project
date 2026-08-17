@@ -10,6 +10,8 @@ import {
   searchResearchers,
 } from "../services/collaborationService";
 
+import "./Collaboration.css";
+
 function Collaborations() {
   const [sentRequests, setSentRequests] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);

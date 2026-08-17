@@ -1,170 +1,103 @@
-import { useState } from "react";
-
-export default function SearchFilters({
-  filters,
-  setFilters,
-}) {
+export default function SearchFilters({ filters, setFilters }) {
   const update = (field, value) => {
-    setFilters({
-      ...filters,
+    setFilters((current) => ({
+      ...current,
       [field]: value,
-    });
+    }));
   };
 
   return (
-    <div className="card shadow border-0 rounded-4">
-      <div className="card-body">
-
-        <h4 className="fw-bold mb-4">
-          Filters
-        </h4>
-
-        {/* Search Type */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Search Type
-          </label>
-
+    <div className="search-filter-card">
+      <div className="search-filter-body">
+        <div className="filter-group">
+          <label htmlFor="search-type">Search type</label>
           <select
+            id="search-type"
             className="form-select"
             value={filters.type}
-            onChange={(e) =>
-              update("type", e.target.value)
-            }
+            onChange={(e) => update("type", e.target.value)}
           >
-            <option value="all">All</option>
+            <option value="all">Everything</option>
             <option value="researchers">Researchers</option>
             <option value="publications">Publications</option>
             <option value="institutions">Institutions</option>
           </select>
         </div>
 
-        {/* Year */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Publication Year
-          </label>
-
+        <div className="filter-group">
+          <label htmlFor="publication-year">Publication year</label>
           <input
+            id="publication-year"
             type="number"
+            min="1900"
+            max="2100"
             className="form-control"
+            placeholder="e.g. 2026"
             value={filters.year}
-            onChange={(e) =>
-              update("year", e.target.value)
-            }
+            onChange={(e) => update("year", e.target.value)}
           />
         </div>
 
-        {/* Publication Type */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Publication Type
-          </label>
-
+        <div className="filter-group">
+          <label htmlFor="publication-type">Publication type</label>
           <select
+            id="publication-type"
             className="form-select"
             value={filters.publicationType}
-            onChange={(e) =>
-              update(
-                "publicationType",
-                e.target.value
-              )
-            }
+            onChange={(e) => update("publicationType", e.target.value)}
           >
-            <option value="">Any</option>
-            <option value="Journal">
-              Journal
-            </option>
-            <option value="Conference">
-              Conference
-            </option>
-            <option value="Book">
-              Book
-            </option>
+            <option value="">Any type</option>
+            <option value="Journal">Journal</option>
+            <option value="Conference">Conference</option>
+            <option value="Book">Book</option>
+            <option value="BookChapter">Book chapter</option>
+            <option value="Patent">Patent</option>
+            <option value="Thesis">Thesis</option>
           </select>
         </div>
 
-        {/* Status */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Status
-          </label>
-
+        <div className="filter-group">
+          <label htmlFor="publication-status">Publication status</label>
           <select
+            id="publication-status"
             className="form-select"
             value={filters.status}
-            onChange={(e) =>
-              update("status", e.target.value)
-            }
+            onChange={(e) => update("status", e.target.value)}
           >
-            <option value="">Any</option>
-            <option value="Published">
-              Published
-            </option>
-            <option value="Accepted">
-              Accepted
-            </option>
-            <option value="Draft">
-              Draft
-            </option>
+            <option value="">Any status</option>
+            <option value="Published">Published</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Submitted">Submitted</option>
+            <option value="Draft">Draft</option>
+            <option value="Rejected">Rejected</option>
           </select>
         </div>
 
-        {/* Institution */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Institution
-          </label>
-
+        <div className="filter-group">
+          <label htmlFor="institution">Institution</label>
           <input
+            id="institution"
             className="form-control"
+            placeholder="Institution name"
             value={filters.institution}
-            onChange={(e) =>
-              update(
-                "institution",
-                e.target.value
-              )
-            }
+            onChange={(e) => update("institution", e.target.value)}
           />
         </div>
 
-        {/* Sort */}
-
-        <div className="mb-3">
-          <label className="form-label">
-            Sort
-          </label>
-
+        <div className="filter-group mb-0">
+          <label htmlFor="search-sort">Sort by</label>
           <select
+            id="search-sort"
             className="form-select"
             value={filters.sort}
-            onChange={(e) =>
-              update("sort", e.target.value)
-            }
+            onChange={(e) => update("sort", e.target.value)}
           >
-            <option value="relevance">
-              Relevance
-            </option>
-
-            <option value="newest">
-              Newest
-            </option>
-
-            <option value="oldest">
-              Oldest
-            </option>
-
-            <option value="citations">
-              Citations
-            </option>
+            <option value="relevance">Relevance</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="citations">Most cited</option>
           </select>
         </div>
-
       </div>
     </div>
   );

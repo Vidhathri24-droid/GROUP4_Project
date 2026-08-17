@@ -1,3 +1,4 @@
+import { ArrowUpRight, BookOpen, Building2, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function SearchCard({
@@ -8,72 +9,45 @@ export default function SearchCard({
   badge,
   description,
 }) {
-
   const getLink = () => {
     switch (type) {
       case "researcher":
         return `/researchers/${id}`;
-
       case "publication":
         return `/publications/${id}`;
-
       case "institution":
         return `/institutions/${id}`;
-
       default:
         return "#";
     }
   };
 
+  const icon = {
+    researcher: <UserRound size={19} />,
+    publication: <BookOpen size={19} />,
+    institution: <Building2 size={19} />,
+  }[type];
+
   return (
-    <div
-      className="card shadow-sm border-0 mb-3"
-      style={{
-        borderRadius: "18px",
-      }}
-    >
-      <div className="card-body">
+    <article className="search-result-card">
+      <div className={`search-result-icon ${type}`}>
+        {icon}
+      </div>
 
-        <div className="d-flex justify-content-between">
-
-          <div>
-
-            <h4 className="fw-bold">
-              {title}
-            </h4>
-
-            {subtitle && (
-              <p className="text-muted mb-2">
-                {subtitle}
-              </p>
-            )}
-
-            {badge && (
-              <span className="badge bg-primary mb-3">
-                {badge}
-              </span>
-            )}
-
-            <p className="text-secondary">
-              {description}
-            </p>
-
-          </div>
-
-          <div className="text-end">
-
-            <Link
-              to={getLink()}
-              className="btn btn-primary"
-            >
-              View
-            </Link>
-
-          </div>
-
+      <div className="search-result-main">
+        <div className="search-result-topline">
+          <h3>{title}</h3>
+          {badge && <span className="search-result-badge">{badge}</span>}
         </div>
 
+        {subtitle && <p className="search-result-subtitle">{subtitle}</p>}
+        {description && <p className="search-result-description">{description}</p>}
       </div>
-    </div>
+
+      <Link to={getLink()} className="search-view-btn">
+        View
+        <ArrowUpRight size={16} />
+      </Link>
+    </article>
   );
 }

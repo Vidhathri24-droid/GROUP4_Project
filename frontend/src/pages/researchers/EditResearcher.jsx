@@ -121,42 +121,30 @@ function EditResearcher() {
 
                 <ResearcherForm
                     initialValues={{
-                        first_name:
-                            researcher.first_name || "",
-
-                        last_name:
-                            researcher.last_name || "",
-
-                        bio:
-                            researcher.bio || "",
-
-                        phone:
-                            researcher.phone || "",
-
-                        experience:
-                            researcher.experience || 0,
-
-                        orcid:
-                            researcher.orcid || "",
-
+                        first_name: researcher.first_name || "",
+                        last_name: researcher.last_name || "",
+                        bio: researcher.bio || "",
+                        phone: researcher.phone || "",
+                        experience: researcher.experience || 0,
+                        orcid: researcher.orcid || "",
                         google_scholar:
                             researcher.google_scholar || "",
-
                         research_gate:
                             researcher.research_gate || "",
-
                         linkedin:
                             researcher.linkedin || "",
-
                         skills:
                             researcher.skills || "",
-
                         interests:
                             researcher.interests || "",
+
+                        department_ids:
+                            researcher.departments?.map(
+                                (department) =>
+                                    department.id
+                            ) || [],
                     }}
-
                     onSubmit={handleSubmit}
-
                     loading={saving}
                 />
 

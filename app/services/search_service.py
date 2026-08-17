@@ -84,6 +84,7 @@ class SearchService:
                 year=year,
                 publication_type=publication_type,
                 status=status,
+                institution=institution,
                 sort=sort,
             )
 
@@ -101,7 +102,7 @@ class SearchService:
                     "doi": p.doi,
                     "url": p.url,
                     "authors": [
-                        {"name": f"{researcher.first_name} {researcher.last_name}"}
+                        f"{researcher.first_name} {researcher.last_name}"
                         for researcher in p.researchers
                     ],
                 }

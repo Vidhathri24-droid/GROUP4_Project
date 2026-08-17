@@ -4,24 +4,30 @@ import DashboardStats from "../components/dashboard/DashboardStats";
 import QuickActions from "../components/dashboard/QuickActions";
 import DashboardCharts from "../components/dashboard/DashboardCharts";
 import DashboardCollaborations from "../components/dashboard/DashboardCollaborations";
+
 import {
   getDashboardStats,
   getPublicationsPerYear,
   getPublicationTypes,
 } from "../services/dashboardService";
+
 import { getCollaborationStats } from "../services/collaborationService";
+
+import "./Dashboard.css";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
 
   const [yearlyData, setYearlyData] = useState([]);
 
-  const [publicationTypes, setPublicationTypes] =
-    useState([]);
+  const [publicationTypes, setPublicationTypes] = useState([]);
+
   const [collaborationStats, setCollaborationStats] = useState({
     collaborations: 0,
     pending_collaborations: 0,
   });
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboard();
@@ -29,11 +35,9 @@ export default function Dashboard() {
 
   const loadDashboard = async () => {
     try {
-      const [
-        statsData,
-        yearly,
-        types,
-      ] = await Promise.all([
+      setLoading(true);
+
+      const [statsData, yearly, types] = await Promise.all([
         getDashboardStats(),
         getPublicationsPerYear(),
         getPublicationTypes(),
@@ -42,9 +46,10 @@ export default function Dashboard() {
       setStats(statsData);
       setYearlyData(yearly);
       setPublicationTypes(types);
-
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load dashboard:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,28 +75,141 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="container py-5">
+    <main className="dashboard-page">
+      <div className="dashboard-container">
 
-      <h1 className="mb-2">
-        Dashboard
-      </h1>
+        {/* =========================
+            PAGE HEADER
+        ========================== */}
+        <section className="dashboard-header">
+          <div>
+            <div className="dashboard-eyebrow">
+              SCNA · RESEARCH NETWORK
+            </div>
 
-      <p className="text-muted mb-4">
-        Welcome to the Scientific Collaboration Network Analyzer.
-      </p>
+            <h1 className="dashboard-title">
+              Dashboard
+            </h1>
 
-      <QuickActions />
+            <p className="dashboard-subtitle">
+              Overview of your scientific research network,
+              publications and collaborations.
+            </p>
+          </div>
 
-      <DashboardStats stats={stats} 
-        collaborationStats={collaborationStats}
-      />
+          <div className="dashboard-header-badge">
+            <span className="dashboard-status-dot"></span>
+            Network Overview
+          </div>
+        </section>
 
-      <DashboardCharts
-        yearlyData={yearlyData}
-        publicationTypes={publicationTypes}
-      />
+        {/* =========================
+            QUICK ACTIONS
+        ========================== */}
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <div>
+              <span className="dashboard-section-label">
+                ACTIONS
+              </span>
 
-      <DashboardCollaborations />
-    </div>
+              <h2>Quick Actions</h2>
+
+              <p>
+                Create and manage research network resources.
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-panel dashboard-actions-panel">
+            <QuickActions />
+          </div>
+        </section>
+
+        {/* =========================
+            STATISTICS
+        ========================== */}
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <div>
+              <span className="dashboard-section-label">
+                NETWORK OVERVIEW
+              </span>
+
+              <h2>Research Statistics</h2>
+
+              <p>
+                A snapshot of activity across the collaboration
+                network.
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-stats-wrapper">
+            {loading ? (
+              <div className="dashboard-loading">
+                <div className="dashboard-spinner"></div>
+                <span>Loading statistics...</span>
+              </div>
+            ) : (
+              <DashboardStats
+                stats={stats}
+                collaborationStats={collaborationStats}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* =========================
+            ANALYTICS
+        ========================== */}
+        <section className="dashboard-section">
+          <div className="dashboard-section-heading">
+            <div>
+              <span className="dashboard-section-label">
+                ANALYTICS
+              </span>
+
+              <h2>Research Insights</h2>
+
+              <p>
+                Explore publication trends and research output.
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-panel dashboard-charts-panel">
+            <DashboardCharts
+              yearlyData={yearlyData}
+              publicationTypes={publicationTypes}
+            />
+          </div>
+        </section>
+
+        {/* =========================
+            COLLABORATIONS
+        ========================== */}
+        <section className="dashboard-section dashboard-last-section">
+          <div className="dashboard-section-heading">
+            <div>
+              <span className="dashboard-section-label">
+                COLLABORATION
+              </span>
+
+              <h2>Research Collaborations</h2>
+
+              <p>
+                Track collaboration activity and requests.
+              </p>
+            </div>
+          </div>
+
+          <div className="dashboard-panel">
+            <DashboardCollaborations />
+          </div>
+        </section>
+
+      </div>
+    </main>
   );
 }

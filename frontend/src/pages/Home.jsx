@@ -52,13 +52,13 @@ useEffect(() => {
     try {
       const data = await getHomeData();
 
-      setStatistics(data.statistics);
-      setResearchers(data.top_researchers || []);
+      setStatistics(data.statistics || {});
+      setResearchers(data.trending_researchers || []);
       setPublications(data.latest_publications || []);
       setInstitutions(data.top_institutions || []);
       setConferences(data.upcoming_conferences || []);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to load home page data:", error);
     } finally {
       setLoading(false);
     }

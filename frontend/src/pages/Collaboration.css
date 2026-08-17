@@ -1,0 +1,575 @@
+/* =========================================================
+   SCNA - Collaboration Page
+   Professional UI matching Dashboard / Institutions /
+   Publications / Conferences styling
+   ========================================================= */
+
+/* ---------- Page ---------- */
+
+.container.mt-5 {
+  max-width: 1180px;
+  margin-top: 42px !important;
+  padding-bottom: 60px;
+  color: #172033;
+}
+
+/* ---------- Main Page Heading ---------- */
+
+.container.mt-5 > h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #172033;
+  margin-bottom: 6px !important;
+}
+
+.container.mt-5 > h2::after {
+  content: "Connect, collaborate and build meaningful research partnerships.";
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  color: #718096;
+  letter-spacing: 0;
+  margin-top: 8px;
+}
+
+
+/* =========================================================
+   COMMON CARD STYLE
+   ========================================================= */
+
+.container.mt-5 .card {
+  border: 1px solid #e7ebf2 !important;
+  border-radius: 16px !important;
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06) !important;
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.container.mt-5 .card:hover {
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09) !important;
+}
+
+
+/* =========================================================
+   SECTION HEADERS
+   ========================================================= */
+
+.container.mt-5 .card-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #edf0f5 !important;
+  padding: 20px 24px !important;
+}
+
+.container.mt-5 .card-header h4 {
+  margin: 0 !important;
+  font-size: 18px;
+  font-weight: 700;
+  color: #172033;
+}
+
+
+/* Add subtle blue accent to section headers */
+
+.container.mt-5 .card-header h4::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 19px;
+  margin-right: 10px;
+  vertical-align: -3px;
+  border-radius: 5px;
+  background: #1473f9;
+}
+
+
+/* =========================================================
+   CARD BODY
+   ========================================================= */
+
+.container.mt-5 .card-body {
+  padding: 24px !important;
+}
+
+
+/* =========================================================
+   REQUEST COLLABORATION
+   ========================================================= */
+
+.container.mt-5 .card:first-of-type {
+  border-top: 3px solid #1473f9 !important;
+}
+
+.container.mt-5 .card:first-of-type .card-body {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20, 115, 249, 0.025),
+      rgba(255, 255, 255, 0)
+    );
+}
+
+
+/* ---------- Labels ---------- */
+
+.container.mt-5 .form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #344054;
+}
+
+
+/* ---------- Inputs ---------- */
+
+.container.mt-5 .form-control,
+.container.mt-5 .form-select {
+  min-height: 46px;
+  border: 1px solid #dfe5ee !important;
+  border-radius: 9px !important;
+  background: #ffffff;
+  color: #172033;
+  font-size: 14px;
+  padding: 10px 13px;
+  box-shadow: none !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.container.mt-5 textarea.form-control {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.container.mt-5 .form-control::placeholder {
+  color: #98a2b3;
+}
+
+.container.mt-5 .form-control:hover,
+.container.mt-5 .form-select:hover {
+  border-color: #b9c7da !important;
+}
+
+.container.mt-5 .form-control:focus,
+.container.mt-5 .form-select:focus {
+  border-color: #1473f9 !important;
+  box-shadow: 0 0 0 3px rgba(20, 115, 249, 0.11) !important;
+  outline: none;
+}
+
+
+/* =========================================================
+   SEARCH RESULTS
+   ========================================================= */
+
+.container.mt-5 .list-group {
+  border: 1px solid #e4e9f1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+.container.mt-5 .list-group-item {
+  border: 0 !important;
+  border-bottom: 1px solid #edf0f4 !important;
+  padding: 15px 17px !important;
+  background: #ffffff;
+  color: #172033;
+  text-align: left;
+  transition:
+    background 0.18s ease,
+    padding-left 0.18s ease;
+}
+
+.container.mt-5 .list-group-item:last-child {
+  border-bottom: 0 !important;
+}
+
+.container.mt-5 .list-group-item:hover {
+  background: #f5f9ff !important;
+  padding-left: 21px !important;
+}
+
+.container.mt-5 .list-group-item strong {
+  color: #1473f9;
+  font-size: 15px;
+}
+
+.container.mt-5 .list-group-item .small {
+  color: #667085 !important;
+  line-height: 1.5;
+}
+
+
+/* ---------- Selected Researcher ---------- */
+
+.container.mt-5 .alert-success {
+  border: 1px solid #b7e4cd !important;
+  border-radius: 10px !important;
+  background: #effaf4 !important;
+  color: #17663d !important;
+  padding: 12px 15px;
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.container.mt-5 .btn-primary {
+  border: none !important;
+  border-radius: 9px !important;
+  background: #1473f9 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 18px;
+  box-shadow: 0 4px 10px rgba(20, 115, 249, 0.18);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.container.mt-5 .btn-primary:hover {
+  background: #0d63dc !important;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 15px rgba(20, 115, 249, 0.23);
+}
+
+.container.mt-5 .btn-primary:active {
+  transform: translateY(0);
+}
+
+.container.mt-5 .btn-primary:disabled {
+  background: #aab8ca !important;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   REQUEST LIST ITEMS
+   ========================================================= */
+
+.container.mt-5 .border.rounded.p-3.mb-3 {
+  position: relative;
+  border: 1px solid #e5eaf1 !important;
+  border-radius: 12px !important;
+  background: #ffffff;
+  padding: 18px 19px !important;
+  margin-bottom: 13px !important;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.container.mt-5 .border.rounded.p-3.mb-3:hover {
+  transform: translateY(-2px);
+  border-color: #d6e1f0 !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.06);
+}
+
+
+/* ---------- Request title ---------- */
+
+.container.mt-5 .border.rounded.p-3.mb-3 h5 {
+  margin-bottom: 15px;
+  color: #172033;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+
+/* ---------- Request text ---------- */
+
+.container.mt-5 .border.rounded.p-3.mb-3 p {
+  margin-bottom: 8px;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.container.mt-5 .border.rounded.p-3.mb-3 p strong {
+  color: #344054;
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.container.mt-5 .badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 5px 10px;
+  border-radius: 999px !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+
+/* Pending */
+
+.container.mt-5 .badge.bg-warning {
+  background: #fff6db !important;
+  color: #9a6700 !important;
+  border: 1px solid #f6df9c;
+}
+
+
+/* Accepted */
+
+.container.mt-5 .badge.bg-success {
+  background: #e9f8f0 !important;
+  color: #16824b !important;
+  border: 1px solid #b9e5cc;
+}
+
+
+/* =========================================================
+   ACCEPT / REJECT BUTTONS
+   ========================================================= */
+
+.container.mt-5 .btn-success {
+  border: none !important;
+  border-radius: 8px !important;
+  background: #168c58 !important;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 15px;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.container.mt-5 .btn-success:hover {
+  background: #117447 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(22, 140, 88, 0.18);
+}
+
+
+.container.mt-5 .btn-danger {
+  border: none !important;
+  border-radius: 8px !important;
+  background: #e63950 !important;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 15px;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.container.mt-5 .btn-danger:hover {
+  background: #c9273e !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(230, 57, 80, 0.18);
+}
+
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+
+.container.mt-5 .text-muted {
+  color: #8490a3 !important;
+}
+
+.container.mt-5 .card-body > p.text-muted {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed #dfe5ed;
+  border-radius: 10px;
+  background: #fafbfd;
+  text-align: center;
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   LOADING STATE
+   ========================================================= */
+
+.container.mt-5 .spinner-border {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-width: 3px;
+  color: #1473f9 !important;
+}
+
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
+
+.container.mt-5 .alert {
+  border-radius: 11px;
+  border: 1px solid transparent;
+  font-size: 14px;
+}
+
+.container.mt-5 .alert-warning {
+  background: #fff9e8;
+  border-color: #f5dfa3;
+  color: #856404;
+}
+
+
+/* =========================================================
+   SECTION-SPECIFIC ACCENTS
+   ========================================================= */
+
+/* Incoming */
+
+.container.mt-5 .card:nth-of-type(2) {
+  border-top: 3px solid #f2b84b !important;
+}
+
+
+/* Sent */
+
+.container.mt-5 .card:nth-of-type(3) {
+  border-top: 3px solid #64748b !important;
+}
+
+
+/* Accepted */
+
+.container.mt-5 .card:nth-of-type(4) {
+  border-top: 3px solid #168c58 !important;
+}
+
+
+/* =========================================================
+   SPACING BETWEEN SECTIONS
+   ========================================================= */
+
+.container.mt-5 .card.shadow-sm.mb-4 {
+  margin-bottom: 22px !important;
+}
+
+
+/* =========================================================
+   SEARCHING STATE
+   ========================================================= */
+
+.container.mt-5 .list-group + .text-muted {
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .container.mt-5 {
+    margin-top: 30px !important;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .container.mt-5 > h2 {
+    font-size: 28px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .container.mt-5 {
+    margin-top: 24px !important;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .container.mt-5 > h2 {
+    font-size: 25px;
+  }
+
+  .container.mt-5 .card-header {
+    padding: 17px 18px !important;
+  }
+
+  .container.mt-5 .card-body {
+    padding: 18px !important;
+  }
+
+  .container.mt-5 .btn-primary {
+    width: 100%;
+  }
+
+  .container.mt-5 .btn-success,
+  .container.mt-5 .btn-danger {
+    margin-top: 6px;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .container.mt-5 {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .container.mt-5 > h2 {
+    font-size: 22px;
+  }
+
+  .container.mt-5 > h2::after {
+    font-size: 13px;
+  }
+
+  .container.mt-5 .card {
+    border-radius: 12px !important;
+  }
+
+  .container.mt-5 .card-header h4 {
+    font-size: 16px;
+  }
+
+  .container.mt-5 .border.rounded.p-3.mb-3 {
+    padding: 15px !important;
+  }
+}
+
+
+/* =========================================================
+   SMOOTH SCROLLBAR
+   ========================================================= */
+
+.container.mt-5 ::-webkit-scrollbar {
+  width: 7px;
+}
+
+.container.mt-5 ::-webkit-scrollbar-track {
+  background: #f1f4f8;
+}
+
+.container.mt-5 ::-webkit-scrollbar-thumb {
+  background: #c5cedb;
+  border-radius: 10px;
+}
+
+.container.mt-5 ::-webkit-scrollbar-thumb:hover {
+  background: #aab6c6;
+}

@@ -1,0 +1,613 @@
+/* =========================================================
+   SCNA COLLABORATION NETWORK
+   ========================================================= */
+
+.network-page {
+  min-height: calc(100vh - 72px);
+  background: #f6f8fc;
+  padding: 36px 0 60px;
+  color: #172033;
+}
+
+.network-container {
+  width: min(1240px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.network-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.network-eyebrow {
+  margin-bottom: 7px;
+  color: #1473f9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.network-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.network-title {
+  margin: 0;
+  color: #172033;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+}
+
+.network-title-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 6px;
+  background: #eaf2ff;
+  color: #1473f9;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.network-subtitle {
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.network-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid #b9d4ff;
+  border-radius: 8px;
+  background: #fff;
+  color: #1473f9;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .18s ease;
+}
+
+.network-back-button:hover {
+  border-color: #1473f9;
+  background: #f3f7ff;
+  color: #0d66e8;
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+
+.network-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.network-stat-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 112px;
+  padding: 20px 22px;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, .045),
+    0 1px 3px rgba(25, 50, 80, .025);
+}
+
+.network-stat-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  content: "";
+  background: #1473f9;
+}
+
+.network-stat-card:nth-child(2)::before {
+  background: #159669;
+}
+
+.network-stat-card:nth-child(3)::before {
+  background: #f4b400;
+}
+
+.network-stat-label {
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.network-stat-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.network-stat-value {
+  color: #1473f9;
+  font-size: 31px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.network-stat-card:nth-child(2) .network-stat-value {
+  color: #159669;
+}
+
+.network-stat-meta {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.network-stat-heading {
+  margin: 0;
+  color: #172033;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+/* =========================================================
+   EXPLORER PANEL
+   ========================================================= */
+
+.network-explorer {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, .045),
+    0 1px 3px rgba(25, 50, 80, .025);
+}
+
+.network-explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.network-explorer-title {
+  margin: 0;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.network-explorer-description {
+  margin: 4px 0 0;
+  color: #7a8799;
+  font-size: 12px;
+}
+
+.network-control-grid {
+  display: grid;
+  grid-template-columns: .85fr 1.4fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.network-control-group {
+  min-width: 0;
+}
+
+.network-control-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.network-control-input,
+.network-control-select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #dce4ee;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.network-control-input::placeholder {
+  color: #94a3b8;
+}
+
+.network-control-input:focus,
+.network-control-select:focus {
+  border-color: #1473f9;
+  box-shadow: 0 0 0 3px rgba(20, 115, 249, .1);
+}
+
+.network-export-button {
+  height: 42px;
+  min-width: 150px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  background: #159669;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+
+.network-export-button:hover {
+  background: #12845c;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(21, 150, 105, .18);
+}
+
+.network-result-count {
+  margin-top: 13px;
+  color: #718096;
+  font-size: 12px;
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.network-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* =========================================================
+   GRAPH CARD
+   ========================================================= */
+
+.network-graph-card {
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, .045),
+    0 1px 3px rgba(25, 50, 80, .025);
+}
+
+.network-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 13px 17px;
+  border-bottom: 1px solid #e9eef4;
+}
+
+.network-card-title {
+  margin: 0;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.network-card-subtitle {
+  margin: 4px 0 0;
+  color: #7a8799;
+  font-size: 11px;
+}
+
+.network-connection-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: #eaf8f2;
+  color: #159669;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.network-graph {
+  position: relative;
+  height: 510px;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(20, 115, 249, .025) 0,
+      rgba(20, 115, 249, 0) 52%
+    ),
+    #fff;
+}
+
+/* =========================================================
+   GRAPH TOOLBAR
+   ========================================================= */
+
+.network-graph-toolbar {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #e3e9f1;
+  border-radius: 8px;
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 4px 12px rgba(25,50,80,.07);
+}
+
+.network-graph-toolbar button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #526277;
+  cursor: pointer;
+}
+
+.network-graph-toolbar button:hover {
+  background: #eef5ff;
+  color: #1473f9;
+}
+
+/* =========================================================
+   RESEARCHER DETAILS
+   ========================================================= */
+
+.network-details-card {
+  overflow: hidden;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, .045),
+    0 1px 3px rgba(25, 50, 80, .025);
+}
+
+.network-details-header {
+  min-height: 62px;
+  padding: 18px;
+  border-bottom: 1px solid #e9eef4;
+}
+
+.network-details-title {
+  margin: 0;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.network-details-body {
+  min-height: 448px;
+  padding: 24px 20px;
+}
+
+.network-empty-details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 390px;
+  text-align: center;
+}
+
+.network-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #f0eaff;
+  color: #7654b7;
+  font-size: 23px;
+}
+
+.network-empty-details h4 {
+  margin: 0 0 7px;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.network-empty-details p {
+  max-width: 220px;
+  margin: 0 auto;
+  color: #8491a3;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* =========================================================
+   SELECTED RESEARCHER
+   ========================================================= */
+
+.network-researcher-profile {
+  text-align: center;
+}
+
+.network-researcher-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 4px auto 12px;
+  border-radius: 50%;
+  background: #1473f9;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.network-researcher-name {
+  margin: 0;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.network-researcher-role {
+  margin-top: 4px;
+  color: #7a8799;
+  font-size: 12px;
+}
+
+/* =========================================================
+   HOW IT WORKS
+   ========================================================= */
+
+.network-help-card {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e3e9f1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, .035);
+}
+
+.network-help-title {
+  margin: 0 0 14px;
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.network-help-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.network-help-item {
+  padding: 13px;
+  border: 1px solid #edf1f5;
+  border-radius: 8px;
+  background: #fafbfd;
+}
+
+.network-help-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: #eaf2ff;
+  color: #1473f9;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.network-help-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1050px) {
+  .network-main-grid {
+    grid-template-columns: minmax(0, 1fr) 290px;
+  }
+
+  .network-control-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .network-export-button {
+    width: 100%;
+  }
+
+  .network-help-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+  .network-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .network-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .network-details-card {
+    min-height: 360px;
+  }
+
+  .network-details-body {
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 650px) {
+  .network-container {
+    width: calc(100% - 24px);
+  }
+
+  .network-page {
+    padding-top: 25px;
+  }
+
+  .network-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .network-title {
+    font-size: 28px;
+  }
+
+  .network-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .network-graph {
+    height: 420px;
+  }
+
+  .network-help-list {
+    grid-template-columns: 1fr;
+  }
+}

@@ -322,7 +322,7 @@ function App() {
         {/* ================= Collaboration ================= */}
 
         <Route
-          path="/collaborations"
+          path="/collaboration"
           element={
             <ProtectedRoute>
             <Collaboration />

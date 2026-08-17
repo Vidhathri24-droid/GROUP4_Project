@@ -152,14 +152,14 @@ class Researcher(TimestampMixin, Base):
 
     sent_collaborations = relationship(
         "Collaboration",
+        primaryjoin="Researcher.user_id == foreign(Collaboration.sender_id)",
         foreign_keys="Collaboration.sender_id",
-        back_populates="sender",
-        cascade="all, delete",
+        viewonly=True,
     )
 
     received_collaborations = relationship(
         "Collaboration",
+        primaryjoin="Researcher.user_id == foreign(Collaboration.receiver_id)",
         foreign_keys="Collaboration.receiver_id",
-        back_populates="receiver",
-        cascade="all, delete",
+        viewonly=True,
     )

@@ -13,9 +13,7 @@ export default function CreateResearcher() {
     const [loading, setLoading] = useState(false);
 
     const submit = async (form) => {
-
         try {
-
             setLoading(true);
 
             const user = await getCurrentUser();
@@ -28,17 +26,16 @@ export default function CreateResearcher() {
             navigate("/researchers");
 
         } catch (error) {
-
             console.error(error);
 
-            alert("Unable to create researcher.");
+            alert(
+                error?.response?.data?.detail ||
+                "Unable to create researcher."
+            );
 
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     return (

@@ -214,3 +214,17 @@ class User(TimestampMixin, Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+
+    sent_collaborations = relationship(
+        "Collaboration",
+        foreign_keys="Collaboration.sender_id",
+        back_populates="sender",
+        cascade="all, delete",
+    )
+
+    received_collaborations = relationship(
+        "Collaboration",
+        foreign_keys="Collaboration.receiver_id",
+        back_populates="receiver",
+        cascade="all, delete",
+    )

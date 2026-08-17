@@ -1,0 +1,405 @@
+/* =========================================================
+   SCNA DASHBOARD
+   ========================================================= */
+
+.dashboard-page {
+  min-height: calc(100vh - 72px);
+  background: #f6f8fc;
+  padding: 42px 0 70px;
+  color: #172033;
+}
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.dashboard-container {
+  width: min(1220px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 34px;
+}
+
+.dashboard-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-title {
+  margin: 0;
+  color: #172033;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-subtitle {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.dashboard-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #53657d;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 50, 80, 0.04);
+}
+
+.dashboard-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #18a56b;
+  box-shadow: 0 0 0 3px rgba(24, 165, 107, 0.12);
+}
+
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+
+.dashboard-section {
+  margin-bottom: 34px;
+}
+
+.dashboard-last-section {
+  margin-bottom: 0;
+}
+
+.dashboard-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.dashboard-section-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #1473f9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.dashboard-section-heading h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.dashboard-section-heading p {
+  margin: 5px 0 0;
+  color: #7a8799;
+  font-size: 13px;
+}
+
+/* =========================================================
+   COMMON PANEL
+   ========================================================= */
+
+.dashboard-panel {
+  overflow: hidden;
+  border: 1px solid #e4eaf2;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, 0.045),
+    0 1px 3px rgba(25, 50, 80, 0.025);
+}
+
+.dashboard-actions-panel {
+  padding: 20px;
+}
+
+.dashboard-charts-panel {
+  padding: 24px;
+}
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+/*
+   These rules make the existing QuickActions component
+   visually fit the dashboard without changing its logic.
+*/
+
+.dashboard-actions-panel .row {
+  margin: 0 -6px;
+}
+
+.dashboard-actions-panel .row > * {
+  padding: 0 6px;
+}
+
+.dashboard-actions-panel button,
+.dashboard-actions-panel a {
+  min-height: 50px;
+  border-radius: 8px !important;
+  border: 1px solid transparent;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.dashboard-actions-panel button:hover,
+.dashboard-actions-panel a:hover {
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.dashboard-stats-wrapper {
+  min-height: 120px;
+}
+
+.dashboard-stats-wrapper > * {
+  margin-bottom: 0 !important;
+}
+
+/*
+   Existing dashboard stat cards
+*/
+
+.dashboard-stats-wrapper .card {
+  border: 1px solid #e3e9f1 !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 4px 14px rgba(25, 50, 80, 0.045),
+    0 1px 3px rgba(25, 50, 80, 0.025) !important;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.dashboard-stats-wrapper .card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(25, 50, 80, 0.08),
+    0 2px 5px rgba(25, 50, 80, 0.035) !important;
+}
+
+.dashboard-stats-wrapper .card-body {
+  padding: 21px !important;
+}
+
+/* =========================================================
+   CHARTS
+   ========================================================= */
+
+.dashboard-charts-panel .card,
+.dashboard-charts-panel > div {
+  border-radius: 0 !important;
+}
+
+.dashboard-charts-panel .row {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.dashboard-charts-panel .row > * {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.dashboard-charts-panel .card {
+  border: 1px solid #e6ebf2 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  background: #ffffff;
+}
+
+.dashboard-charts-panel .card-header {
+  border-bottom: 1px solid #edf1f5 !important;
+  background: #ffffff !important;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.dashboard-charts-panel canvas {
+  max-width: 100%;
+}
+
+/* =========================================================
+   COLLABORATION SECTION
+   ========================================================= */
+
+.dashboard-last-section .dashboard-panel {
+  padding: 22px;
+}
+
+.dashboard-last-section .card {
+  border: 1px solid #e4eaf2 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 120px;
+  border: 1px solid #e4eaf2;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #718096;
+  font-size: 13px;
+}
+
+.dashboard-spinner {
+  width: 19px;
+  height: 19px;
+  border: 2px solid #dbe5f3;
+  border-top-color: #1473f9;
+  border-radius: 50%;
+  animation: dashboardSpin 0.75s linear infinite;
+}
+
+@keyframes dashboardSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   BOOTSTRAP OVERRIDES
+   ========================================================= */
+
+.dashboard-page .btn-primary {
+  background: #1473f9;
+  border-color: #1473f9;
+}
+
+.dashboard-page .btn-primary:hover {
+  background: #0d66e8;
+  border-color: #0d66e8;
+}
+
+.dashboard-page .text-muted {
+  color: #718096 !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 992px) {
+  .dashboard-page {
+    padding-top: 30px;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 28px;
+  }
+
+  .dashboard-header-badge {
+    display: none;
+  }
+
+  .dashboard-title {
+    font-size: 32px;
+  }
+
+  .dashboard-section {
+    margin-bottom: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    width: min(100% - 24px, 1220px);
+  }
+
+  .dashboard-page {
+    padding: 25px 0 50px;
+  }
+
+  .dashboard-title {
+    font-size: 29px;
+  }
+
+  .dashboard-subtitle {
+    font-size: 14px;
+  }
+
+  .dashboard-section-heading h2 {
+    font-size: 19px;
+  }
+
+  .dashboard-actions-panel {
+    padding: 15px;
+  }
+
+  .dashboard-charts-panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-container {
+    width: calc(100% - 20px);
+  }
+
+  .dashboard-title {
+    font-size: 26px;
+  }
+
+  .dashboard-section-heading {
+    margin-bottom: 12px;
+  }
+
+  .dashboard-section-heading p {
+    font-size: 12px;
+  }
+
+  .dashboard-actions-panel {
+    padding: 12px;
+  }
+
+  .dashboard-charts-panel {
+    padding: 12px;
+  }
+}

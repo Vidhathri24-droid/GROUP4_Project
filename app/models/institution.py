@@ -68,4 +68,5 @@ class Institution(TimestampMixin, Base):
     departments = relationship(
         "Department",
         back_populates="institution",
+        cascade="all, delete-orphan",
     )

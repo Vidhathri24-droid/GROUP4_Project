@@ -1,0 +1,625 @@
+/* ==========================================================================
+   SCNA - Conferences Page
+   ========================================================================== */
+
+.conference-page {
+  min-height: calc(100vh - 72px);
+  background: #f6f8fc;
+  padding: 36px 24px 60px;
+  color: #172033;
+}
+
+.conference-container {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.conference-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.conference-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #6b7a90;
+  margin-bottom: 7px;
+}
+
+.conference-header h1 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #172033;
+}
+
+.conference-header p {
+  margin: 9px 0 0;
+  color: #6b7a90;
+  font-size: 15px;
+}
+
+.conference-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  background: #1473f9;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 5px 14px rgba(20, 115, 249, 0.18);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.conference-add-btn:hover {
+  background: #0d63dc;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px rgba(20, 115, 249, 0.24);
+}
+
+.conference-add-btn span {
+  font-size: 19px;
+  line-height: 1;
+}
+
+/* ==========================================================================
+   STATS
+   ========================================================================== */
+
+.conference-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.conference-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #e5eaf2;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 3px 12px rgba(31, 45, 61, 0.04);
+}
+
+.conference-stat-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.conference-stat-icon.blue {
+  background: #eaf2ff;
+  color: #1473f9;
+}
+
+.conference-stat-icon.green {
+  background: #e9f8f1;
+  color: #15945f;
+}
+
+.conference-stat-icon.purple {
+  background: #f1edff;
+  color: #7657d8;
+}
+
+.conference-stat-card strong {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+  color: #172033;
+}
+
+.conference-stat-card span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #7b8799;
+}
+
+/* ==========================================================================
+   FILTER PANEL
+   ========================================================================== */
+
+.conference-filter-panel {
+  background: #ffffff;
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(31, 45, 61, 0.045);
+}
+
+.conference-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.conference-filter-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  color: #172033;
+}
+
+.conference-filter-header p {
+  margin: 5px 0 0;
+  color: #7b8799;
+  font-size: 13px;
+}
+
+.conference-clear-btn {
+  border: 1px solid #d8e0eb;
+  background: #ffffff;
+  color: #4d5b70;
+  border-radius: 7px;
+  padding: 8px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.conference-clear-btn:hover {
+  border-color: #1473f9;
+  color: #1473f9;
+  background: #f7faff;
+}
+
+.conference-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr) minmax(180px, 1fr);
+  gap: 15px;
+}
+
+.conference-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #536176;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.conference-field input,
+.conference-field select {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #dfe5ee;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #253247;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.conference-field input:focus,
+.conference-field select:focus {
+  border-color: #1473f9;
+  box-shadow: 0 0 0 3px rgba(20, 115, 249, 0.1);
+}
+
+.conference-search-wrapper {
+  position: relative;
+}
+
+.conference-search-wrapper input {
+  padding-left: 38px;
+  padding-right: 38px;
+}
+
+.conference-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8a96a8;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.conference-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 27px;
+  height: 27px;
+  border: 0;
+  border-radius: 50%;
+  background: #edf1f6;
+  color: #667388;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.conference-search-clear:hover {
+  background: #e2e7ee;
+}
+
+/* ==========================================================================
+   RESULTS HEADER
+   ========================================================================== */
+
+.conference-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.conference-results-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #172033;
+}
+
+.conference-results-header h2 span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 25px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: #eaf2ff;
+  color: #1473f9;
+  font-size: 12px;
+}
+
+.conference-results-header p {
+  margin: 4px 0 0;
+  color: #7b8799;
+  font-size: 12px;
+}
+
+.conference-per-page {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #68758a;
+  font-size: 12px;
+}
+
+.conference-per-page select {
+  height: 32px;
+  border: 1px solid #dfe5ee;
+  border-radius: 6px;
+  padding: 0 8px;
+  background: #ffffff;
+  color: #253247;
+  outline: none;
+}
+
+.conference-per-page select:focus {
+  border-color: #1473f9;
+}
+
+/* ==========================================================================
+   CONFERENCE GRID
+   ========================================================================== */
+
+.conference-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.conference-card-wrapper {
+  min-width: 0;
+  display: flex;
+}
+
+/*
+ * The existing ConferenceCard is intentionally kept.
+ * These rules make Bootstrap/card defaults fit the SCNA design.
+ */
+
+.conference-card-wrapper > * {
+  width: 100%;
+  margin: 0 !important;
+}
+
+/* ==========================================================================
+   LOADING
+   ========================================================================== */
+
+.conference-loading {
+  min-height: 360px;
+  background: #ffffff;
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(31, 45, 61, 0.04);
+}
+
+.conference-spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid #e4ebf5;
+  border-top-color: #1473f9;
+  border-radius: 50%;
+  animation: conference-spin 0.8s linear infinite;
+}
+
+.conference-loading h3 {
+  margin: 18px 0 4px;
+  font-size: 16px;
+  color: #253247;
+}
+
+.conference-loading p {
+  margin: 0;
+  color: #8994a5;
+  font-size: 13px;
+}
+
+@keyframes conference-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   EMPTY STATE
+   ========================================================================== */
+
+.conference-empty {
+  background: #ffffff;
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 35px;
+  box-shadow: 0 4px 16px rgba(31, 45, 61, 0.04);
+}
+
+.conference-empty-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #edf4ff;
+  color: #1473f9;
+  font-size: 25px;
+  margin-bottom: 14px;
+}
+
+.conference-empty h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #253247;
+}
+
+.conference-empty p {
+  max-width: 430px;
+  margin: 7px 0 18px;
+  color: #7b8799;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.conference-reset-btn {
+  border: 0;
+  border-radius: 7px;
+  background: #1473f9;
+  color: #ffffff;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.conference-reset-btn:hover {
+  background: #0d63dc;
+}
+
+/* ==========================================================================
+   PAGINATION
+   ========================================================================== */
+
+.conference-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.conference-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.conference-page-btn,
+.conference-page-number {
+  height: 36px;
+  border: 1px solid #dce3ed;
+  background: #ffffff;
+  color: #56647a;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.conference-page-btn {
+  padding: 0 13px;
+}
+
+.conference-page-number {
+  width: 36px;
+}
+
+.conference-page-btn:hover:not(:disabled),
+.conference-page-number:hover:not(.active) {
+  border-color: #1473f9;
+  color: #1473f9;
+  background: #f7faff;
+}
+
+.conference-page-number.active {
+  background: #1473f9;
+  border-color: #1473f9;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(20, 115, 249, 0.18);
+}
+
+.conference-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+  .conference-container {
+    max-width: 100%;
+  }
+
+  .conference-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .conference-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .conference-page {
+    padding: 25px 16px 45px;
+  }
+
+  .conference-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .conference-header h1 {
+    font-size: 28px;
+  }
+
+  .conference-add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .conference-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .conference-filter-panel {
+    padding: 17px;
+  }
+
+  .conference-filter-header {
+    flex-direction: column;
+  }
+
+  .conference-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-field {
+    grid-column: auto;
+  }
+
+  .conference-results-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .conference-per-page {
+    align-self: flex-start;
+  }
+
+  .conference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conference-pagination {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .conference-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .conference-header h1 {
+    font-size: 25px;
+  }
+
+  .conference-filter-panel {
+    border-radius: 9px;
+  }
+
+  .conference-page-btn {
+    padding: 0 9px;
+  }
+
+  .conference-page-numbers {
+    gap: 4px;
+  }
+
+  .conference-page-number {
+    width: 32px;
+  }
+}

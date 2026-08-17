@@ -1,0 +1,513 @@
+.institutions-page {
+  min-height: calc(100vh - 72px);
+  background: #f6f8fc;
+  padding: 34px 0 60px;
+}
+
+.institutions-container {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+/* HEADER */
+
+.institutions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 28px;
+}
+
+.institutions-eyebrow {
+  color: #1677f2;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.institutions-header h1 {
+  margin: 0;
+  color: #172033;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.institutions-header p {
+  margin: 8px 0 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+.institution-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  height: 42px;
+  padding: 0 18px;
+
+  border-radius: 8px;
+  background: #1677f2;
+  color: white;
+
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 4px 12px rgba(22, 119, 242, 0.18);
+
+  transition: 0.2s ease;
+}
+
+.institution-create-btn:hover {
+  background: #0969da;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.institution-create-btn span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* STATS */
+
+.institution-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.institution-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  background: white;
+  border: 1px solid #e5eaf1;
+  border-radius: 11px;
+
+  padding: 17px 18px;
+
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.035);
+}
+
+.institution-stat-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.institution-stat-icon.blue {
+  background: #eaf3ff;
+  color: #1677f2;
+}
+
+.institution-stat-icon.purple {
+  background: #f1edff;
+  color: #7456d8;
+}
+
+.institution-stat-icon.green {
+  background: #eaf8f1;
+  color: #15945c;
+}
+
+.institution-stat-card strong {
+  display: block;
+  color: #172033;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.institution-stat-card span {
+  display: block;
+  margin-top: 4px;
+  color: #7a8699;
+  font-size: 12px;
+}
+
+/* FILTER */
+
+.institution-filter-panel {
+  background: white;
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+  padding: 20px;
+
+  margin-bottom: 22px;
+
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.035);
+}
+
+.filter-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 17px;
+}
+
+.filter-heading h2 {
+  margin: 0;
+  color: #253044;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.filter-heading p {
+  margin: 4px 0 0;
+  color: #8a94a6;
+  font-size: 12px;
+}
+
+.clear-filter-btn {
+  border: none;
+  background: transparent;
+  color: #1677f2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clear-filter-btn:hover {
+  text-decoration: underline;
+}
+
+.institution-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 1fr 1fr;
+  gap: 14px;
+}
+
+.filter-field label {
+  display: block;
+  margin-bottom: 6px;
+
+  color: #4b5565;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b96a8;
+  font-size: 17px;
+  pointer-events: none;
+}
+
+.filter-field input,
+.filter-field select,
+.per-page-control select {
+  width: 100%;
+  height: 42px;
+
+  border: 1px solid #dfe5ed;
+  border-radius: 8px;
+
+  background: white;
+  color: #354052;
+
+  padding: 0 12px;
+
+  font-size: 13px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.search-input-wrapper input {
+  padding-left: 38px;
+}
+
+.filter-field input:focus,
+.filter-field select:focus {
+  border-color: #1677f2;
+  box-shadow: 0 0 0 3px rgba(22, 119, 242, 0.09);
+}
+
+/* RESULTS HEADER */
+
+.institutions-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: white;
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+
+  padding: 16px 20px;
+
+  margin-bottom: 18px;
+
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.03);
+}
+
+.institutions-results-header h2 {
+  margin: 0;
+
+  color: #253044;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.institutions-results-header h2 span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 27px;
+  height: 24px;
+
+  margin-left: 8px;
+
+  padding: 0 7px;
+
+  border-radius: 6px;
+
+  background: #eaf3ff;
+  color: #1677f2;
+
+  font-size: 12px;
+}
+
+.institutions-results-header p {
+  margin: 4px 0 0;
+  color: #8490a3;
+  font-size: 12px;
+}
+
+.per-page-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #687588;
+  font-size: 13px;
+}
+
+.per-page-control select {
+  width: auto;
+  height: 34px;
+  padding: 0 8px;
+}
+
+/* GRID */
+
+.institutions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.institution-card-wrapper {
+  min-width: 0;
+}
+
+/* Make existing InstitutionCard fit SCNA */
+
+.institution-card-wrapper > * {
+  height: 100%;
+}
+
+/* PAGINATION */
+
+.institution-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 28px;
+}
+
+.page-btn {
+  width: 36px;
+  height: 36px;
+
+  border: 1px solid #dfe5ed;
+  border-radius: 7px;
+
+  background: white;
+  color: #536074;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #1677f2;
+  color: #1677f2;
+  background: #f5f9ff;
+}
+
+.page-btn.active {
+  border-color: #1677f2;
+  background: #1677f2;
+  color: white;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* EMPTY */
+
+.institutions-empty {
+  background: white;
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #eaf3ff;
+  color: #1677f2;
+
+  font-size: 22px;
+}
+
+.institutions-empty h3 {
+  margin: 0;
+  color: #253044;
+  font-size: 18px;
+}
+
+.institutions-empty p {
+  margin: 7px 0 18px;
+  color: #8490a3;
+  font-size: 13px;
+}
+
+.empty-clear-btn {
+  height: 36px;
+  padding: 0 15px;
+
+  border: 1px solid #1677f2;
+  border-radius: 7px;
+
+  background: white;
+  color: #1677f2;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+/* LOADING */
+
+.institutions-loading {
+  min-height: 280px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  color: #718096;
+}
+
+.institution-spinner {
+  width: 32px;
+  height: 32px;
+
+  border: 3px solid #dce8f8;
+  border-top-color: #1677f2;
+
+  border-radius: 50%;
+
+  animation: institution-spin 0.7s linear infinite;
+
+  margin-bottom: 12px;
+}
+
+@keyframes institution-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .institutions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .institution-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .institutions-container {
+    width: calc(100% - 28px);
+  }
+
+  .institutions-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .institution-create-btn {
+    width: 100%;
+  }
+
+  .institution-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .institution-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .search-field {
+    grid-column: auto;
+  }
+
+  .institutions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .institutions-results-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+}

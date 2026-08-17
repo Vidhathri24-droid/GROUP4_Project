@@ -40,21 +40,34 @@ class Collaboration(TimestampMixin, Base):
         default=uuid.uuid4,
     )
 
+    # IMPORTANT:
+    # The actual database migration defines these as
+    # foreign keys to users.id, not researchers.id.
+
     sender_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("researchers.id", ondelete="CASCADE"),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
 
     receiver_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("researchers.id", ondelete="CASCADE"),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
 
     publication_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("publications.id", ondelete="SET NULL"),
+        ForeignKey(
+            "publications.id",
+            ondelete="SET NULL",
+        ),
         nullable=True,
     )
 
@@ -63,6 +76,10 @@ class Collaboration(TimestampMixin, Base):
             CollaborationType,
             native_enum=False,
             length=50,
+            values_callable=lambda enum_class: [
+                item.value
+                for item in enum_class
+            ],
         ),
         default=CollaborationType.PROJECT,
         nullable=False,
@@ -78,21 +95,29 @@ class Collaboration(TimestampMixin, Base):
             CollaborationStatus,
             native_enum=False,
             length=50,
+            values_callable=lambda enum_class: [
+                item.value
+                for item in enum_class
+            ],
         ),
         default=CollaborationStatus.PENDING,
         nullable=False,
     )
 
+    # ---------------------------------------------------------
+    # Relationships
+    # ---------------------------------------------------------
+
     sender = relationship(
-        "Researcher",
+        "User",
         foreign_keys=[sender_id],
-	back_populates="sent_collaborations",
+        back_populates="sent_collaborations",
     )
 
     receiver = relationship(
-        "Researcher",
+        "User",
         foreign_keys=[receiver_id],
-	back_populates="received_collaborations",
+        back_populates="received_collaborations",
     )
 
     publication = relationship(

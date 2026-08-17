@@ -60,207 +60,561 @@ def send_request(
 # IMPORTANT: Keep these routes BEFORE /{collaboration_id}
 # ============================================================
 
-@router.get("/network")
-def get_collaboration_network(
-    scope: str = "all",
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+def _researcher_name(researcher: Researcher) -> str:
+    return (
+        f"{researcher.first_name or ''} "
+        f"{researcher.last_name or ''}"
+    ).strip() or "Unknown Researcher"
+
+
+def _build_network(
+    db: Session,
+    scope: str,
+    current_user: User,
 ):
     """
-    Return researcher collaboration network.
+    Build the collaboration graph using researcher IDs.
 
-    scope=all
-        All researcher collaborations.
+    Existing collaboration records may contain either:
+        - Researcher.id
+        - Researcher.user_id
 
-    scope=mine
-        Only collaborations involving the current user.
+    Resolve both forms to the correct researcher so that
+    older database records continue to work.
     """
 
-    Sender = aliased(Researcher)
-    Receiver = aliased(Researcher)
-
-    query = (
-        db.query(
-            Collaboration,
-            Sender,
-            Receiver,
-        )
-        .join(
-            Sender,
-            Sender.id == Collaboration.sender_id,
-        )
-        .join(
-            Receiver,
-            Receiver.id == Collaboration.receiver_id,
-        )
-    )
-
-    # Only accepted collaborations are active connections
-    query = query.filter(
-        Collaboration.status == "Accepted"
-    )
-
-    # Current user's collaboration network
-    if scope == "mine":
-        current_researcher = (
-            db.query(Researcher)
-            .filter(
-                Researcher.user_id == current_user.id
-            )
-            .first()
-        )
-
-        if current_researcher is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Researcher profile not found.",
-            )
-
-        query = query.filter(
-            (
-                Collaboration.sender_id
-                == current_researcher.id
-            )
-            |
-            (
-                Collaboration.receiver_id
-                == current_researcher.id
-            )
-        )
-
-    results = query.all()
-
-    nodes = {}
-    edges = []
-
-    for collaboration, sender, receiver in results:
-
-        # Sender node
-        nodes[str(sender.id)] = {
-            "id": str(sender.id),
-            "name": (
-                f"{sender.first_name or ''} "
-                f"{sender.last_name or ''}"
-            ).strip(),
-        }
-
-        # Receiver node
-        nodes[str(receiver.id)] = {
-            "id": str(receiver.id),
-            "name": (
-                f"{receiver.first_name or ''} "
-                f"{receiver.last_name or ''}"
-            ).strip(),
-        }
-
-        # Connection
-        edges.append({
-            "id": str(collaboration.id),
-            "source": str(sender.id),
-            "target": str(receiver.id),
-            "collaboration_type": getattr(
-                collaboration,
-                "collaboration_type",
-                None,
-            ),
-            "status": str(collaboration.status),
-        })
-
-    return {
-        "nodes": list(nodes.values()),
-        "edges": edges,
-        "total_researchers": len(nodes),
-        "total_collaborations": len(edges),
-    }
+    researchers = db.query(Researcher).all()
 
     # --------------------------------------------------------
-    # Fetch researcher details
+    # Collaboration sender_id / receiver_id store User.id.
+    # Build the lookup using Researcher.user_id so the graph
+    # can resolve the collaboration to the correct researcher.
     # --------------------------------------------------------
 
-    researchers = (
-        db.query(Researcher)
-        .filter(
-            Researcher.id.in_(researcher_ids)
-        )
-        .all()
-        if researcher_ids
-        else []
-    )
-
-    researcher_map = {
-        str(researcher.id): researcher
+    researcher_by_user_id = {
+        str(researcher.user_id): researcher
         for researcher in researchers
     }
+
+
+    # --------------------------------------------------------
+    # Find current user's researcher profile
+    # --------------------------------------------------------
+
+    current_researcher = next(
+        (
+            researcher
+            for researcher in researchers
+            if str(researcher.user_id)
+            == str(current_user.id)
+        ),
+        None,
+    )
+
+
+    # --------------------------------------------------------
+    # My network requires researcher profile
+    # --------------------------------------------------------
+
+    if scope == "mine" and current_researcher is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Researcher profile not found.",
+        )
+
+
+    # --------------------------------------------------------
+    # Only accepted collaborations are network connections
+    # --------------------------------------------------------
+
+    collaborations = (
+        db.query(Collaboration)
+        .filter(
+            Collaboration.status
+            == CollaborationStatus.ACCEPTED
+        )
+        .all()
+    )
+
 
     # --------------------------------------------------------
     # Build nodes
     # --------------------------------------------------------
 
-    nodes = []
+    nodes_by_id = {}
 
-    for researcher in researchers:
 
-        first_name = researcher.first_name or ""
-        last_name = researcher.last_name or ""
+    # For "all", display every researcher.
+    # This means researchers without collaborations
+    # are also visible in the graph.
 
-        name = f"{first_name} {last_name}".strip()
+    if scope == "all":
 
-        if not name:
-            name = "Unknown Researcher"
+        for researcher in researchers:
 
-        nodes.append(
-            {
-                "id": str(researcher.id),
-                "name": name,
+            researcher_id = str(researcher.id)
+
+            nodes_by_id[researcher_id] = {
+                "id": researcher_id,
+                "name": _researcher_name(researcher),
             }
+
+
+    # For "mine", start with the current researcher.
+
+    elif current_researcher:
+
+        researcher_id = str(
+            current_researcher.id
         )
 
+        nodes_by_id[researcher_id] = {
+            "id": researcher_id,
+            "name": _researcher_name(
+                current_researcher
+            ),
+        }
+
+
     # --------------------------------------------------------
-    # Build links
+    # Build collaboration links
     # --------------------------------------------------------
 
     links = []
 
+
     for collaboration in collaborations:
 
-        source = str(
-            collaboration.researcher1_id
+        sender = researcher_by_user_id.get(
+            str(collaboration.sender_id)
         )
 
-        target = str(
-            collaboration.researcher2_id
+        receiver = researcher_by_user_id.get(
+            str(collaboration.receiver_id)
         )
+
+
+        # Ignore broken/orphaned records.
+
+        if sender is None or receiver is None:
+            continue
+
+
+        # ----------------------------------------------------
+        # "mine" scope
+        # ----------------------------------------------------
+
+        if scope == "mine":
+
+            current_user_id = str(
+                current_user.id
+            )
+
+            if (
+                str(collaboration.sender_id) != current_user_id
+                and
+                str(collaboration.receiver_id) != current_user_id
+            ):
+                continue
+
+
+        sender_id = str(sender.id)
+        receiver_id = str(receiver.id)
+
+
+        # ----------------------------------------------------
+        # Add sender node
+        # ----------------------------------------------------
+
+        nodes_by_id[sender_id] = {
+            "id": sender_id,
+            "name": _researcher_name(sender),
+        }
+
+
+        # ----------------------------------------------------
+        # Add receiver node
+        # ----------------------------------------------------
+
+        nodes_by_id[receiver_id] = {
+            "id": receiver_id,
+            "name": _researcher_name(receiver),
+        }
+
+
+        # ----------------------------------------------------
+        # Convert enum values to strings
+        # ----------------------------------------------------
+
+        collaboration_type = (
+            collaboration.collaboration_type
+        )
+
+        if hasattr(
+            collaboration_type,
+            "value"
+        ):
+            collaboration_type = (
+                collaboration_type.value
+            )
+
+
+        status = collaboration.status
+
+        if hasattr(status, "value"):
+            status = status.value
+
+
+        # ----------------------------------------------------
+        # Add graph connection
+        # ----------------------------------------------------
 
         links.append(
             {
-                "source": source,
-                "target": target,
-                "collaboration_id": str(
+                "id": str(
                     collaboration.id
                 ),
-                "type": (
-                    collaboration.collaboration_type.value
-                    if hasattr(
-                        collaboration.collaboration_type,
-                        "value",
-                    )
-                    else str(
-                        collaboration.collaboration_type
-                    )
+
+                "source": sender_id,
+
+                "target": receiver_id,
+
+                "collaboration_type": str(
+                    collaboration_type
+                ),
+
+                "status": str(
+                    status
                 ),
             }
         )
 
+
     # --------------------------------------------------------
-    # Statistics
+    # Return graph
     # --------------------------------------------------------
 
     return {
-        "nodes": nodes,
+        "nodes": list(
+            nodes_by_id.values()
+        ),
+
         "links": links,
+
         "statistics": {
-            "researchers": len(nodes),
-            "collaborations": len(links),
+            "researchers": len(
+                nodes_by_id
+            ),
+
+            "collaborations": len(
+                links
+            ),
+        },
+    }
+
+
+# ============================================================
+# COLLABORATION NETWORK
+# ============================================================
+
+def _get_researcher_name(researcher: Researcher) -> str:
+    name = (
+        f"{researcher.first_name or ''} "
+        f"{researcher.last_name or ''}"
+    ).strip()
+
+    return name or "Unknown Researcher"
+
+
+def _build_researcher_lookup(
+    db: Session,
+):
+    """
+    Build a lookup that can resolve both:
+
+        Researcher.id
+        Researcher.user_id
+
+    This is important because older collaboration records
+    may contain User IDs while newer records should contain
+    Researcher IDs.
+    """
+
+    researchers = (
+        db.query(Researcher)
+        .all()
+    )
+
+    # Collaboration.sender_id and receiver_id reference users.id.
+    # Therefore use Researcher.user_id as the lookup key.
+    lookup = {
+        str(researcher.user_id): researcher
+        for researcher in researchers
+    }
+
+    return researchers, lookup
+
+
+@router.get("/network")
+def get_collaboration_network(
+    scope: str = Query(
+        "all",
+        pattern="^(all|mine)$",
+    ),
+
+    db: Session = Depends(get_db),
+
+    current_user: User = Depends(
+        get_current_user
+    ),
+):
+
+    # --------------------------------------------------------
+    # Load researchers
+    # --------------------------------------------------------
+
+    researchers, researcher_lookup = (
+        _build_researcher_lookup(db)
+    )
+
+
+    # --------------------------------------------------------
+    # Create researcher nodes
+    # --------------------------------------------------------
+
+    nodes = {}
+
+    for researcher in researchers:
+
+        researcher_id = str(
+            researcher.id
+        )
+
+        nodes[researcher_id] = {
+            "id": researcher_id,
+            "name": _get_researcher_name(
+                researcher
+            ),
+        }
+
+
+    # --------------------------------------------------------
+    # Find current user's researcher
+    # --------------------------------------------------------
+
+    current_researcher = next(
+        (
+            researcher
+            for researcher in researchers
+            if str(researcher.user_id)
+            == str(current_user.id)
+        ),
+        None,
+    )
+
+
+    if (
+        scope == "mine"
+        and current_researcher is None
+    ):
+
+        raise HTTPException(
+            status_code=404,
+            detail="Researcher profile not found.",
+        )
+
+
+    # --------------------------------------------------------
+    # Get accepted collaborations
+    # --------------------------------------------------------
+
+    collaborations = (
+        db.query(Collaboration)
+        .filter(
+            Collaboration.status
+            == CollaborationStatus.ACCEPTED
+        )
+        .all()
+    )
+
+
+    links = []
+
+
+    # --------------------------------------------------------
+    # Convert collaborations into graph links
+    # --------------------------------------------------------
+
+    for collaboration in collaborations:
+
+        # Collaboration sender_id / receiver_id are User IDs.
+        # Resolve them through Researcher.user_id.
+        sender = researcher_lookup.get(
+            str(collaboration.sender_id)
+        )
+
+        receiver = researcher_lookup.get(
+            str(collaboration.receiver_id)
+        )
+
+
+        # Ignore broken records instead of
+        # crashing the entire graph.
+
+        if sender is None:
+            print(
+                "Network warning: unable to resolve "
+                f"sender {collaboration.sender_id} "
+                f"for collaboration {collaboration.id}"
+            )
+
+            continue
+
+
+        if receiver is None:
+            print(
+                "Network warning: unable to resolve "
+                f"receiver {collaboration.receiver_id} "
+                f"for collaboration {collaboration.id}"
+            )
+
+            continue
+
+
+        # ----------------------------------------------------
+        # MY NETWORK
+        # ----------------------------------------------------
+
+        if scope == "mine":
+
+            current_user_id = str(
+                current_user.id
+            )
+
+            if (
+                str(collaboration.sender_id)
+                != current_user_id
+                and
+                str(collaboration.receiver_id)
+                != current_user_id
+            ):
+
+                continue
+
+
+        # ----------------------------------------------------
+        # Collaboration type
+        # ----------------------------------------------------
+
+        collaboration_type = (
+            collaboration.collaboration_type
+        )
+
+        if hasattr(
+            collaboration_type,
+            "value",
+        ):
+            collaboration_type = (
+                collaboration_type.value
+            )
+
+
+        # ----------------------------------------------------
+        # Status
+        # ----------------------------------------------------
+
+        status = (
+            collaboration.status
+        )
+
+        if hasattr(
+            status,
+            "value",
+        ):
+            status = status.value
+
+
+        # ----------------------------------------------------
+        # Add link
+        # ----------------------------------------------------
+
+        links.append(
+            {
+                "id": str(
+                    collaboration.id
+                ),
+
+                "source": str(
+                    sender.id
+                ),
+
+                "target": str(
+                    receiver.id
+                ),
+
+                "collaboration_type": str(
+                    collaboration_type
+                ),
+
+                "status": str(
+                    status
+                ),
+            }
+        )
+
+
+    # --------------------------------------------------------
+    # For "mine", only show researchers actually
+    # participating in the network.
+    #
+    # For "all", show all researchers.
+    # --------------------------------------------------------
+
+    if scope == "mine":
+
+        visible_ids = set()
+
+        for link in links:
+
+            visible_ids.add(
+                link["source"]
+            )
+
+            visible_ids.add(
+                link["target"]
+            )
+
+        visible_nodes = [
+            node
+            for node in nodes.values()
+            if node["id"] in visible_ids
+        ]
+
+    else:
+
+        visible_nodes = list(
+            nodes.values()
+        )
+
+
+    # --------------------------------------------------------
+    # Return network
+    # --------------------------------------------------------
+
+    return {
+        "nodes": visible_nodes,
+
+        "links": links,
+
+        "statistics": {
+            "researchers": len(
+                visible_nodes
+            ),
+
+            "collaborations": len(
+                links
+            ),
         },
     }
 
@@ -275,74 +629,27 @@ def export_collaboration_network(
         "all",
         pattern="^(all|mine)$"
     ),
+
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+
+    current_user: User = Depends(
+        get_current_user
+    ),
 ):
 
-    collaborations = (
-        db.query(Collaboration)
-        .filter(
-            Collaboration.status == CollaborationStatus.ACTIVE
-        )
-        .all()
+    network = _build_network(
+        db=db,
+        scope=scope,
+        current_user=current_user,
     )
 
-    if scope == "mine":
-
-        current_researcher = (
-            db.query(Researcher)
-            .filter(
-                Researcher.user_id == current_user.id
-            )
-            .first()
-        )
-
-        if current_researcher is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Researcher profile not found.",
-            )
-
-        collaborations = [
-            collaboration
-            for collaboration in collaborations
-            if (
-                collaboration.sender_id
-                == current_researcher.id
-                or
-                collaboration.receiver_id
-                == current_researcher.id
-            )
-        ]
-
-    researcher_ids = set()
-
-    for collaboration in collaborations:
-        researcher_ids.add(
-            collaboration.researcher1_id
-        )
-        researcher_ids.add(
-            collaboration.researcher2_id
-        )
-
-    researchers = (
-        db.query(Researcher)
-        .filter(
-            Researcher.id.in_(researcher_ids)
-        )
-        .all()
-        if researcher_ids
-        else []
-    )
-
-    researcher_map = {
-        str(researcher.id): researcher
-        for researcher in researchers
-    }
 
     output = io.StringIO()
 
     writer = csv.writer(output)
+
+
+    # CSV header
 
     writer.writerow(
         [
@@ -353,65 +660,58 @@ def export_collaboration_network(
         ]
     )
 
-    for collaboration in collaborations:
 
-        researcher1 = researcher_map.get(
-            str(collaboration.sender_id)
-        )
+    # --------------------------------------------------------
+    # Create researcher lookup
+    # --------------------------------------------------------
 
-        researcher2 = researcher_map.get(
-            str(collaboration.receiver_id)
-        )
+    node_map = {
+        node["id"]: node["name"]
+        for node in network["nodes"]
+    }
 
-        if not researcher1 or not researcher2:
-            continue
 
-        name1 = (
-            f"{researcher1.first_name or ''} "
-            f"{researcher1.last_name or ''}"
-        ).strip()
+    # --------------------------------------------------------
+    # Write collaboration rows
+    # --------------------------------------------------------
 
-        name2 = (
-            f"{researcher2.first_name or ''} "
-            f"{researcher2.last_name or ''}"
-        ).strip()
-
-        collaboration_type = (
-            collaboration.collaboration_type.value
-            if hasattr(
-                collaboration.collaboration_type,
-                "value",
-            )
-            else str(
-                collaboration.collaboration_type
-            )
-        )
-
-        status = (
-            collaboration.status.value
-            if hasattr(
-                collaboration.status,
-                "value",
-            )
-            else str(
-                collaboration.status
-            )
-        )
+    for link in network["links"]:
 
         writer.writerow(
             [
-                name1,
-                name2,
-                collaboration_type,
-                status,
+                node_map.get(
+                    link["source"],
+                    "Unknown Researcher"
+                ),
+
+                node_map.get(
+                    link["target"],
+                    "Unknown Researcher"
+                ),
+
+                link.get(
+                    "collaboration_type",
+                    ""
+                ),
+
+                link.get(
+                    "status",
+                    ""
+                ),
             ]
         )
 
+
     output.seek(0)
 
+
     return StreamingResponse(
-        iter([output.getvalue()]),
+        iter(
+            [output.getvalue()]
+        ),
+
         media_type="text/csv",
+
         headers={
             "Content-Disposition":
                 'attachment; filename="research_collaborations.csv"'
@@ -456,22 +756,24 @@ def get_collaboration_stats(
     db: Session = Depends(get_db),
 ):
     """
-    Return collaboration statistics for the entire system.
+    Return real collaboration statistics and recent accepted
+    collaborations for the dashboard.
 
-    Counts:
-    - Accepted collaborations across all users
-    - Pending collaboration requests across all users
+    Internal = both researchers belong to at least one common
+    institution through their departments.
+    External = otherwise.
     """
 
-    total_collaborations = (
+    accepted = (
         db.query(Collaboration)
         .filter(
             Collaboration.status == CollaborationStatus.ACCEPTED
         )
-        .count()
+        .order_by(Collaboration.created_at.desc())
+        .all()
     )
 
-    pending_collaborations = (
+    pending_count = (
         db.query(Collaboration)
         .filter(
             Collaboration.status == CollaborationStatus.PENDING
@@ -479,9 +781,122 @@ def get_collaboration_stats(
         .count()
     )
 
+    internal_count = 0
+    external_count = 0
+    recent = []
+
+    for collaboration in accepted:
+        sender = (
+            db.query(Researcher)
+            .filter(
+                Researcher.user_id == collaboration.sender_id
+            )
+            .first()
+        )
+
+        receiver = (
+            db.query(Researcher)
+            .filter(
+                Researcher.user_id == collaboration.receiver_id
+            )
+            .first()
+        )
+
+        if sender is None or receiver is None:
+            continue
+
+        sender_institutions = {
+            department.institution_id
+            for department in sender.departments
+            if department.institution_id is not None
+        }
+
+        receiver_institutions = {
+            department.institution_id
+            for department in receiver.departments
+            if department.institution_id is not None
+        }
+
+        collaboration_type = (
+            "Internal"
+            if sender_institutions.intersection(
+                receiver_institutions
+            )
+            else "External"
+        )
+
+        if collaboration_type == "Internal":
+            internal_count += 1
+        else:
+            external_count += 1
+
+        publication = None
+
+        if collaboration.publication_id:
+            publication = (
+                db.query(Publication)
+                .filter(
+                    Publication.id
+                    == collaboration.publication_id
+                )
+                .first()
+            )
+
+        sender_name = (
+            f"{sender.first_name or ''} "
+            f"{sender.last_name or ''}"
+        ).strip() or "Unknown Researcher"
+
+        receiver_name = (
+            f"{receiver.first_name or ''} "
+            f"{receiver.last_name or ''}"
+        ).strip() or "Unknown Researcher"
+
+        status_value = collaboration.status
+        if hasattr(status_value, "value"):
+            status_value = status_value.value
+
+        type_value = collaboration.collaboration_type
+        if hasattr(type_value, "value"):
+            type_value = type_value.value
+
+        recent.append(
+            {
+                "id": str(collaboration.id),
+                "researcher": sender_name,
+                "collaborator": receiver_name,
+                "publication": (
+                    publication.title
+                    if publication
+                    else None
+                ),
+                "year": (
+                    publication.publication_year
+                    if publication
+                    else (
+                        collaboration.created_at.year
+                        if collaboration.created_at
+                        else None
+                    )
+                ),
+                "type": collaboration_type,
+                "status": str(status_value),
+                "collaboration_type": str(type_value),
+                "created_at": (
+                    collaboration.created_at.isoformat()
+                    if collaboration.created_at
+                    else None
+                ),
+            }
+        )
+
     return {
-        "collaborations": total_collaborations,
-        "pending_collaborations": pending_collaborations,
+        "total": len(accepted),
+        "collaborations": len(accepted),
+        "internal": internal_count,
+        "external": external_count,
+        "pending_collaborations": pending_count,
+        "recent": recent[:5],
     }
 
 
@@ -717,7 +1132,7 @@ def collaboration_to_dict(
         "description": collaboration.description,
     }
 
-    # ============================================================
+# ============================================================
 # SENT PENDING REQUESTS
 # ============================================================
 

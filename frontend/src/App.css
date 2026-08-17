@@ -1,96 +1,261 @@
-/* General */
-body {
+/* =========================================================
+   SCNA GLOBAL STYLES
+   Responsive at laptop / 125% / 150% display scaling
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
   margin: 0;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
   font-family: Arial, Helvetica, sans-serif;
-  background: #f8f9fa;
+  background: #f6f8fb;
+  color: #172033;
+  overflow-x: hidden;
 }
 
-/* Navbar */
-.navbar {
-  background: linear-gradient(90deg, #007bff, #0056d2);
+/* IMPORTANT:
+   Never give #root a fixed width.
+*/
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: 100vh;
 }
 
-.navbar-brand,
-.nav-link {
-  color: white !important;
+/* =========================================================
+   GLOBAL CONTAINER
+   ========================================================= */
+
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* =========================================================
+   HEADINGS
+   ========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #172033;
+}
+
+h1 {
+  font-size: 2.25rem;
   font-weight: 600;
 }
 
-.nav-link:hover {
-  color: #ffd54f !important;
-  transition: 0.3s;
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
-/* Hero Section */
-.hero {
-  padding: 80px 0;
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.navbar {
+  width: 100%;
+  min-height: 64px;
+  background: linear-gradient(
+    90deg,
+    #0877f9 0%,
+    #0864d8 100%
+  ) !important;
 }
 
-.hero h1 {
-  font-weight: bold;
+.navbar .container-fluid {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.hero p {
-  color: #555;
+.navbar-brand {
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
 }
 
-/* Buttons */
-.btn {
-  transition: 0.3s ease;
+.navbar .nav-link {
+  font-size: 0.82rem !important;
+  padding: 0.5rem 0.55rem !important;
+  white-space: nowrap;
 }
 
-.btn:hover {
-  transform: translateY(-3px);
-}
+/* =========================================================
+   CARDS
+   ========================================================= */
 
-/* Cards */
 .card {
-  border: none;
-  border-radius: 15px;
-  transition: all 0.3s ease;
+  border: 1px solid #edf0f4;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.07);
 }
 
 .card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transform: none;
 }
 
-/* Dashboard */
-.card h3 {
-  color: #0d6efd;
-  font-weight: bold;
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+  transition: all 0.2s ease;
 }
 
-/* Footer */
-footer {
-  background: #212529;
-  color: white;
-  text-align: center;
-  padding: 20px;
-  margin-top: 40px;
+.btn:hover {
+  transform: translateY(-1px);
 }
 
+/* =========================================================
+   FORMS
+   ========================================================= */
 
 .form-control,
-.form-control:focus,
+.form-select,
 input,
 textarea,
 select {
-    color: #212529 !important;
-    background-color: #fff !important;
-    caret-color: #212529 !important;
-}
-
-.form-control,
-.form-control:focus,
-input,
-textarea,
-select {
-    color: #212529 !important;
-    background-color: #ffffff !important;
-    caret-color: #212529 !important;
+  color: #212529 !important;
+  background-color: #fff !important;
+  caret-color: #212529 !important;
 }
 
 .form-control::placeholder {
-    color: #6c757d !important;
+  color: #7b8798 !important;
+}
+
+/* =========================================================
+   PAGE SPACING
+   ========================================================= */
+
+main,
+.page-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* =========================================================
+   1200px AND BELOW
+   This is the important part for your 1127px viewport.
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+  .container {
+    max-width: calc(100% - 40px);
+  }
+
+  main,
+  .page-container {
+    max-width: calc(100% - 40px);
+  }
+
+  .navbar .container-fluid {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .navbar .nav-link {
+    font-size: 0.78rem !important;
+    padding-left: 0.38rem !important;
+    padding-right: 0.38rem !important;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem !important;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 992px) {
+
+  .container {
+    max-width: calc(100% - 30px);
+  }
+
+  main,
+  .page-container {
+    max-width: calc(100% - 30px);
+  }
+
+  .navbar {
+    min-height: 60px;
+  }
+
+  .navbar .nav-link {
+    font-size: 0.9rem !important;
+    padding: 0.55rem 0.75rem !important;
+  }
+
+  h1 {
+    font-size: 1.85rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 576px) {
+
+  .container {
+    max-width: calc(100% - 24px);
+  }
+
+  main,
+  .page-container {
+    max-width: calc(100% - 24px);
+  }
+
+  h1 {
+    font-size: 1.65rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  .card {
+    border-radius: 12px;
+  }
 }
