@@ -1,6 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine
+import app.models.user
+import app.models.researcher
+import app.models.institution
+import app.models.department
+import app.models.conference
+import app.models.conference_registration
+import app.models.publication
+import app.models.notification
+import app.models.collaboration
+import app.models.citation
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as user_router
