@@ -32,7 +32,7 @@ from app.api.routes.reviewer import router as reviewer_router
 from app.api.routes.admin import router as admin_router
 
 from app.core.config import settings
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
     version="1.0.0",
@@ -53,7 +53,7 @@ cors_origins = {
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(cors_origins),
+    allow_origins=["*"],  # Production me exact frontend domain daal sakte ho
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

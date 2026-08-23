@@ -103,32 +103,27 @@ def login(
 # Google Login
 # ------------------------------------------------------------------
 
-@router.post(
-    "/google",
-    response_model=Token,
-)
-def google_login(
-    request: GoogleLoginRequest,
-    db: Session = Depends(get_db),
-):
-    try:
-
-        token = AuthService.google_login(
-            db,
-            request.credential,
+@router.post("/google")
+def google_login(payload: dict, db: Session = Depends(get_db)):
+    token = payload.get("credential") or payload.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Token missing")
+    
+    # User fetch / create logic
+    user = db.query(User).filter(User.email == payload.get("email")).first()
+    if not user:
+        user = User(
+            email=payload.get("email"),
+            name=payload.get("name", ""),
+            email_verified=True,
+            is_active=True
         )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-        return {
-            "access_token": token,
-            "token_type": "bearer",
-        }
-
-    except ValueError as e:
-
-        raise HTTPException(
-            status_code=401,
-            detail=str(e),
-        )
+    access_token = AuthService.create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
 # ------------------------------------------------------------------
 # Send Phone Verification OTP
 # ------------------------------------------------------------------
