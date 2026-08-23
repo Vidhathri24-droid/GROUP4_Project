@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine
+
+# Import all models to register with Base
 import app.models.user
 import app.models.researcher
 import app.models.institution
@@ -29,16 +31,17 @@ from app.api.routes.search import router as search_router
 from app.api.routes.reviewer import router as reviewer_router
 from app.api.routes.admin import router as admin_router
 
-
 from app.core.config import settings
-
 
 app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
     version="1.0.0",
 )
-Base.metadata.create_all(bind=engine)
 
+@app.on_event("startup")
+def startup_db():
+    # Force table creation on startup
+    Base.metadata.create_all(bind=engine)
 
 cors_origins = {
     settings.FRONTEND_URL.rstrip("/"),
@@ -56,7 +59,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(researcher_router)
@@ -73,7 +75,6 @@ app.include_router(home_router)
 app.include_router(search_router)
 app.include_router(reviewer_router)
 app.include_router(admin_router)
-
 
 @app.get("/")
 def root():
