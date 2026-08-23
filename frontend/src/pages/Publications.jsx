@@ -210,8 +210,9 @@ function Publications() {
                 return;
             }
 
+            const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
             const response = await fetch(
-                "http://127.0.0.1:8000/publications/export",
+                `${API_BASE}/publications/export`,
                 {
                     method: "GET",
                     headers: {
@@ -220,6 +221,7 @@ function Publications() {
                     },
                 }
             );
+
 
             if (!response.ok) {
                 let message =

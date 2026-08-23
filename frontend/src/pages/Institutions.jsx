@@ -146,8 +146,9 @@ const canExportInstitutions = isSystemAdmin() || isInstitutionAdmin();
         return;
       }
 
+      const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
       const response = await fetch(
-        "http://127.0.0.1:8000/institutions/export",
+        `${API_BASE}/institutions/export`,
         {
           method: "GET",
           headers: {
@@ -155,6 +156,7 @@ const canExportInstitutions = isSystemAdmin() || isInstitutionAdmin();
           },
         }
       );
+
 
       if (!response.ok) {
         let message = "Unable to export institutions.";

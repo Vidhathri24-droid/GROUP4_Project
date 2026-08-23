@@ -2,7 +2,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import * as XLSX from "xlsx";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 function ConferenceCard({
+
   conference,
   onDelete,
   canManage = false,
@@ -104,13 +107,14 @@ function ConferenceCard({
       // --------------------------------------------------------
 
       const response = await axios.get(
-        `http://127.0.0.1:8000/conferences/${conference.id}/export`,
+        `${API_BASE}/conferences/${conference.id}/export`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
 
       const data = response.data;
 

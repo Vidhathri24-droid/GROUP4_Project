@@ -260,10 +260,12 @@ function ReviewerDashboard() {
                             type="button"
                             className="btn btn-primary mb-3"
                             onClick={() => {
+                              const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
                               window.open(
-                                `http://127.0.0.1:8000/publications/${publication.id}/download`,
+                                `${API_BASE}/publications/${publication.id}/download`,
                                 "_blank"
                               );
+
                             }}
                           >
                             📄 View Full Publication

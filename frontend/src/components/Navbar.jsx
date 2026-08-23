@@ -16,15 +16,16 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
-const getWebSocketUrl = () => {
+const getWebSocketUrl = (userId) => {
   const wsUrl = API_URL
     .replace(/^http:/, "ws:")
     .replace(/^https:/, "wss:");
 
-  return `${wsUrl}/notifications/ws`;
+  return `${wsUrl}/notifications/ws?user_id=${userId}`;
 };
+
 import {
   getToken,
   getCurrentUser,
@@ -206,13 +207,14 @@ export default function Navbar() {
         }
 
         const response = await axios.get(
-          "http://127.0.0.1:8000/notifications/",
+          `${API_URL}/notifications/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
+
 
         const data = Array.isArray(
           response.data
@@ -284,13 +286,10 @@ export default function Navbar() {
     ) {
       return;
     }
-    const WS_URL = API_URL
-      .replace(/^http:/, "ws:")
-      .replace(/^https:/, "wss:");
-
     const socket = new WebSocket(
-      `ws://127.0.0.1:8000/notifications/ws?user_id=${currentUser.id}`
+      getWebSocketUrl(currentUser.id)
     );
+
 
     socket.onopen = () => {
       console.log(
@@ -392,7 +391,7 @@ export default function Navbar() {
       }
 
       await axios.patch(
-        `http://127.0.0.1:8000/notifications/${notificationId}/read`,
+        `${API_URL}/notifications/${notificationId}/read`,
         {},
         {
           headers: {
@@ -400,6 +399,7 @@ export default function Navbar() {
           },
         }
       );
+
 
       setNotifications(
         (previous) =>
@@ -447,7 +447,7 @@ export default function Navbar() {
       }
 
       await axios.patch(
-        "http://127.0.0.1:8000/notifications/read-all",
+        `${API_URL}/notifications/read-all`,
         {},
         {
           headers: {
@@ -455,6 +455,7 @@ export default function Navbar() {
           },
         }
       );
+
 
       setNotifications(
         (previous) =>
