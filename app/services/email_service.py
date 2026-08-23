@@ -301,7 +301,7 @@ Scientific Collaboration Network Analyzer
 
         frontend_url = os.getenv(
             "FRONTEND_URL",
-            "http://localhost:5173"
+            "http://localhost:5174"
         )
 
         reset_link = (
@@ -353,7 +353,7 @@ Scientific Collaboration Network Analyzer
 
         frontend_url = os.getenv(
             "FRONTEND_URL",
-            "http://localhost:5173"
+            "http://localhost:5174"
         )
 
         verification_link = (

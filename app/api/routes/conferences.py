@@ -1,6 +1,9 @@
 from uuid import UUID
 
+import csv
+import io
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import (
@@ -426,6 +429,49 @@ def reject_presenter(
             current_user=current_user,
         )
     )
+
+
+@router.get(
+    "/{conference_id}/export",
+)
+def export_conference_data(
+    conference_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    conference = ConferenceService.get_conference(
+        db=db,
+        conference_id=conference_id,
+    )
+
+    if conference is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conference not found.",
+        )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Title", "Acronym", "Location", "Start Date", "End Date", "Website", "Description"])
+    writer.writerow([
+        conference.title,
+        conference.acronym or "",
+        conference.location or "",
+        conference.start_date.isoformat() if conference.start_date else "",
+        conference.end_date.isoformat() if conference.end_date else "",
+        conference.website or "",
+        conference.description or "",
+    ])
+
+    output.seek(0)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=conference_{conference.acronym or 'export'}.csv"
+        },
+    )
+
 @router.on_event("startup")
 async def start_conference_notifications():
     start_conference_notification_scheduler()

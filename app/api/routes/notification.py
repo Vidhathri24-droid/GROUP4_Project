@@ -115,6 +115,33 @@ def mark_notification_read(
 
 
 # ============================================================
+# DELETE ONE NOTIFICATION
+# ============================================================
+
+@router.delete("/{notification_id}")
+def delete_notification(
+    notification_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deleted = NotificationRepository.delete_notification(
+        db,
+        notification_id,
+        current_user.id,
+    )
+
+    if not deleted:
+        return {
+            "message": "Notification not found"
+        }
+
+    return {
+        "message": "Notification deleted successfully"
+    }
+
+
+
+# ============================================================
 # REAL-TIME WEBSOCKET
 # ============================================================
 

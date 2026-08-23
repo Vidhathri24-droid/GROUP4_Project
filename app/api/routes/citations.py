@@ -303,3 +303,49 @@ def delete_citation(
         db,
         citation_id,
     )
+
+
+# ============================================================
+# EXPORT BIBTEX
+# ============================================================
+
+@router.get(
+    "/{citation_id}/bibtex",
+)
+def export_bibtex(
+    citation_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    citation = CitationService.get_citation(
+        db,
+        citation_id,
+    )
+
+    if citation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Citation not found.",
+        )
+
+    publication = (
+        db.query(Publication)
+        .filter(Publication.id == citation.publication_id)
+        .first()
+    )
+
+    authors = "Unknown"
+    title = publication.title if publication else "Unknown Title"
+    year = publication.publication_year if publication and publication.publication_year else "n.d."
+    journal = publication.journal or publication.conference or "Journal/Conference"
+
+    cite_key = f"citation_{str(citation.id)[:8]}"
+    bibtex_str = f"""@article{{{cite_key},
+  author = {{{citation.authors or authors}}},
+  title = {{{citation.title or title}}},
+  journal = {{{journal}}},
+  year = {{{citation.citation_year or year}}},
+  doi = {{{citation.doi or ''}}}
+}}"""
+
+    return bibtex_str

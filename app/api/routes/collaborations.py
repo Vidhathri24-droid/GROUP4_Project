@@ -901,6 +901,147 @@ def get_collaboration_stats(
 
 
 # ============================================================
+# SENT PENDING REQUESTS
+# ============================================================
+
+@router.get("/requests/sent")
+def get_sent_requests(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    collaborations = (
+        db.query(Collaboration)
+        .filter(
+            Collaboration.sender_id == current_user.id,
+            Collaboration.status == CollaborationStatus.PENDING,
+        )
+        .all()
+    )
+
+    return [
+        collaboration_to_dict(db, collaboration)
+        for collaboration in collaborations
+    ]
+
+# ============================================================
+# RECEIVED PENDING REQUESTS
+# ============================================================
+
+@router.get("/requests/received")
+def get_received_requests(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    collaborations = (
+        db.query(Collaboration)
+        .filter(
+            Collaboration.receiver_id == current_user.id,
+            Collaboration.status == CollaborationStatus.PENDING,
+        )
+        .all()
+    )
+
+    return [
+        collaboration_to_dict(db, collaboration)
+        for collaboration in collaborations
+    ]
+
+
+# ============================================================
+# ACCEPTED COLLABORATIONS
+# ============================================================
+
+@router.get("/requests/accepted")
+def get_accepted_requests(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    collaborations = (
+        db.query(Collaboration)
+        .filter(
+            Collaboration.status == CollaborationStatus.ACCEPTED,
+            (
+                (Collaboration.sender_id == current_user.id)
+                |
+                (Collaboration.receiver_id == current_user.id)
+            ),
+        )
+        .all()
+    )
+
+    return [
+        collaboration_to_dict(db, collaboration)
+        for collaboration in collaborations
+    ]
+
+# ============================================================
+# SEARCH RESEARCHERS FOR COLLABORATION
+# ============================================================
+
+@router.get("/researchers/search")
+def search_researchers(
+    q: str = Query(..., min_length=1),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    search = f"%{q.strip()}%"
+
+    current_researcher = (
+        db.query(Researcher)
+        .filter(
+            Researcher.user_id == current_user.id
+        )
+        .first()
+    )
+
+    query = (
+        db.query(Researcher)
+        .outerjoin(
+            Researcher.publications
+        )
+        .filter(
+            or_(
+                Researcher.first_name.ilike(search),
+                Researcher.last_name.ilike(search),
+                Researcher.skills.ilike(search),
+                Researcher.interests.ilike(search),
+                Researcher.bio.ilike(search),
+                Publication.title.ilike(search),
+                Publication.abstract.ilike(search),
+            )
+        )
+    )
+
+    # Don't show the currently logged-in researcher
+    if current_researcher:
+        query = query.filter(
+            Researcher.id != current_researcher.id
+        )
+
+    researchers = (
+        query
+        .distinct()
+        .limit(20)
+        .all()
+    )
+
+    return [
+        {
+            "researcher_id": str(researcher.id),
+            "user_id": str(researcher.user_id),
+            "name": (
+                f"{researcher.first_name or ''} "
+                f"{researcher.last_name or ''}"
+            ).strip(),
+            "skills": researcher.skills or "",
+            "interests": researcher.interests or "",
+            "bio": researcher.bio or "",
+        }
+        for researcher in researchers
+    ]
+
+
+# ============================================================
 # GET ONE COLLABORATION
 # ============================================================
 
@@ -913,6 +1054,7 @@ def get_collaboration(
         db,
         collaboration_id,
     )
+
 
 
 # ============================================================
@@ -1131,149 +1273,3 @@ def collaboration_to_dict(
 
         "description": collaboration.description,
     }
-
-# ============================================================
-# SENT PENDING REQUESTS
-# ============================================================
-
-@router.get("/requests/sent")
-def get_sent_requests(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    collaborations = (
-        db.query(Collaboration)
-        .filter(
-            Collaboration.sender_id == current_user.id,
-            Collaboration.status == CollaborationStatus.PENDING,
-        )
-        .all()
-    )
-
-    return [
-        collaboration_to_dict(db, collaboration)
-        for collaboration in collaborations
-    ]
-
-# ============================================================
-# RECEIVED PENDING REQUESTS
-# ============================================================
-
-@router.get("/requests/received")
-def get_received_requests(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    collaborations = (
-        db.query(Collaboration)
-        .filter(
-            Collaboration.receiver_id == current_user.id,
-            Collaboration.status == CollaborationStatus.PENDING,
-        )
-        .all()
-    )
-
-    return [
-        collaboration_to_dict(db, collaboration)
-        for collaboration in collaborations
-    ]
-
-
-# ============================================================
-# ACCEPTED COLLABORATIONS
-# ============================================================
-
-# ============================================================
-# ACCEPTED COLLABORATIONS
-# ============================================================
-
-@router.get("/requests/accepted")
-def get_accepted_requests(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    collaborations = (
-        db.query(Collaboration)
-        .filter(
-            Collaboration.status == CollaborationStatus.ACCEPTED,
-            (
-                (Collaboration.sender_id == current_user.id)
-                |
-                (Collaboration.receiver_id == current_user.id)
-            ),
-        )
-        .all()
-    )
-
-    return [
-        collaboration_to_dict(db, collaboration)
-        for collaboration in collaborations
-    ]
-
-# ============================================================
-# SEARCH RESEARCHERS FOR COLLABORATION
-# ============================================================
-
-@router.get("/researchers/search")
-def search_researchers(
-    q: str = Query(..., min_length=1),
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    search = f"%{q.strip()}%"
-
-    current_researcher = (
-        db.query(Researcher)
-        .filter(
-            Researcher.user_id == current_user.id
-        )
-        .first()
-    )
-
-    query = (
-        db.query(Researcher)
-        .outerjoin(
-            Researcher.publications
-        )
-        .filter(
-            or_(
-                Researcher.first_name.ilike(search),
-                Researcher.last_name.ilike(search),
-                Researcher.skills.ilike(search),
-                Researcher.interests.ilike(search),
-                Researcher.bio.ilike(search),
-                Publication.title.ilike(search),
-                Publication.abstract.ilike(search),
-            )
-        )
-    )
-
-    # Don't show the currently logged-in researcher
-    if current_researcher:
-        query = query.filter(
-            Researcher.id != current_researcher.id
-        )
-
-    researchers = (
-        query
-        .distinct()
-        .limit(20)
-        .all()
-    )
-
-    return [
-        {
-            "researcher_id": str(researcher.id),
-            "user_id": str(researcher.user_id),
-            "name": (
-                f"{researcher.first_name or ''} "
-                f"{researcher.last_name or ''}"
-            ).strip(),
-            "skills": researcher.skills or "",
-            "interests": researcher.interests or "",
-            "bio": researcher.bio or "",
-        }
-        for researcher in researchers
-    ]
-
-

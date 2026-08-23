@@ -1,11 +1,19 @@
+import enum
 import uuid
 
-from sqlalchemy import String, Text, Boolean, ForeignKey
+from sqlalchemy import String, Text, Boolean, ForeignKey, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
+
+
+class NotificationType(str, enum.Enum):
+    COLLABORATION_INVITE = "collaboration_invite"
+    COLLABORATION_ACCEPT = "collaboration_accept"
+    COLLABORATION_REJECT = "collaboration_reject"
+    SYSTEM = "system"
 
 
 class Notification(TimestampMixin, Base):

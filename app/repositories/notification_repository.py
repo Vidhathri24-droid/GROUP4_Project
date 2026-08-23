@@ -88,3 +88,25 @@ class NotificationRepository:
         )
 
         db.commit()
+
+    @staticmethod
+    def delete_notification(
+        db: Session,
+        notification_id: UUID,
+        user_id: UUID,
+    ) -> bool:
+        notification = (
+            db.query(Notification)
+            .filter(
+                Notification.id == notification_id,
+                Notification.user_id == user_id,
+            )
+            .first()
+        )
+
+        if notification:
+            db.delete(notification)
+            db.commit()
+            return True
+
+        return False
