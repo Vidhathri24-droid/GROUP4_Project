@@ -15,69 +15,196 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   const [statistics, setStatistics] = useState(null);
+
   const [researchers, setResearchers] = useState([]);
   const [publications, setPublications] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [conferences, setConferences] = useState([]);
+
   const [collaborationStats, setCollaborationStats] = useState({
     collaborations: 0,
     pending_collaborations: 0,
   });
+
   useEffect(() => {
     loadHome();
   }, []);
 
-useEffect(() => {
-  const loadCollaborationStats = async () => {
-    try {
-      const data = await getCollaborationStats();
-
-      setCollaborationStats({
-        collaborations: data.collaborations ?? 0,
-        pending_collaborations:
-          data.pending_collaborations ?? 0,
-      });
-    } catch (error) {
-      console.error(
-        "Failed to load collaboration statistics:",
-        error
-      );
-    }
-  };
-
-  loadCollaborationStats();
-}, []);
-
   const loadHome = async () => {
     try {
-      const data = await getHomeData();
+      setLoading(true);
 
-      setStatistics(data.statistics || {});
-      setResearchers(data.trending_researchers || []);
-      setPublications(data.latest_publications || []);
-      setInstitutions(data.top_institutions || []);
-      setConferences(data.upcoming_conferences || []);
+      /*
+       * Load normal Home data and collaboration data together.
+       */
+      const [homeData, collaborationData] =
+        await Promise.all([
+          getHomeData(),
+          getCollaborationStats(),
+        ]);
+
+      console.log("Home data:", homeData);
+      console.log(
+        "Collaboration data:",
+        collaborationData
+      );
+
+      /*
+       * ----------------------------------------------------
+       * NORMAL HOME DATA
+       * ----------------------------------------------------
+       */
+
+      const homeStatistics = homeData?.statistics || {};
+
+      setResearchers(
+        homeData?.trending_researchers || []
+      );
+
+      setPublications(
+        homeData?.latest_publications || []
+      );
+
+      setInstitutions(
+        homeData?.top_institutions || []
+      );
+
+      setConferences(
+        homeData?.upcoming_conferences || []
+      );
+
+      /*
+       * ----------------------------------------------------
+       * COLLABORATION DATA
+       * ----------------------------------------------------
+       *
+       * The backend may expose accepted collaborations using
+       * different field names.
+       *
+       * IMPORTANT:
+       * We check "accepted" BEFORE "collaborations".
+       *
+       * This prevents a response such as:
+       *
+       * {
+       *   collaborations: 0,
+       *   accepted: 9
+       * }
+       *
+       * from incorrectly displaying 0.
+       */
+
+      const acceptedCollaborations =
+        collaborationData?.accepted ??
+        collaborationData?.accepted_collaborations ??
+        collaborationData?.collaborations ??
+        collaborationData?.total_collaborations ??
+        0;
+
+      const pendingCollaborations =
+        collaborationData?.pending_collaborations ??
+        collaborationData?.pending ??
+        collaborationData?.pending_requests ??
+        0;
+
+      const normalizedCollaborationStats = {
+        collaborations:
+          Number(acceptedCollaborations) || 0,
+
+        pending_collaborations:
+          Number(pendingCollaborations) || 0,
+      };
+
+      console.log(
+        "Normalized collaboration statistics:",
+        normalizedCollaborationStats
+      );
+
+      setCollaborationStats(
+        normalizedCollaborationStats
+      );
+
+      /*
+       * ----------------------------------------------------
+       * MERGE COLLABORATION DATA INTO HOME STATISTICS
+       * ----------------------------------------------------
+       *
+       * This makes the collaboration values available to
+       * StatisticsSection even if that component only accepts
+       * a "statistics" prop.
+       */
+
+      setStatistics({
+        ...homeStatistics,
+
+        collaborations:
+          normalizedCollaborationStats.collaborations,
+
+        pending_collaborations:
+          normalizedCollaborationStats.pending_collaborations,
+      });
+
     } catch (error) {
-      console.error("Failed to load home page data:", error);
+      console.error(
+        "Failed to load home page data:",
+        error
+      );
+
+      /*
+       * Keep the Home page usable even if the collaboration
+       * endpoint fails.
+       */
+
+      setStatistics((previous) => ({
+        ...(previous || {}),
+        collaborations: 0,
+        pending_collaborations: 0,
+      }));
     } finally {
       setLoading(false);
     }
   };
 
+  /*
+   * --------------------------------------------------------
+   * LOADING STATE
+   * --------------------------------------------------------
+   */
+
   if (loading) {
     return (
       <div className="container py-5 text-center">
-        <h3>Loading...</h3>
+        <div
+          className="spinner-border text-primary"
+          role="status"
+        >
+          <span className="visually-hidden">
+            Loading...
+          </span>
+        </div>
+
+        <h3 className="mt-3">
+          Loading...
+        </h3>
       </div>
     );
   }
 
+  /*
+   * --------------------------------------------------------
+   * PAGE
+   * --------------------------------------------------------
+   */
+
   return (
     <>
-      <HeroSection statistics={statistics}/>
+      <HeroSection
+        statistics={statistics}
+      />
 
       <StatisticsSection
         statistics={statistics}
+        collaborationStats={collaborationStats}
       />
 
       <TrendingResearchers

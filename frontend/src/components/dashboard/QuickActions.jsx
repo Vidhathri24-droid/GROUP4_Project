@@ -1,29 +1,86 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-export default function QuickActions() {
+export default function QuickActions({
+  permissions,
+  userRole,
+}) {
+  const navigate = useNavigate();
 
-  const actions = [
-    {
-      title: "Add Researcher",
-      route: "/researchers/create",
-      color: "primary",
-    },
-    {
-      title: "Add Publication",
-      route: "/publications/create",
-      color: "success",
-    },
-    {
-      title: "Add Institution",
-      route: "/institutions/create",
-      color: "warning",
-    },
-    {
-      title: "Add Conference",
-      route: "/conferences/create",
-      color: "info",
-    },
-  ];
+  /*
+   * Add Researcher
+   *
+   * Allowed:
+   * SYSTEM_ADMIN
+   * INSTITUTION_ADMIN
+   */
+  const handleAddResearcher = () => {
+    if (
+      userRole !== "SYSTEM_ADMIN" &&
+      userRole !== "INSTITUTION_ADMIN"
+    ) {
+      alert(
+        "Not allowed: Only System Admin and Institution Admin are allowed to add researchers."
+      );
+      return;
+    }
+
+    navigate("/researchers/create");
+  };
+
+  /*
+   * Add Publication
+   *
+   * Allowed:
+   * SYSTEM_ADMIN
+   * RESEARCHER
+   */
+  const handleAddPublication = () => {
+    if (
+      userRole !== "SYSTEM_ADMIN" &&
+      userRole !== "RESEARCHER"
+    ) {
+      alert(
+        "Not allowed: Only System Admin and Researcher are allowed to add publications."
+      );
+      return;
+    }
+
+    navigate("/publications/create");
+  };
+
+  /*
+   * Add Institution
+   *
+   * Allowed:
+   * SYSTEM_ADMIN only
+   */
+  const handleAddInstitution = () => {
+    if (userRole !== "SYSTEM_ADMIN") {
+      alert(
+        "Not allowed: Only System Admin is allowed to add institutions."
+      );
+      return;
+    }
+
+    navigate("/institutions/create");
+  };
+
+  /*
+   * Add Conference
+   *
+   * Allowed:
+   * SYSTEM_ADMIN only
+   */
+  const handleAddConference = () => {
+    if (userRole !== "SYSTEM_ADMIN") {
+      alert(
+        "Not allowed: Only System Admin is allowed to add conferences."
+      );
+      return;
+    }
+
+    navigate("/conferences/create");
+  };
 
   return (
     <div className="card shadow border-0 mb-5">
@@ -36,21 +93,49 @@ export default function QuickActions() {
 
         <div className="row g-3">
 
-          {actions.map((action) => (
-
-            <div
-              key={action.title}
-              className="col-lg-3 col-md-6"
+          {/* Add Researcher */}
+          <div className="col-lg-3 col-md-6">
+            <button
+              type="button"
+              onClick={handleAddResearcher}
+              className="btn btn-primary w-100 py-3"
             >
-              <Link
-                to={action.route}
-                className={`btn btn-${action.color} w-100 py-3`}
-              >
-                {action.title}
-              </Link>
-            </div>
+              Add Researcher
+            </button>
+          </div>
 
-          ))}
+          {/* Add Publication */}
+          <div className="col-lg-3 col-md-6">
+            <button
+              type="button"
+              onClick={handleAddPublication}
+              className="btn btn-success w-100 py-3"
+            >
+              Add Publication
+            </button>
+          </div>
+
+          {/* Add Institution */}
+          <div className="col-lg-3 col-md-6">
+            <button
+              type="button"
+              onClick={handleAddInstitution}
+              className="btn btn-warning w-100 py-3"
+            >
+              Add Institution
+            </button>
+          </div>
+
+          {/* Add Conference */}
+          <div className="col-lg-3 col-md-6">
+            <button
+              type="button"
+              onClick={handleAddConference}
+              className="btn btn-info w-100 py-3"
+            >
+              Add Conference
+            </button>
+          </div>
 
         </div>
 

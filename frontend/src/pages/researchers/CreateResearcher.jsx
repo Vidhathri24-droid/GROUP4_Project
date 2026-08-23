@@ -7,7 +7,6 @@ import { createResearcher } from "../../services/researcherService";
 import { getCurrentUser } from "../../services/authService";
 
 export default function CreateResearcher() {
-
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
@@ -18,15 +17,23 @@ export default function CreateResearcher() {
 
             const user = await getCurrentUser();
 
-            await createResearcher({
-                user_id: user.id,
+            console.log("CURRENT USER:", user);
+            console.log("CURRENT USER ID:", user?.id);
+            console.log("FORM DATA:", form);
+
+            const payload = {
                 ...form,
-            });
+                user_id: user.id,
+            };
+
+            console.log("FINAL RESEARCHER PAYLOAD:", payload);
+
+            await createResearcher(payload);
 
             navigate("/researchers");
 
         } catch (error) {
-            console.error(error);
+            console.error("CREATE RESEARCHER ERROR:", error);
 
             alert(
                 error?.response?.data?.detail ||
@@ -39,29 +46,31 @@ export default function CreateResearcher() {
     };
 
     return (
-	<div className="container py-5">
-		<div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="container py-5">
 
-			<div>
+            <div className="d-flex justify-content-between align-items-center mb-4">
 
-				<Link
-					to="/researchers"
-					className="btn btn-outline-secondary mb-3"
-				>
-					<i className="bi bi-arrow-left"></i> Back to Researchers
-				</Link>
+                <div>
 
-				<h2>Create Researcher</h2>
+                    <Link
+                        to="/researchers"
+                        className="btn btn-outline-secondary mb-3"
+                    >
+                        <i className="bi bi-arrow-left"></i>{" "}
+                        Back to Researchers
+                    </Link>
 
-			</div>
+                    <h2>Create Researcher</h2>
 
-		</div>
+                </div>
 
-		<ResearcherForm
-			loading={loading}
-			onSubmit={submit}
-		/>
+            </div>
 
-	</div>
+            <ResearcherForm
+                loading={loading}
+                onSubmit={submit}
+            />
+
+        </div>
     );
 }

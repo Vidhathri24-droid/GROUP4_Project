@@ -1,5 +1,6 @@
 from uuid import UUID
 from enum import Enum
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
@@ -9,8 +10,16 @@ class ParticipationType(str, Enum):
     PRESENTER = "Presenter"
 
 
+class RegistrationStatus(str, Enum):
+    APPROVED = "Approved"
+    PENDING = "Pending"
+    REJECTED = "Rejected"
+
+
 class ConferenceRegistrationCreate(BaseModel):
-    participation_type: ParticipationType = ParticipationType.ATTENDEE
+    participation_type: ParticipationType = (
+        ParticipationType.ATTENDEE
+    )
 
 
 class ConferenceRegistrationResponse(BaseModel):
@@ -18,5 +27,9 @@ class ConferenceRegistrationResponse(BaseModel):
     conference_id: UUID
     user_id: UUID
     participation_type: ParticipationType
+    status: RegistrationStatus
+    reminder_sent_at: datetime | None = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )

@@ -59,11 +59,14 @@ export const getPastConferences = async (sort = "latest") => {
 };
 
 // Join conference
-export const joinConference = async (conferenceId,participationType) => {
+export const joinConference = async (
+  conferenceId,
+  participationType
+) => {
   const response = await api.post(
     `/conferences/${conferenceId}/join`,
     {
-        participationType: participationType
+      participation_type: participationType,
     }
   );
 
@@ -74,6 +77,28 @@ export const joinConference = async (conferenceId,participationType) => {
 export const leaveConference = async (conferenceId) => {
   const response = await api.delete(
     `/conferences/${conferenceId}/leave`
+  );
+
+  return response.data;
+};
+
+export const approvePresenter = async (
+  conferenceId,
+  registrationId
+) => {
+  const response = await api.post(
+    `/conferences/${conferenceId}/registrations/${registrationId}/approve-presenter`
+  );
+
+  return response.data;
+};
+
+export const rejectPresenter = async (
+  conferenceId,
+  registrationId
+) => {
+  const response = await api.post(
+    `/conferences/${conferenceId}/registrations/${registrationId}/reject-presenter`
   );
 
   return response.data;

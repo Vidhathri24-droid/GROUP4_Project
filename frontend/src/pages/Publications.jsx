@@ -7,8 +7,10 @@ import {
     downloadPublication,
 } from "../services/publicationService";
 
-import "./Publications.css";
+import { getCurrentUser } from "../services/authService";
 
+import "./Publications.css";
+import * as XLSX from "xlsx";
 
 function Publications() {
     /* =========================================================
@@ -20,7 +22,20 @@ function Publications() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // Logged-in user
+    const [currentUser, setCurrentUser] = useState(null);
+
+    const canExportPublications = [
+        "SYSTEM_ADMIN",
+        "SYSTEMADMIN",
+        "INSTITUTION_ADMIN",
+        "INSTITUTIONADMIN",
+    ].includes(
+        String(currentUser?.role || "").toUpperCase()
+    );
+
     // Filters
+    const [scope, setScope] = useState("all");
     const [search, setSearch] = useState("");
     const [publicationType, setPublicationType] = useState("");
     const [status, setStatus] = useState("");
@@ -33,6 +48,77 @@ function Publications() {
 
     // Download state
     const [downloadingId, setDownloadingId] = useState(null);
+
+    const userRole = String(
+        currentUser?.role || ""
+    ).toUpperCase();
+
+    const canManagePublications =
+        userRole === "SYSTEM_ADMIN" ||
+        userRole === "SYSTEMADMIN" ||
+        userRole === "INSTITUTION_ADMIN" ||
+        userRole === "INSTITUTIONADMIN";
+
+    /* =========================================================
+       LOAD CURRENT USER
+       ========================================================= */
+
+    useEffect(() => {
+        const loadCurrentUser = async () => {
+            try {
+                /*
+                 * Prefer the authenticated user returned by the backend.
+                 * This prevents filtering problems caused by stale
+                 * localStorage user information.
+                 */
+                const user = await getCurrentUser();
+
+                setCurrentUser(user || null);
+
+                /*
+                 * Keep localStorage synchronized if your application
+                 * already uses it elsewhere.
+                 */
+                if (user) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(user)
+                    );
+                }
+            } catch (err) {
+                console.error(
+                    "Unable to load logged-in user:",
+                    err
+                );
+
+                /*
+                 * Fallback to localStorage so the page still works
+                 * if the current-user request fails.
+                 */
+                try {
+                    const storedUser =
+                        localStorage.getItem("user");
+
+                    if (storedUser) {
+                        setCurrentUser(
+                            JSON.parse(storedUser)
+                        );
+                    } else {
+                        setCurrentUser(null);
+                    }
+                } catch (storageError) {
+                    console.error(
+                        "Unable to read stored user:",
+                        storageError
+                    );
+
+                    setCurrentUser(null);
+                }
+            }
+        };
+
+        loadCurrentUser();
+    }, []);
 
 
     /* =========================================================
@@ -53,37 +139,283 @@ function Publications() {
 
             /*
              * API normally returns an array.
-             * This also safely handles APIs returning:
+             *
+             * Also safely handle:
              * { publications: [...] }
              * { data: [...] }
              */
+
             if (Array.isArray(data)) {
                 setPublications(data);
+
             } else if (Array.isArray(data?.publications)) {
                 setPublications(data.publications);
+
             } else if (Array.isArray(data?.data)) {
                 setPublications(data.data);
+
             } else {
                 setPublications([]);
             }
+
         } catch (err) {
-            console.error("Unable to load publications:", err);
+            console.error(
+                "Unable to load publications:",
+                err
+            );
 
             setError(
                 err.response?.data?.detail ||
                 "Unable to load publications. Please try again."
             );
+
         } finally {
             setLoading(false);
         }
     };
 
+// ============================================================
+// EXPORT ALL PUBLICATIONS
+// SYSTEM ADMIN + INSTITUTION ADMIN ONLY
+// ============================================================
+
+    const handleExportPublications = async () => {
+        try {
+            const role = String(
+                currentUser?.role || ""
+            ).toUpperCase();
+
+            const canExport =
+                role === "SYSTEM_ADMIN" ||
+                role === "SYSTEMADMIN" ||
+                role === "INSTITUTION_ADMIN" ||
+                role === "INSTITUTIONADMIN";
+
+            if (!canExport) {
+                return;
+            }
+
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                ) ||
+                sessionStorage.getItem(
+                    "access_token"
+                );
+
+            if (!token) {
+                alert(
+                    "Your session has expired. Please log in again."
+                );
+                return;
+            }
+
+            const response = await fetch(
+                "http://127.0.0.1:8000/publications/export",
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization:
+                            `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                let message =
+                    "Unable to export publications.";
+
+                try {
+                    const errorData =
+                        await response.json();
+
+                    message =
+                        errorData?.detail ||
+                        message;
+                } catch {
+                    // Keep default message
+                }
+
+                throw new Error(message);
+            }
+
+            const publications =
+                await response.json();
+
+            if (
+                !Array.isArray(
+                    publications
+                )
+            ) {
+                throw new Error(
+                    "Invalid publication export data."
+                );
+            }
+
+            // ------------------------------------------------------
+            // EXCEL DATA
+            // ------------------------------------------------------
+
+            const rows =
+                publications.map(
+                    (publication, index) => ({
+                        "S.No":
+                            index + 1,
+
+                        "Publication ID":
+                            publication.id || "",
+
+                        "Title":
+                            publication.title || "",
+
+                        "Abstract":
+                            publication.abstract || "",
+
+                        "DOI":
+                            publication.doi || "",
+
+                        "Journal":
+                            publication.journal || "",
+
+                        "Conference":
+                            publication.conference || "",
+
+                        "Publication Year":
+                            publication.publication_year ||
+                            "",
+
+                        "Publication Type":
+                            publication.publication_type ||
+                            "",
+
+                        "Status":
+                            publication.status || "",
+
+                        "URL":
+                            publication.url || "",
+
+                        "Citation Count":
+                            publication.citation_count ??
+                            0,
+
+                        "Owner ID":
+                            publication.owner_id || "",
+
+                        "File Name":
+                            publication.file_name || "",
+
+                        "File Type":
+                            publication.file_type || "",
+
+                        "File Size":
+                            publication.file_size ?? "",
+
+                        "Created At":
+                            publication.created_at || "",
+
+                        "Updated At":
+                            publication.updated_at || "",
+                    })
+                );
+
+            // ------------------------------------------------------
+            // EMPTY DATA
+            // ------------------------------------------------------
+
+            if (rows.length === 0) {
+                rows.push({
+                    "S.No": "",
+                    "Publication ID": "",
+                    "Title": "No publications found",
+                    "Abstract": "",
+                    "DOI": "",
+                    "Journal": "",
+                    "Conference": "",
+                    "Publication Year": "",
+                    "Publication Type": "",
+                    "Status": "",
+                    "URL": "",
+                    "Citation Count": "",
+                    "Owner ID": "",
+                    "File Name": "",
+                    "File Type": "",
+                    "File Size": "",
+                    "Created At": "",
+                    "Updated At": "",
+                });
+            }
+
+            // ------------------------------------------------------
+            // WORKSHEET
+            // ------------------------------------------------------
+
+            const worksheet =
+                XLSX.utils.json_to_sheet(
+                    rows
+                );
+
+            worksheet["!cols"] = [
+                { wch: 8 },
+                { wch: 40 },
+                { wch: 45 },
+                { wch: 60 },
+                { wch: 35 },
+                { wch: 30 },
+                { wch: 30 },
+                { wch: 18 },
+                { wch: 22 },
+                { wch: 18 },
+                { wch: 45 },
+                { wch: 18 },
+                { wch: 40 },
+                { wch: 30 },
+                { wch: 30 },
+                { wch: 18 },
+                { wch: 25 },
+                { wch: 25 },
+            ];
+
+            // ------------------------------------------------------
+            // WORKBOOK
+            // ------------------------------------------------------
+
+            const workbook =
+                XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(
+                workbook,
+                worksheet,
+                "Publications"
+            );
+
+            // ------------------------------------------------------
+            // DOWNLOAD
+            // ------------------------------------------------------
+
+            XLSX.writeFile(
+                workbook,
+                "SCNA_All_Publications.xlsx"
+            );
+
+        } catch (error) {
+            console.error(
+                "Unable to export publications:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Unable to export publications."
+            );
+        }
+    };
 
     /* =========================================================
        DELETE PUBLICATION
        ========================================================= */
 
     const handleDelete = async (id) => {
+
         const confirmed = window.confirm(
             "Are you sure you want to delete this publication?"
         );
@@ -93,11 +425,13 @@ function Publications() {
         }
 
         try {
+
             await deletePublication(id);
 
             setPublications((previous) =>
                 previous.filter(
-                    (publication) => publication.id !== id
+                    (publication) =>
+                        publication.id !== id
                 )
             );
 
@@ -105,14 +439,17 @@ function Publications() {
              * If deleting the last item on a page,
              * move back to the previous page.
              */
+
             setCurrentPage((page) => {
+
                 const remaining =
                     publications.length - 1;
 
                 const maxPage = Math.max(
                     1,
                     Math.ceil(
-                        remaining / publicationsPerPage
+                        remaining /
+                        publicationsPerPage
                     )
                 );
 
@@ -120,7 +457,11 @@ function Publications() {
             });
 
         } catch (err) {
-            console.error("Unable to delete publication:", err);
+
+            console.error(
+                "Unable to delete publication:",
+                err
+            );
 
             alert(
                 err.response?.data?.detail ||
@@ -135,23 +476,30 @@ function Publications() {
        ========================================================= */
 
     const handleDownload = async (id) => {
+
         try {
+
             setDownloadingId(id);
 
-            const response = await downloadPublication(id);
+            const response =
+                await downloadPublication(id);
 
             const blob = new Blob(
                 [response.data],
                 {
                     type:
-                        response.headers?.["content-type"] ||
+                        response.headers?.[
+                            "content-type"
+                        ] ||
                         "application/pdf",
                 }
             );
 
-            const url = window.URL.createObjectURL(blob);
+            const url =
+                window.URL.createObjectURL(blob);
 
-            const link = document.createElement("a");
+            const link =
+                document.createElement("a");
 
             link.href = url;
             link.download = "publication.pdf";
@@ -165,6 +513,7 @@ function Publications() {
             window.URL.revokeObjectURL(url);
 
         } catch (err) {
+
             console.error(
                 "Unable to download publication:",
                 err
@@ -174,7 +523,9 @@ function Publications() {
                 err.response?.data?.detail ||
                 "Unable to download publication."
             );
+
         } finally {
+
             setDownloadingId(null);
         }
     };
@@ -185,6 +536,7 @@ function Publications() {
        ========================================================= */
 
     const publicationTypes = useMemo(() => {
+
         const types = publications
             .map(
                 (publication) =>
@@ -192,11 +544,15 @@ function Publications() {
             )
             .filter(Boolean);
 
-        return [...new Set(types)].sort();
+        return [
+            ...new Set(types)
+        ].sort();
+
     }, [publications]);
 
 
     const publicationStatuses = useMemo(() => {
+
         const statuses = publications
             .map(
                 (publication) =>
@@ -204,7 +560,10 @@ function Publications() {
             )
             .filter(Boolean);
 
-        return [...new Set(statuses)].sort();
+        return [
+            ...new Set(statuses)
+        ].sort();
+
     }, [publications]);
 
 
@@ -213,6 +572,7 @@ function Publications() {
        ========================================================= */
 
     const filteredPublications = useMemo(() => {
+
         const searchValue =
             search.trim().toLowerCase();
 
@@ -220,29 +580,69 @@ function Publications() {
             (publication) => {
 
                 /* -------------------------
-                   Search
+                   OWNERSHIP FILTER
+                   ------------------------- */
+
+                let matchesScope = true;
+
+                if (scope === "mine") {
+
+                    /*
+                     * A publication belongs to the
+                     * logged-in user when its owner_id
+                     * matches currentUser.id.
+                     *
+                     * String() is used because UUIDs may
+                     * arrive in different representations.
+                     */
+
+                    matchesScope =
+                        Boolean(currentUser?.id) &&
+                        Boolean(publication?.owner_id) &&
+                        String(
+                            publication.owner_id
+                        ).toLowerCase() ===
+                        String(
+                            currentUser.id
+                        ).toLowerCase();
+                }
+
+
+                /* -------------------------
+                   SEARCH
                    ------------------------- */
 
                 const searchableText = [
+
                     publication.title,
+
                     publication.abstract,
+
                     publication.doi,
+
                     publication.journal,
+
                     publication.conference,
+
                     publication.publication_type,
+
                     publication.status,
+
                 ]
                     .filter(Boolean)
                     .join(" ")
                     .toLowerCase();
 
+
                 const matchesSearch =
                     !searchValue ||
-                    searchableText.includes(searchValue);
+                    searchableText.includes(
+                        searchValue
+                    );
 
 
                 /* -------------------------
-                   Publication type
+                   PUBLICATION TYPE
                    ------------------------- */
 
                 const matchesType =
@@ -252,16 +652,17 @@ function Publications() {
 
 
                 /* -------------------------
-                   Status
+                   STATUS
                    ------------------------- */
 
                 const matchesStatus =
                     !status ||
-                    publication.status === status;
+                    publication.status ===
+                        status;
 
 
                 /* -------------------------
-                   Year
+                   YEAR
                    ------------------------- */
 
                 const matchesYear =
@@ -272,6 +673,7 @@ function Publications() {
 
 
                 return (
+                    matchesScope &&
                     matchesSearch &&
                     matchesType &&
                     matchesStatus &&
@@ -289,42 +691,52 @@ function Publications() {
             (a, b) => {
 
                 if (sortBy === "newest") {
+
                     return (
                         Number(
-                            b.publication_year || 0
+                            b.publication_year ||
+                            0
                         ) -
                         Number(
-                            a.publication_year || 0
+                            a.publication_year ||
+                            0
                         )
                     );
                 }
 
 
                 if (sortBy === "oldest") {
+
                     return (
                         Number(
-                            a.publication_year || 0
+                            a.publication_year ||
+                            0
                         ) -
                         Number(
-                            b.publication_year || 0
+                            b.publication_year ||
+                            0
                         )
                     );
                 }
 
 
                 if (sortBy === "citations") {
+
                     return (
                         Number(
-                            b.citation_count || 0
+                            b.citation_count ||
+                            0
                         ) -
                         Number(
-                            a.citation_count || 0
+                            a.citation_count ||
+                            0
                         )
                     );
                 }
 
 
                 if (sortBy === "title") {
+
                     return String(
                         a.title || ""
                     ).localeCompare(
@@ -344,6 +756,8 @@ function Publications() {
 
     }, [
         publications,
+        currentUser,
+        scope,
         search,
         publicationType,
         status,
@@ -360,25 +774,27 @@ function Publications() {
         1,
         Math.ceil(
             filteredPublications.length /
-                publicationsPerPage
+            publicationsPerPage
         )
     );
 
 
-    /*
-     * Keep page valid when filters reduce
-     * the number of results.
-     */
     useEffect(() => {
+
         if (currentPage > totalPages) {
             setCurrentPage(totalPages);
         }
-    }, [currentPage, totalPages]);
+
+    }, [
+        currentPage,
+        totalPages
+    ]);
 
 
     const startIndex =
         (currentPage - 1) *
         publicationsPerPage;
+
 
     const endIndex = Math.min(
         startIndex + publicationsPerPage,
@@ -402,34 +818,52 @@ function Publications() {
     };
 
 
+    const handleScopeChange = (event) => {
+
+        setScope(event.target.value);
+
+        resetToFirstPage();
+    };
+
+
     const handleSearchChange = (event) => {
+
         setSearch(event.target.value);
+
         resetToFirstPage();
     };
 
 
     const handleTypeChange = (event) => {
+
         setPublicationType(
             event.target.value
         );
+
         resetToFirstPage();
     };
 
 
     const handleStatusChange = (event) => {
+
         setStatus(event.target.value);
+
         resetToFirstPage();
     };
 
 
     const handleYearChange = (event) => {
+
         setYear(event.target.value);
+
         resetToFirstPage();
     };
 
 
     const handleSortChange = (event) => {
+
         setSortBy(event.target.value);
+
         resetToFirstPage();
     };
 
@@ -439,16 +873,20 @@ function Publications() {
        ========================================================= */
 
     const clearFilters = () => {
+
+        setScope("all");
         setSearch("");
         setPublicationType("");
         setStatus("");
         setYear("");
         setSortBy("newest");
+
         setCurrentPage(1);
     };
 
 
     const hasActiveFilters =
+        scope !== "all" ||
         search ||
         publicationType ||
         status ||
@@ -461,6 +899,7 @@ function Publications() {
        ========================================================= */
 
     const goToPage = (page) => {
+
         if (
             page < 1 ||
             page > totalPages
@@ -478,12 +917,16 @@ function Publications() {
 
 
     const getPageNumbers = () => {
+
         const pages = [];
 
+
         /*
-         * For small number of pages show everything.
+         * For small number of pages
          */
+
         if (totalPages <= 7) {
+
             for (
                 let i = 1;
                 i <= totalPages;
@@ -497,22 +940,25 @@ function Publications() {
 
 
         /*
-         * Always show first page.
+         * First page
          */
+
         pages.push(1);
 
 
         /*
-         * Left ellipsis.
+         * Left ellipsis
          */
+
         if (currentPage > 4) {
             pages.push("...");
         }
 
 
         /*
-         * Pages around current page.
+         * Pages around current page
          */
+
         const start = Math.max(
             2,
             currentPage - 1
@@ -534,8 +980,9 @@ function Publications() {
 
 
         /*
-         * Right ellipsis.
+         * Right ellipsis
          */
+
         if (
             currentPage <
             totalPages - 3
@@ -545,8 +992,9 @@ function Publications() {
 
 
         /*
-         * Always show last page.
+         * Last page
          */
+
         pages.push(totalPages);
 
 
@@ -559,7 +1007,9 @@ function Publications() {
        ========================================================= */
 
     if (loading) {
+
         return (
+
             <div className="publications-page">
 
                 <div className="publications-header">
@@ -586,13 +1036,19 @@ function Publications() {
 
                 <div
                     className="publications-empty"
-                    style={{ borderStyle: "solid" }}
+                    style={{
+                        borderStyle: "solid"
+                    }}
                 >
 
                     <div className="spinner-border text-primary">
                     </div>
 
-                    <h3 style={{ marginTop: "18px" }}>
+                    <h3
+                        style={{
+                            marginTop: "18px"
+                        }}
+                    >
                         Loading publications...
                     </h3>
 
@@ -613,7 +1069,9 @@ function Publications() {
        ========================================================= */
 
     if (error) {
+
         return (
+
             <div className="publications-page">
 
                 <div className="publications-header">
@@ -635,12 +1093,56 @@ function Publications() {
 
                     </div>
 
-                    <Link
-                        to="/publications/create"
-                        className="publications-add-btn"
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "10px",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                        }}
                     >
-                        + Add Publication
-                    </Link>
+                        <Link
+                            to="/publications/create"
+                            className="publications-add-btn"
+                        >
+                            <span>+</span>
+                            Add Publication
+                        </Link>
+
+                        {(
+                            String(
+                                currentUser?.role || ""
+                            ).toUpperCase() ===
+                                "SYSTEM_ADMIN" ||
+                            String(
+                                currentUser?.role || ""
+                            ).toUpperCase() ===
+                                "SYSTEMADMIN" ||
+                            String(
+                                currentUser?.role || ""
+                            ).toUpperCase() ===
+                                "INSTITUTION_ADMIN" ||
+                            String(
+                                currentUser?.role || ""
+                            ).toUpperCase() ===
+                                "INSTITUTIONADMIN"
+                        ) && (
+                            <button
+                                type="button"
+                                onClick={
+                                    handleExportPublications
+                                }
+                                className="publications-add-btn"
+                                style={{
+                                    border: "none",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <span>↓</span>
+                                Export to Excel
+                            </button>
+                        )}
+                    </div>
 
                 </div>
 
@@ -682,6 +1184,7 @@ function Publications() {
        ========================================================= */
 
     return (
+
         <div className="publications-page">
 
             {/* =================================================
@@ -708,13 +1211,37 @@ function Publications() {
                 </div>
 
 
-                <Link
-                    to="/publications/create"
-                    className="publications-add-btn"
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                    }}
                 >
-                    <span>+</span>
-                    Add Publication
-                </Link>
+                    <Link
+                        to="/publications/create"
+                        className="publications-add-btn"
+                    >
+                        <span>+</span>
+                        Add Publication
+                    </Link>
+
+                    {canExportPublications && (
+                        <button
+                            type="button"
+                            onClick={handleExportPublications}
+                            className="publications-add-btn"
+                            style={{
+                                border: "none",
+                                cursor: "pointer",
+                            }}
+                        >
+                            <span>↓</span>
+                            Export to Excel
+                        </button>
+                    )}
+                </div>
 
             </div>
 
@@ -742,6 +1269,7 @@ function Publications() {
 
 
                     {hasActiveFilters && (
+
                         <button
                             type="button"
                             className="publication-action publication-action-secondary"
@@ -756,7 +1284,40 @@ function Publications() {
 
                 <div className="publications-filter-grid">
 
-                    {/* Search */}
+                    {/* =================================================
+                        OWNERSHIP
+                        ================================================= */}
+
+                    <div className="publications-field">
+
+                        <label htmlFor="publication-scope">
+                            Publication Scope
+                        </label>
+
+                        <select
+                            id="publication-scope"
+                            value={scope}
+                            onChange={
+                                handleScopeChange
+                            }
+                        >
+
+                            <option value="all">
+                                All Publications
+                            </option>
+
+                            <option value="mine">
+                                My Publications
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    {/* =================================================
+                        SEARCH
+                        ================================================= */}
 
                     <div className="publications-field">
 
@@ -777,7 +1338,9 @@ function Publications() {
                     </div>
 
 
-                    {/* Publication Type */}
+                    {/* =================================================
+                        PUBLICATION TYPE
+                        ================================================= */}
 
                     <div className="publications-field">
 
@@ -799,12 +1362,14 @@ function Publications() {
 
                             {publicationTypes.map(
                                 (type) => (
+
                                     <option
                                         key={type}
                                         value={type}
                                     >
                                         {type}
                                     </option>
+
                                 )
                             )}
 
@@ -813,7 +1378,9 @@ function Publications() {
                     </div>
 
 
-                    {/* Status */}
+                    {/* =================================================
+                        STATUS
+                        ================================================= */}
 
                     <div className="publications-field">
 
@@ -835,12 +1402,14 @@ function Publications() {
 
                             {publicationStatuses.map(
                                 (itemStatus) => (
+
                                     <option
                                         key={itemStatus}
                                         value={itemStatus}
                                     >
                                         {itemStatus}
                                     </option>
+
                                 )
                             )}
 
@@ -849,7 +1418,9 @@ function Publications() {
                     </div>
 
 
-                    {/* Year */}
+                    {/* =================================================
+                        YEAR
+                        ================================================= */}
 
                     <div className="publications-field">
 
@@ -872,7 +1443,9 @@ function Publications() {
                     </div>
 
 
-                    {/* Sort */}
+                    {/* =================================================
+                        SORT
+                        ================================================= */}
 
                     <div className="publications-field">
 
@@ -924,6 +1497,7 @@ function Publications() {
                     <strong>
                         {filteredPublications.length}
                     </strong>{" "}
+
                     {filteredPublications.length === 1
                         ? "publication"
                         : "publications"}
@@ -932,13 +1506,17 @@ function Publications() {
 
 
                 {filteredPublications.length > 0 && (
+
                     <div className="publications-result-range">
 
                         Showing{" "}
+
                         <strong>
                             {startIndex + 1}
                         </strong>
+
                         {" – "}
+
                         <strong>
                             {endIndex}
                         </strong>
@@ -966,21 +1544,27 @@ function Publications() {
                     </h3>
 
                     <p>
-                        Try changing your search or
-                        filter criteria.
+
+                        {scope === "mine"
+                            ? "You don't have any publications matching the selected filters."
+                            : "Try changing your search or filter criteria."}
+
                     </p>
 
+
                     {hasActiveFilters && (
+
                         <button
                             type="button"
                             className="publication-action publication-action-primary"
                             style={{
-                                marginTop: "18px",
+                                marginTop: "18px"
                             }}
                             onClick={clearFilters}
                         >
                             Clear Filters
                         </button>
+
                     )}
 
                 </div>
@@ -988,6 +1572,7 @@ function Publications() {
             ) : (
 
                 <>
+
                     {/* =========================================
                         PUBLICATION CARDS
                         ========================================= */}
@@ -1008,14 +1593,29 @@ function Publications() {
                                 const citationCount =
                                     Number(
                                         publication.citation_count ||
-                                            0
+                                        0
+                                    );
+
+                                const isOwner =
+                                    Boolean(
+                                        currentUser?.id &&
+                                        publication?.owner_id &&
+                                        String(
+                                            publication.owner_id
+                                        ).toLowerCase() ===
+                                        String(
+                                            currentUser.id
+                                        ).toLowerCase()
                                     );
 
 
                                 return (
+
                                     <article
                                         className="publication-card"
-                                        key={publication.id}
+                                        key={
+                                            publication.id
+                                        }
                                     >
 
                                         {/* ---------------------
@@ -1031,17 +1631,21 @@ function Publications() {
                                                 </span>
 
                                                 <span className="publication-year">
-                                                    {publication.publication_year ||
-                                                        "—"}
+                                                    {
+                                                        publication.publication_year ||
+                                                        "—"
+                                                    }
                                                 </span>
 
                                             </div>
 
 
                                             <span className="publication-status">
+
                                                 {
                                                     publicationStatus
                                                 }
+
                                             </span>
 
                                         </div>
@@ -1055,10 +1659,12 @@ function Publications() {
                                             to={`/publications/${publication.id}`}
                                             className="publication-title"
                                         >
+
                                             {
                                                 publication.title ||
                                                 "Untitled Publication"
                                             }
+
                                         </Link>
 
 
@@ -1081,6 +1687,7 @@ function Publications() {
                                         <div className="publication-info">
 
                                             {publication.journal && (
+
                                                 <div className="publication-info-row">
 
                                                     <span className="publication-info-label">
@@ -1088,9 +1695,11 @@ function Publications() {
                                                     </span>
 
                                                     <span className="publication-info-value">
+
                                                         {
                                                             publication.journal
                                                         }
+
                                                     </span>
 
                                                 </div>
@@ -1098,6 +1707,7 @@ function Publications() {
 
 
                                             {publication.conference && (
+
                                                 <div className="publication-info-row">
 
                                                     <span className="publication-info-label">
@@ -1105,9 +1715,11 @@ function Publications() {
                                                     </span>
 
                                                     <span className="publication-info-value">
+
                                                         {
                                                             publication.conference
                                                         }
+
                                                     </span>
 
                                                 </div>
@@ -1115,6 +1727,7 @@ function Publications() {
 
 
                                             {publication.doi && (
+
                                                 <div className="publication-info-row">
 
                                                     <span className="publication-info-label">
@@ -1133,9 +1746,11 @@ function Publications() {
                                                         rel="noreferrer"
                                                         className="publication-info-value publication-doi"
                                                     >
+
                                                         {
                                                             publication.doi
                                                         }
+
                                                     </a>
 
                                                 </div>
@@ -1161,10 +1776,14 @@ function Publications() {
                                             </strong>
 
                                             <span>
-                                                {citationCount ===
-                                                1
-                                                    ? "citation"
-                                                    : "citations"}
+
+                                                {
+                                                    citationCount ===
+                                                    1
+                                                        ? "citation"
+                                                        : "citations"
+                                                }
+
                                             </span>
 
                                         </div>
@@ -1179,6 +1798,7 @@ function Publications() {
                                             {/* Open Link */}
 
                                             {publication.url && (
+
                                                 <a
                                                     href={
                                                         publication.url
@@ -1205,6 +1825,7 @@ function Publications() {
                                             {/* Download */}
 
                                             {publication.file_name && (
+
                                                 <button
                                                     type="button"
                                                     className="publication-action publication-action-success"
@@ -1218,37 +1839,44 @@ function Publications() {
                                                         publication.id
                                                     }
                                                 >
-                                                    {downloadingId ===
-                                                    publication.id
-                                                        ? "Downloading..."
-                                                        : "Download PDF"}
+
+                                                    {
+                                                        downloadingId ===
+                                                        publication.id
+                                                            ? "Downloading..."
+                                                            : "Download PDF"
+                                                    }
+
                                                 </button>
                                             )}
 
 
                                             {/* Edit */}
 
-                                            <Link
-                                                to={`/publications/${publication.id}/edit`}
-                                                className="publication-action publication-action-warning"
-                                            >
-                                                Edit
-                                            </Link>
+                                            {isOwner && (
+
+                                                <Link
+                                                    to={`/publications/${publication.id}/edit`}
+                                                    className="publication-action publication-action-warning"
+                                                >
+                                                    Edit
+                                                </Link>
+                                            )}
 
 
                                             {/* Delete */}
 
-                                            <button
-                                                type="button"
-                                                className="publication-action publication-action-danger"
-                                                onClick={() =>
-                                                    handleDelete(
-                                                        publication.id
-                                                    )
-                                                }
-                                            >
-                                                Delete
-                                            </button>
+                                            {canManagePublications && (
+                                                <button
+                                                    type="button"
+                                                    className="publication-action publication-action-danger"
+                                                    onClick={() =>
+                                                        handleDelete(publication.id)
+                                                    }
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
 
                                         </div>
 
@@ -1295,7 +1923,9 @@ function Publications() {
                                     if (
                                         page === "..."
                                     ) {
+
                                         return (
+
                                             <span
                                                 key={`ellipsis-${index}`}
                                                 className="publications-page-btn"
@@ -1315,6 +1945,7 @@ function Publications() {
 
 
                                     return (
+
                                         <button
                                             key={page}
                                             type="button"
@@ -1357,11 +1988,9 @@ function Publications() {
                             </button>
 
                         </div>
-
                     )}
 
                 </>
-
             )}
 
         </div>

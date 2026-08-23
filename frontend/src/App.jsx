@@ -1,78 +1,262 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
 
-// Public Pages
-import Home from "./pages/Home";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
+// ============================================================
+// NAVBAR
+// ============================================================
+
+import Navbar from "./components/Navbar";
+
+// ============================================================
+// AUTH
+// ============================================================
+
+import {
+  isAuthenticated,
+  isSystemAdmin,
+  isInstitutionAdmin,
+} from "./utils/auth";
+
+// ============================================================
+// AUTH PAGES
+// ============================================================
+
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResendVerification from "./pages/ResendVerification";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Notifications from "./pages/Notifications";
-// Dashboard
+
+// ============================================================
+// HOME
+// ============================================================
+
+import Home from "./pages/Home";
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+
 import Dashboard from "./pages/Dashboard";
-import Network from "./pages/network/Network";
 
-// Navbar & Protection
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
+// ============================================================
+// NETWORK
+// ============================================================
 
-// Researchers
+import Network from "./pages/network/Network.jsx";
+
+// ============================================================
+// RESEARCHERS
+// ============================================================
+
 import Researchers from "./pages/researchers/Researchers";
 import CreateResearcher from "./pages/researchers/CreateResearcher";
-import ResearcherDetails from "./pages/researchers/ResearcherDetails";
 import EditResearcher from "./pages/researchers/EditResearcher";
+import ResearcherDetails from "./pages/researchers/ResearcherDetails";
 import ResearcherProfile from "./pages/researchers/ResearcherProfile";
-// Publications
+
+// ============================================================
+// PUBLICATIONS
+// ============================================================
+
 import Publications from "./pages/Publications";
 import CreatePublication from "./pages/CreatePublication";
 import EditPublication from "./pages/EditPublication";
 import PublicationDetails from "./pages/PublicationDetails";
 
-// Conferences
+// ============================================================
+// CONFERENCES
+// ============================================================
+
 import Conferences from "./pages/conferences/Conferences";
 import CreateConference from "./pages/conferences/CreateConference";
 import EditConference from "./pages/conferences/EditConference";
 import ConferenceDetails from "./pages/conferences/ConferenceDetails";
 
-// Institutions
+// ============================================================
+// INSTITUTIONS
+// ============================================================
+
 import Institutions from "./pages/institutions/Institutions";
 import CreateInstitution from "./pages/institutions/CreateInstitution";
 import EditInstitution from "./pages/institutions/EditInstitution";
 import InstitutionDetails from "./pages/institutions/InstitutionDetails";
 
-// Search
+// ============================================================
+// SEARCH
+// ============================================================
+
 import Search from "./pages/Search";
+
+// ============================================================
+// USER MANAGEMENT
+// ============================================================
+
 import UserManagement from "./pages/UserManagement";
 
+// ============================================================
+// CITATIONS
+// ============================================================
 
-// Citations
 import Citations from "./pages/citations/Citations";
 import CreateCitation from "./pages/citations/CreateCitation";
 import EditCitation from "./pages/citations/EditCitation";
 import CitationDetails from "./pages/citations/CitationDetails";
 
-// Collaborations
-import Collaborations from "./pages/Collaborations";
+// ============================================================
+// COLLABORATIONS
+// ============================================================
+
 import Collaboration from "./pages/Collaboration";
 
-// Reviewer
+// ============================================================
+// REVIEWER
+// ============================================================
+
 import ReviewerDashboard from "./pages/ReviewerDashboard";
+
+// ============================================================
+// SYSTEM ADMIN
+// ============================================================
+
+import AdminUsers from "./pages/admin/AdminUsers";
+
+// ============================================================
+// INSTITUTION ADMIN
+// ============================================================
+import InstitutionAdminUsers from "./pages/admin/InstitutionAdminUsers";
+
+// ============================================================
+// PROTECTED ROUTE
+// ============================================================
+//
+// User must be authenticated.
+//
+// This is only authentication protection.
+// Role-based authorization is handled separately.
+// ============================================================
+
+function ProtectedRoute({ children }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+
+// ============================================================
+// SYSTEM ADMIN ROUTE
+// ============================================================
+//
+// ONLY SYSTEM_ADMIN users can access this route.
+//
+// Frontend protection:
+//     SYSTEM_ADMIN -> allowed
+//     everyone else -> dashboard
+//
+// Backend must ALSO protect the API.
+// ============================================================
+
+function SystemAdminRoute({ children }) {
+  if (!isSystemAdmin()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
+
+// ============================================================
+// INSTITUTION ADMIN ROUTE
+// ============================================================
+//
+// ONLY INSTITUTION_ADMIN users can access this panel.
+//
+// System Admin does NOT use this panel.
+// System Admin continues using AdminUsers.jsx.
+// ============================================================
+
+function InstitutionAdminRoute({ children }) {
+
+  if (!isInstitutionAdmin()) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+      />
+    );
+  }
+
+  return children;
+}
+
+
+// ============================================================
+// SYSTEM ADMIN REDIRECT
+// ============================================================
+//
+// System Admin users should NOT be sent to:
+//
+//     /dashboard
+//     /profile
+//
+// because those pages are researcher/user-oriented.
+//
+// Instead:
+//
+//     SYSTEM_ADMIN -> /admin/users
+//
+// Other users continue normally.
+// ============================================================
+
+
+// ============================================================
+// APP
+// ============================================================
+
 function App() {
   return (
     <BrowserRouter>
+
+      {/* ======================================================
+          NAVBAR
+      ====================================================== */}
+
       <Navbar />
+
+
+      {/* ======================================================
+          ROUTES
+      ====================================================== */}
 
       <Routes>
 
-        {/* ================= Public Routes ================= */}
+        {/* ====================================================
+            PUBLIC ROUTES
+        ==================================================== */}
 
-        <Route path="/" element={<Home />} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
         <Route
           path="/verify-email"
@@ -83,7 +267,6 @@ function App() {
           path="/resend-verification"
           element={<ResendVerification />}
         />
-          
 
         <Route
           path="/forgot-password"
@@ -95,7 +278,10 @@ function App() {
           element={<ResetPassword />}
         />
 
-        {/* ================= Dashboard ================= */}
+
+        {/* ====================================================
+            DASHBOARD
+        ==================================================== */}
 
         <Route
           path="/dashboard"
@@ -106,12 +292,24 @@ function App() {
           }
         />
 
+
+        {/* ====================================================
+            NETWORK
+        ==================================================== */}
+
         <Route
           path="/network"
-          element={<Network />}
+          element={
+            <ProtectedRoute>
+              <Network />
+            </ProtectedRoute>
+          }
         />
 
-        {/* ================= Researchers ================= */}
+
+        {/* ====================================================
+            RESEARCHERS
+        ==================================================== */}
 
         <Route
           path="/researchers"
@@ -135,16 +333,7 @@ function App() {
           path="/researchers/:id"
           element={
             <ProtectedRoute>
-              <ResearcherProfile />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ResearcherProfile />
+              <ResearcherDetails />
             </ProtectedRoute>
           }
         />
@@ -158,7 +347,42 @@ function App() {
           }
         />
 
-        {/* ================= Publications ================= */}
+
+        {/* ====================================================
+            PROFILE
+        ==================================================== */}
+
+        {/*
+          IMPORTANT:
+
+          The /profile page is NOT a System Admin page.
+
+          Therefore:
+
+              SYSTEM_ADMIN
+                    ↓
+              /admin/users
+
+          Other authenticated users:
+
+              RESEARCHER / REVIEWER / etc.
+                    ↓
+              ResearcherProfile
+        */}
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ResearcherProfile />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ====================================================
+            PUBLICATIONS
+        ==================================================== */}
 
         <Route
           path="/publications"
@@ -179,15 +403,6 @@ function App() {
         />
 
         <Route
-          path="/publications/:id"
-          element={
-            <ProtectedRoute>
-              <PublicationDetails />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/publications/edit/:id"
           element={
             <ProtectedRoute>
@@ -196,46 +411,19 @@ function App() {
           }
         />
 
-        {/* =================Citations ================ */}
         <Route
-          path="/citations"
+          path="/publications/:id"
           element={
             <ProtectedRoute>
-               <Citations />
+              <PublicationDetails />
             </ProtectedRoute>
           }
         />
 
-        <Route
-          path="/citations/create"
-          element={
-            <ProtectedRoute>
-              <CreateCitation />
-            </ProtectedRoute>
-        }
-       />
 
-        <Route
-          path="/citations/edit/:id"
-          element={
-            <ProtectedRoute>
-              <EditCitation />
-            </ProtectedRoute>
-        }
-       />
-
-        <Route
-           path="/citations/:id"
-           element={
-             <ProtectedRoute>
-                <CitationDetails />
-             </ProtectedRoute>
-           }
-        />
-
-
-
-        {/* ================= Conferences ================= */}
+        {/* ====================================================
+            CONFERENCES
+        ==================================================== */}
 
         <Route
           path="/conferences"
@@ -246,15 +434,20 @@ function App() {
           }
         />
 
-        {/* Only System Admin and Institution Admin can create conferences */}
-
         <Route
           path="/conferences/create"
           element={
             <ProtectedRoute>
-              <AdminRoute>
-                <CreateConference />
-              </AdminRoute>
+              <CreateConference />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/conferences/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditConference />
             </ProtectedRoute>
           }
         />
@@ -268,20 +461,10 @@ function App() {
           }
         />
 
-        {/* Only System Admin can edit conferences */}
 
-        <Route
-          path="/conferences/edit/:id"
-          element={
-            <ProtectedRoute>
-              <AdminRoute>
-                <EditConference />
-              </AdminRoute>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ================= Institutions ================= */}
+        {/* ====================================================
+            INSTITUTIONS
+        ==================================================== */}
 
         <Route
           path="/institutions"
@@ -302,15 +485,6 @@ function App() {
         />
 
         <Route
-          path="/institutions/:id"
-          element={
-            <ProtectedRoute>
-              <InstitutionDetails />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="/institutions/edit/:id"
           element={
             <ProtectedRoute>
@@ -319,17 +493,19 @@ function App() {
           }
         />
 
-        {/* ================= Collaboration ================= */}
-
         <Route
-          path="/collaboration"
+          path="/institutions/:id"
           element={
             <ProtectedRoute>
-            <Collaboration />
+              <InstitutionDetails />
             </ProtectedRoute>
           }
         />
-       {/* ================= Search ================= */}
+
+
+        {/* ====================================================
+            SEARCH
+        ==================================================== */}
 
         <Route
           path="/search"
@@ -340,38 +516,173 @@ function App() {
           }
         />
 
-        {/* ================= User Management ================= */}
+
+        {/* ====================================================
+            USER MANAGEMENT
+        ==================================================== */}
 
         <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <AdminRoute>
-                  <UserManagement />
-                </AdminRoute>
-              </ProtectedRoute>
-            }
+          path="/user-management"
+          element={
+            <ProtectedRoute>
+              <UserManagement />
+            </ProtectedRoute>
+          }
         />
 
-        <Route 
-            path="/notifications" 
-            element={ 
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            } 
-          />
 
-            {/* ================= Reviewer ================= */}
-            <Route
-              path="/reviewer"
-              element={
-                <ProtectedRoute>
-                  <ReviewerDashboard />
-                </ProtectedRoute>
-              }
-            />
+        {/* ====================================================
+            CITATIONS
+        ==================================================== */}
+
+        <Route
+          path="/citations"
+          element={
+            <ProtectedRoute>
+              <Citations />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/citations/create"
+          element={
+            <ProtectedRoute>
+              <CreateCitation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/citations/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditCitation />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/citations/:id"
+          element={
+            <ProtectedRoute>
+              <CitationDetails />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ====================================================
+            COLLABORATION
+        ==================================================== */}
+
+        <Route
+          path="/collaboration"
+          element={
+            <ProtectedRoute>
+              <Collaboration />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ====================================================
+            REVIEWER
+        ==================================================== */}
+
+        <Route
+          path="/reviewer"
+          element={
+            <ProtectedRoute>
+              <ReviewerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ====================================================
+            SYSTEM ADMIN
+        ==================================================== */}
+
+        {/*
+          /admin/users
+
+          Protected by TWO layers:
+
+          1. ProtectedRoute
+             -> must be logged in
+
+          2. SystemAdminRoute
+             -> must be SYSTEM_ADMIN
+
+          Therefore:
+
+              SYSTEM_ADMIN
+                    ↓
+              AdminUsers
+
+              RESEARCHER
+                    ↓
+              /dashboard
+
+              INSTITUTION_ADMIN
+                    ↓
+              /dashboard
+        */}
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <SystemAdminRoute>
+                <AdminUsers />
+              </SystemAdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+      {/* ====================================================
+          INSTITUTION ADMIN
+      ==================================================== */}
+
+        <Route
+          path="/admin/institution"
+          element={
+            <ProtectedRoute>
+              <InstitutionAdminRoute>
+                <InstitutionAdminUsers />
+              </InstitutionAdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ====================================================
+            ADMIN SHORTCUT
+        ==================================================== */}
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <SystemAdminRoute>
+                <AdminUsers />
+              </SystemAdminRoute>
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* ====================================================
+            FALLBACK
+        ==================================================== */}
+
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
+
       </Routes>
+
     </BrowserRouter>
   );
 }

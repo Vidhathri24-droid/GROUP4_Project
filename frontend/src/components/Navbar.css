@@ -1,491 +1,403 @@
 /* =========================================================
-   SCNA GLOBAL NAVBAR
-   Compact, professional and responsive
+   SCNA NAVBAR - FINAL LAYOUT
    ========================================================= */
 
 .scna-navbar {
-  min-height: 64px;
-  padding: 0 !important;
-  background: linear-gradient(90deg, #0877f9 0%, #0864d8 100%);
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
+  width: 100%;
+  height: 70px;
+
+  background: linear-gradient(
+    90deg,
+    #0878f9 0%,
+    #0869dc 100%
+  );
+
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+
   position: sticky;
   top: 0;
   z-index: 1050;
 }
 
-.scna-navbar .container-fluid {
-  height: 64px;
-  max-width: 1440px;
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.scna-navbar-container {
+  width: 100%;
+  max-width: 1400px;
+  height: 70px;
+
   margin: 0 auto;
-  padding-left: 24px !important;
-  padding-right: 24px !important;
+
+  padding: 0 28px;
+
+  display: flex;
+  align-items: center;
 }
 
-/* =========================
+
+/* =========================================================
    LOGO
-   ========================= */
+   ========================================================= */
 
-.scna-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: #fff !important;
+.scna-logo {
   flex-shrink: 0;
-  margin-right: 24px;
-}
 
-.scna-logo-box {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 18px;
-  font-weight: 700;
-  color: white;
-}
+  margin-right: 40px;
 
-.scna-brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
+  color: white !important;
 
-.scna-brand-name {
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 800;
-  letter-spacing: -0.4px;
+
+  letter-spacing: -0.5px;
+
+  text-decoration: none !important;
 }
 
-.scna-brand-subtitle {
-  margin-top: 3px;
-  font-size: 7px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  opacity: 0.75;
+.scna-logo:hover {
+  color: white !important;
 }
 
-/* =========================
-   NAVIGATION
-   ========================= */
 
-.scna-navbar .navbar-collapse {
-  min-width: 0;
-}
+/* =========================================================
+   MAIN NAVIGATION
+   ========================================================= */
 
-.scna-nav {
+.scna-main-nav {
   display: flex;
   align-items: center;
+
   gap: 3px;
+
+  flex: 1;
 }
 
-.scna-nav .nav-item {
-  display: flex;
-  align-items: center;
-}
 
-.scna-nav .nav-link {
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
+/* =========================================================
+   NAVIGATION LINKS
+   ========================================================= */
 
-  height: 40px;
-  padding: 0 10px !important;
-
-  border-radius: 9px;
-
-  color: rgba(255, 255, 255, 0.92) !important;
-
-  font-size: 13px !important;
-  font-weight: 600 !important;
-
-  white-space: nowrap;
-
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.scna-nav .nav-link:hover {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.scna-nav .nav-link.active {
-  color: #0868e4 !important;
-  background: #fff;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08);
-}
-
-.scna-nav .nav-link i {
-  font-size: 14px;
-  margin-right: 5px;
-}
-
-/* =========================
-   RIGHT SIDE ICONS
-   ========================= */
-
-.scna-nav-icon {
-  width: 38px;
-  height: 38px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 !important;
-
-  color: #fff !important;
-  background: transparent;
-  border: 0;
-
-  border-radius: 9px;
-
-  transition:
-    background 0.18s ease,
-    transform 0.18s ease;
-}
-
-.scna-nav-icon:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.scna-nav-icon svg {
-  width: 19px;
-  height: 19px;
-}
-
-/* =========================
-   USER BUTTON
-   ========================= */
-
-.scna-user-button {
+.scna-nav-link {
   height: 42px;
 
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  padding: 4px 10px 4px 5px !important;
-
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.08);
-
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 12px;
-
-  text-decoration: none;
-
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.scna-user-button:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.25) !important;
-}
-
-.scna-user-avatar {
-  width: 32px;
-  height: 32px;
-
-  flex-shrink: 0;
+  padding: 0 12px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
+  border-radius: 8px;
 
-  background: #fff;
-  color: #0868e4;
+  color: rgba(255, 255, 255, 0.78) !important;
 
-  font-size: 12px;
-  font-weight: 800;
-}
+  font-size: 14px;
+  font-weight: 500;
 
-.scna-user-info {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  line-height: 1.1;
-}
-
-.scna-user-name {
-  max-width: 90px;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 
-  font-size: 12px;
+  text-decoration: none !important;
+
+  transition: all 0.2s ease;
+}
+
+.scna-nav-link:hover {
+  color: white !important;
+
+  background: rgba(255, 255, 255, 0.12);
+}
+
+
+/* ACTIVE */
+
+.scna-nav-link.active {
+  color: white !important;
+
+  background: rgba(255, 255, 255, 0.15);
+
   font-weight: 700;
 }
 
-.scna-user-role {
-  margin-top: 2px;
 
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.68);
+/* =========================================================
+   ADMIN
+   ========================================================= */
+
+.scna-admin-link {
+  margin-left: 4px;
+
+  padding-left: 13px;
+  padding-right: 13px;
+
+  color: white !important;
+
+  background: rgba(255, 255, 255, 0.10);
+
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-.scna-user-chevron {
-  margin-left: 3px;
-  font-size: 11px;
-  opacity: 0.7;
+.scna-admin-link:hover {
+  background: rgba(255, 255, 255, 0.20);
 }
 
-/* =========================
+
+/* =========================================================
+   RIGHT SIDE ACTIONS
+   ========================================================= */
+
+.scna-actions {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-left: 18px;
+}
+
+
+/* =========================================================
+   ICON BUTTON
+   ========================================================= */
+
+.scna-icon-button {
+  position: relative;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  color: white;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.scna-icon-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+
+/* =========================================================
    NOTIFICATION BADGE
-   ========================= */
+   ========================================================= */
 
 .scna-notification-badge {
   position: absolute;
 
-  top: 4px;
-  right: 2px;
+  top: 1px;
+  right: 0;
 
-  min-width: 7px;
-  height: 7px;
+  min-width: 16px;
+  height: 16px;
 
-  padding: 0 !important;
-
-  border-radius: 50%;
-
-  background: #ff4d5a;
-  border: 2px solid #086bdc;
-}
-
-/* =========================
-   NOTIFICATION DROPDOWN
-   ========================= */
-
-.scna-notification-menu {
-  width: 360px !important;
-  max-width: calc(100vw - 24px);
-
-  max-height: 480px;
-
-  margin-top: 8px !important;
-
-  padding: 0 !important;
-
-  overflow: hidden;
-
-  border: 1px solid #e5e7eb !important;
-  border-radius: 14px !important;
-
-  background: #fff;
-
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.18) !important;
-}
-
-.scna-notification-header {
-  padding: 16px 18px;
-
-  border-bottom: 1px solid #edf0f4;
-
-  background: #fff;
-}
-
-.scna-notification-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #172033;
-}
-
-.scna-notification-subtitle {
-  margin-top: 3px;
-  font-size: 11px;
-  color: #8a94a6;
-}
-
-.scna-notification-item {
-  width: 100%;
-
-  padding: 13px 16px !important;
-
-  display: block;
-
-  border: 0 !important;
-  border-bottom: 1px solid #edf0f4 !important;
-
-  background: #fff !important;
-
-  transition: background 0.15s ease;
-}
-
-.scna-notification-item:hover {
-  background: #f7faff !important;
-}
-
-.scna-notification-item.unread {
-  background: #f2f7ff !important;
-}
-
-.scna-notification-icon {
-  width: 36px;
-  height: 36px;
-
-  flex-shrink: 0;
+  padding: 0 4px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 10px;
+  border-radius: 20px;
 
-  background: #eaf3ff;
-  color: #0877f9;
+  background: #ef4444;
+
+  border: 2px solid #0878f9;
+
+  color: white;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  line-height: 1;
 }
 
-.scna-notification-message {
-  font-size: 12px;
-  line-height: 1.45;
-  color: #657084;
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.scna-profile-button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  color: white;
+
+  background: rgba(255, 255, 255, 0.10);
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
 }
 
-.scna-notification-time {
-  margin-top: 4px;
-
-  font-size: 10px;
-  color: #9aa3b2;
+.scna-profile-button:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
 
-.scna-notification-footer {
-  padding: 11px;
 
-  text-align: center;
+/* =========================================================
+   LOGOUT
+   ========================================================= */
 
-  border-top: 1px solid #edf0f4;
+.scna-logout-button {
+  height: 38px;
+
+  margin-left: 5px;
+
+  padding: 0 13px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 7px;
+
+  color: white;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
 }
 
-/* =========================
-   MOBILE
-   ========================= */
-
-.scna-mobile-toggle {
-  border: 0 !important;
-  color: #fff !important;
-  box-shadow: none !important;
+.scna-logout-button:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
+
+
+/* =========================================================
+   NOTIFICATION DROPDOWN
+   ========================================================= */
+
+.notification-dropdown {
+  position: absolute;
+
+  top: 55px;
+  right: 0;
+
+  width: 360px;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background: white;
+
+  border: 1px solid #e5e7eb;
+
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.16);
+
+  z-index: 2000;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
 @media (max-width: 1200px) {
 
-  .scna-navbar .container-fluid {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+  .scna-navbar-container {
+    padding: 0 20px;
   }
 
-  .scna-brand {
-    margin-right: 12px;
+  .scna-logo {
+    margin-right: 20px;
   }
 
-  .scna-nav {
-    gap: 0;
-  }
+  .scna-nav-link {
+    padding: 0 9px;
 
-  .scna-nav .nav-link {
-    padding-left: 7px !important;
-    padding-right: 7px !important;
-    font-size: 12px !important;
-  }
-
-  .scna-nav .nav-link i {
-    margin-right: 3px;
     font-size: 13px;
   }
 
-  .scna-user-info {
-    display: none;
-  }
-
-  .scna-user-button {
-    padding-right: 7px !important;
+  .scna-actions {
+    margin-left: 10px;
   }
 }
 
-@media (max-width: 992px) {
+
+@media (max-width: 991px) {
 
   .scna-navbar {
-    min-height: 60px;
-  }
-
-  .scna-navbar .container-fluid {
     height: auto;
-    min-height: 60px;
+    min-height: 64px;
   }
 
-  .scna-navbar .navbar-collapse {
-    margin-top: 8px;
-    padding: 8px;
+  .scna-navbar-container {
+    height: auto;
+    min-height: 64px;
 
-    border-radius: 12px;
+    flex-wrap: wrap;
 
-    background: rgba(0, 76, 180, 0.98);
+    padding: 10px 18px;
   }
 
-  .scna-nav {
-    align-items: stretch;
+  .scna-main-nav {
+    width: 100%;
+
+    order: 3;
+
     flex-direction: column;
+
+    align-items: stretch;
+
+    padding-top: 10px;
   }
 
-  .scna-nav .nav-item {
-    width: 100%;
-  }
-
-  .scna-nav .nav-link {
-    width: 100%;
+  .scna-nav-link {
     justify-content: flex-start;
-    padding: 10px 12px !important;
-  }
 
-  .scna-nav .nav-link.active {
-    justify-content: flex-start;
-  }
-
-  .scna-user-button {
     width: 100%;
-    justify-content: flex-start;
-    margin-top: 5px;
+
+    padding: 10px 14px;
   }
 
-  .scna-user-info {
-    display: flex;
+  .scna-actions {
+    margin-left: auto;
   }
 }
 
-@media (max-width: 576px) {
 
-  .scna-navbar .container-fluid {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+@media (max-width: 575px) {
+
+  .scna-navbar-container {
+    padding: 10px 14px;
   }
 
-  .scna-brand-name {
-    font-size: 18px;
+  .scna-logo {
+    font-size: 22px;
   }
 
-  .scna-brand-subtitle {
-    font-size: 6px;
+  .scna-actions {
+    gap: 2px;
   }
 
-  .scna-logo-box {
-    width: 35px;
-    height: 35px;
-  }
-
-  .scna-notification-menu {
-    width: calc(100vw - 24px) !important;
+  .scna-logout-button {
+    display: none;
   }
 }

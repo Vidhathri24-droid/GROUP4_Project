@@ -6,20 +6,28 @@ import {
   downloadPublication,
 } from "../services/publicationService";
 
+import { getCurrentUser } from "../services/authService";
+
 function PublicationDetails() {
   const { id } = useParams();
 
   const [publication, setPublication] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadPublication();
-  }, []);
+  }, [id]);
 
   const loadPublication = async () => {
     try {
-      const data = await getPublication(id);
-      setPublication(data);
+      const [publicationData, userData] = await Promise.all([
+        getPublication(id),
+        getCurrentUser(),
+      ]);
+
+      setPublication(publicationData);
+      setCurrentUser(userData);
     } catch (err) {
       console.error(err);
       alert("Failed to load publication.");
@@ -54,6 +62,31 @@ function PublicationDetails() {
       alert("Download failed.");
     }
   };
+
+  /*
+   * Get the logged-in user's role.
+   *
+   * The backend may return the role using any of
+   * these field names, so support all of them.
+   */
+  const userRole =
+    currentUser?.role ||
+    currentUser?.user_role ||
+    currentUser?.role_name ||
+    null;
+
+  const normalizedRole = userRole?.toUpperCase();
+
+  /*
+   * Only System Admin and Institution Admin
+   * can edit publications.
+   *
+   * Researchers and Reviewers can view/download
+   * publications but cannot edit them.
+   */
+  const canEditPublication =
+    normalizedRole === "SYSTEM_ADMIN" ||
+    normalizedRole === "INSTITUTION_ADMIN";
 
   if (loading) {
     return (
@@ -131,19 +164,25 @@ function PublicationDetails() {
               <tr>
                 <th>URL</th>
                 <td>
-                  <a
-                    href={publication.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {publication.url}
-                  </a>
+                  {publication.url ? (
+                    <a
+                      href={publication.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {publication.url}
+                    </a>
+                  ) : (
+                    "Not provided"
+                  )}
                 </td>
               </tr>
 
               <tr>
                 <th>Uploaded File</th>
-                <td>{publication.file_name}</td>
+                <td>
+                  {publication.file_name || "No file uploaded"}
+                </td>
               </tr>
 
               <tr>
@@ -160,6 +199,7 @@ function PublicationDetails() {
 
           </table>
 
+          {/* Download */}
           <button
             className="btn btn-success me-2"
             onClick={handleDownload}
@@ -167,13 +207,25 @@ function PublicationDetails() {
             Download PDF
           </button>
 
-          <Link
-            to={`/publications/edit/${publication.id}`}
-            className="btn btn-warning me-2"
-          >
-            Edit
-          </Link>
+          {/* 
+            Edit is visible ONLY to:
+            - System Admin
+            - Institution Admin
 
+            It is hidden for:
+            - Researcher
+            - Reviewer
+          */}
+          {canEditPublication && (
+            <Link
+              to={`/publications/edit/${publication.id}`}
+              className="btn btn-warning me-2"
+            >
+              Edit
+            </Link>
+          )}
+
+          {/* Back */}
           <Link
             to="/publications"
             className="btn btn-secondary"

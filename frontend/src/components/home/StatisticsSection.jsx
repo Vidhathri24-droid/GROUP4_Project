@@ -2,10 +2,14 @@ import DashboardStats from "../dashboard/DashboardStats";
 
 export default function StatisticsSection({
   statistics,
+  collaborationStats,
 }) {
   return (
     <div className="container py-5">
-      <DashboardStats stats={statistics} />
+      <DashboardStats
+        stats={statistics}
+        collaborationStats={collaborationStats}
+      />
     </div>
   );
 }

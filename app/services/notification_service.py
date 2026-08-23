@@ -1,24 +1,26 @@
+import asyncio
 import uuid
+
 from typing import Dict, List
 
 from fastapi import WebSocket
 from sqlalchemy.orm import Session
 
 from app.models.notification import Notification
+
 from app.repositories.notification_repository import (
     NotificationRepository,
 )
 
+from app.services.email_service import EmailService
+
 
 class NotificationManager:
-    """
-    Maintains active WebSocket connections for logged-in users.
-    """
 
     def __init__(self):
         self.connections: Dict[
             uuid.UUID,
-            List[WebSocket]
+            List[WebSocket],
         ] = {}
 
     async def connect(
@@ -31,7 +33,9 @@ class NotificationManager:
         if user_id not in self.connections:
             self.connections[user_id] = []
 
-        self.connections[user_id].append(websocket)
+        self.connections[user_id].append(
+            websocket
+        )
 
     def disconnect(
         self,
@@ -42,7 +46,9 @@ class NotificationManager:
             return
 
         if websocket in self.connections[user_id]:
-            self.connections[user_id].remove(websocket)
+            self.connections[user_id].remove(
+                websocket
+            )
 
         if not self.connections[user_id]:
             del self.connections[user_id]
@@ -52,15 +58,21 @@ class NotificationManager:
         user_id: uuid.UUID,
         data: dict,
     ):
-        connections = self.connections.get(user_id, [])
+        connections = self.connections.get(
+            user_id,
+            [],
+        )
 
         disconnected = []
 
         for websocket in connections:
             try:
                 await websocket.send_json(data)
+
             except Exception:
-                disconnected.append(websocket)
+                disconnected.append(
+                    websocket
+                )
 
         for websocket in disconnected:
             self.disconnect(
@@ -82,6 +94,8 @@ class NotificationService:
         message: str,
         notification_type: str,
         reference_id: uuid.UUID | None = None,
+        email: str | None = None,
+        send_email: bool = False,
     ):
         notification = Notification(
             user_id=user_id,
@@ -92,10 +106,62 @@ class NotificationService:
             is_read=False,
         )
 
-        return NotificationRepository.create(
-            db,
-            notification,
+        notification = (
+            NotificationRepository.create(
+                db,
+                notification,
+            )
         )
+
+        # -----------------------------------------------------
+        # In-app real-time notification
+        # -----------------------------------------------------
+
+        try:
+            payload = (
+                NotificationService
+                .notification_to_dict(
+                    notification
+                )
+            )
+
+            try:
+                loop = asyncio.get_running_loop()
+
+                loop.create_task(
+                    notification_manager
+                    .send_to_user(
+                        user_id,
+                        payload,
+                    )
+                )
+
+            except RuntimeError:
+                asyncio.run(
+                    notification_manager
+                    .send_to_user(
+                        user_id,
+                        payload,
+                    )
+                )
+
+        except Exception as exc:
+            print(
+                f"In-app notification failed: {exc}"
+            )
+
+        # -----------------------------------------------------
+        # Email notification
+        # -----------------------------------------------------
+
+        if send_email and email:
+            EmailService.send_email(
+                recipient=email,
+                subject=title,
+                body=message,
+            )
+
+        return notification
 
     @staticmethod
     def notification_to_dict(
@@ -103,10 +169,14 @@ class NotificationService:
     ):
         return {
             "id": str(notification.id),
-            "user_id": str(notification.user_id),
+            "user_id": str(
+                notification.user_id
+            ),
             "title": notification.title,
             "message": notification.message,
-            "notification_type": notification.notification_type,
+            "notification_type": (
+                notification.notification_type
+            ),
             "reference_id": (
                 str(notification.reference_id)
                 if notification.reference_id

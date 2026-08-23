@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import (
@@ -8,7 +8,12 @@ from app.api.dependencies import (
     get_current_user,
 )
 
-from app.models.user import User
+from app.models.conference_registration import (
+    ConferenceRegistration,
+    ParticipationType,
+)
+
+from app.models.user import User, UserRole
 
 from app.schemas.conference import (
     ConferenceCreate,
@@ -24,6 +29,9 @@ from app.schemas.conference_registration import (
 from app.services.conference_service import ConferenceService
 from app.services.conference_registration_service import (
     ConferenceRegistrationService,
+)
+from app.services.conference_notification_scheduler import (
+    start_conference_notification_scheduler,
 )
 from app.schemas.conference_registration import (
     ConferenceRegistrationCreate,
@@ -57,6 +65,167 @@ def create_conference(
         current_user=current_user,
     )
 
+# ==========================================
+# Export Conference Participants
+# ==========================================
+
+@router.get(
+    "/{conference_id}/export",
+)
+def export_conference(
+    conference_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # ----------------------------------------------------------
+    # Only System Admin and Institution Admin can export
+    # ----------------------------------------------------------
+
+    if current_user.role not in [
+        UserRole.SYSTEM_ADMIN,
+        UserRole.INSTITUTION_ADMIN,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Only System Admin and Institution Admin "
+                "can export conference details."
+            ),
+        )
+
+    # ----------------------------------------------------------
+    # Get conference
+    # ----------------------------------------------------------
+
+    conference = ConferenceService.get_conference(
+        db=db,
+        conference_id=conference_id,
+    )
+
+    if conference is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conference not found.",
+        )
+
+    # ----------------------------------------------------------
+    # Get all registrations
+    # ----------------------------------------------------------
+
+    registrations = (
+        db.query(ConferenceRegistration)
+        .filter(
+            ConferenceRegistration.conference_id
+            == conference_id
+        )
+        .all()
+    )
+
+    attendees = []
+    presenters = []
+
+    # ----------------------------------------------------------
+    # Build participant information
+    # ----------------------------------------------------------
+
+    for registration in registrations:
+
+        user = registration.user
+
+        if user is None:
+            continue
+
+        # ----------------------------------------------
+        # Determine researcher name
+        # ----------------------------------------------
+
+        name = user.email or "Unknown"
+
+        if (
+            hasattr(user, "researcher")
+            and user.researcher
+        ):
+            first_name = (
+                user.researcher.first_name or ""
+            )
+
+            last_name = (
+                user.researcher.last_name or ""
+            )
+
+            full_name = (
+                f"{first_name} {last_name}"
+            ).strip()
+
+            if full_name:
+                name = full_name
+
+        # ----------------------------------------------
+        # Participant record
+        # ----------------------------------------------
+
+        participant = {
+            "registration_id": str(
+                registration.id
+            ),
+            "user_id": str(
+                user.id
+            ),
+            "name": name,
+            "email": user.email,
+            "participation_type": (
+                registration.participation_type
+            ),
+            "status": registration.status,
+        }
+
+        # ----------------------------------------------
+        # Separate attendees and presenters
+        # ----------------------------------------------
+
+        if (
+            registration.participation_type
+            == ParticipationType.PRESENTER.value
+        ):
+            presenters.append(participant)
+
+        else:
+            attendees.append(participant)
+
+    # ----------------------------------------------------------
+    # Return complete export data
+    # ----------------------------------------------------------
+
+    return {
+        "conference": {
+            "id": str(conference.id),
+            "title": conference.title,
+            "location": conference.location,
+            "conference_date": (
+                str(conference.conference_date)
+                if conference.conference_date
+                else None
+            ),
+            "conference_time": (
+                str(conference.conference_time)
+                if conference.conference_time
+                else None
+            ),
+            "description": conference.description,
+        },
+
+        "attendees": attendees,
+
+        "presenters": presenters,
+
+        "total_attendees": len(attendees),
+
+        "total_presenters": len(presenters),
+
+        "total_participants": (
+            len(attendees) + len(presenters)
+        ),
+    }
 
 @router.get(
     "/",
@@ -215,3 +384,48 @@ def get_conference_details(
         conference_id=conference_id,
         current_user=current_user,
     )
+@router.post(
+    "/{conference_id}/registrations/"
+    "{registration_id}/approve-presenter",
+    response_model=ConferenceRegistrationResponse,
+)
+def approve_presenter(
+    conference_id: UUID,
+    registration_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        ConferenceRegistrationService
+        .approve_presenter(
+            db=db,
+            conference_id=conference_id,
+            registration_id=registration_id,
+            current_user=current_user,
+        )
+    )
+
+
+@router.post(
+    "/{conference_id}/registrations/"
+    "{registration_id}/reject-presenter",
+    response_model=ConferenceRegistrationResponse,
+)
+def reject_presenter(
+    conference_id: UUID,
+    registration_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        ConferenceRegistrationService
+        .reject_presenter(
+            db=db,
+            conference_id=conference_id,
+            registration_id=registration_id,
+            current_user=current_user,
+        )
+    )
+@router.on_event("startup")
+async def start_conference_notifications():
+    start_conference_notification_scheduler()

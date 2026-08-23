@@ -1,7 +1,10 @@
 import api from "./api";
 
-export const getCitations = async () => {
-  const response = await api.get("/citations");
+export const getCitations = async (mine = false) => {
+  const response = await api.get("/citations/", {
+    params: mine ? { mine: true } : {},
+  });
+
   return response.data;
 };
 

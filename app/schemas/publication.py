@@ -5,6 +5,10 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, HttpUrl
 
 
+# ============================================================
+# PUBLICATION TYPE
+# ============================================================
+
 class PublicationType(str, Enum):
     JOURNAL = "Journal"
     CONFERENCE = "Conference"
@@ -14,6 +18,10 @@ class PublicationType(str, Enum):
     THESIS = "Thesis"
 
 
+# ============================================================
+# PUBLICATION STATUS
+# ============================================================
+
 class PublicationStatus(str, Enum):
     DRAFT = "Draft"
     SUBMITTED = "Submitted"
@@ -21,6 +29,10 @@ class PublicationStatus(str, Enum):
     PUBLISHED = "Published"
     REJECTED = "Rejected"
 
+
+# ============================================================
+# BASE SCHEMA
+# ============================================================
 
 class PublicationBase(BaseModel):
     title: str
@@ -35,9 +47,17 @@ class PublicationBase(BaseModel):
     citation_count: int = 0
 
 
+# ============================================================
+# CREATE
+# ============================================================
+
 class PublicationCreate(PublicationBase):
     pass
 
+
+# ============================================================
+# UPDATE
+# ============================================================
 
 class PublicationUpdate(BaseModel):
     title: str | None = None
@@ -52,9 +72,16 @@ class PublicationUpdate(BaseModel):
     citation_count: int | None = None
 
 
+# ============================================================
+# RESPONSE
+# ============================================================
+
 class PublicationResponse(PublicationBase):
     id: UUID
 
+    # IMPORTANT:
+    # Used by the frontend to determine whether
+    # this publication belongs to the logged-in user.
     owner_id: UUID
 
     file_name: str | None = None
@@ -65,4 +92,6 @@ class PublicationResponse(PublicationBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+    )

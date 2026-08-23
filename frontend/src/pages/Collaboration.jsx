@@ -21,6 +21,12 @@ function Collaborations() {
   const [receiverId, setReceiverId] = useState("");
   const [collaborationType, setCollaborationType] =
     useState("Project");
+  const [messagePopup, setMessagePopup] = useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+});
   const [description, setDescription] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -28,7 +34,20 @@ function Collaborations() {
   const [researcherResults, setResearcherResults] = useState([]);
   const [selectedResearcher, setSelectedResearcher] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
-
+  const showMessage = (message, type = "success", title = "") => {
+      setMessagePopup({
+          open: true,
+          type,
+          title:
+              title ||
+              (type === "success"
+                  ? "Success"
+                  : type === "error"
+                  ? "Something went wrong"
+                  : "Notice"),
+          message,
+      });
+  };
   // =================================================
   // LOAD COLLABORATIONS
   // =================================================
@@ -217,6 +236,118 @@ function Collaborations() {
       {/* REQUEST COLLABORATION */}
       {/* ================================================= */}
 
+      {messagePopup.open && (
+          <div
+              style={{
+                  position: "fixed",
+                  inset: 0,
+                  background: "rgba(15, 23, 42, 0.45)",
+                  backdropFilter: "blur(3px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 9999,
+                  padding: "20px",
+              }}
+              onClick={() =>
+                  setMessagePopup((prev) => ({
+                      ...prev,
+                      open: false,
+                  }))
+              }
+          >
+              <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                      width: "100%",
+                      maxWidth: "430px",
+                      background: "#ffffff",
+                      borderRadius: "18px",
+                      padding: "28px",
+                      boxShadow: "0 25px 60px rgba(0,0,0,0.20)",
+                      textAlign: "center",
+                      animation: "popupIn 0.2s ease-out",
+                  }}
+              >
+                  <div
+                      style={{
+                          width: "58px",
+                          height: "58px",
+                          margin: "0 auto 16px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background:
+                              messagePopup.type === "success"
+                                  ? "#dcfce7"
+                                  : messagePopup.type === "error"
+                                  ? "#fee2e2"
+                                  : "#fef3c7",
+                          color:
+                              messagePopup.type === "success"
+                                  ? "#15803d"
+                                  : messagePopup.type === "error"
+                                  ? "#dc2626"
+                                  : "#d97706",
+                          fontSize: "26px",
+                          fontWeight: "700",
+                      }}
+                  >
+                      {messagePopup.type === "success"
+                          ? "✓"
+                          : messagePopup.type === "error"
+                          ? "!"
+                          : "i"}
+                  </div>
+
+                  <h3
+                      style={{
+                          margin: "0 0 10px",
+                          fontSize: "21px",
+                          fontWeight: "700",
+                          color: "#172554",
+                      }}
+                  >
+                      {messagePopup.title}
+                  </h3>
+
+                  <p
+                      style={{
+                          margin: "0 0 24px",
+                          color: "#64748b",
+                          fontSize: "15px",
+                          lineHeight: "1.6",
+                      }}
+                  >
+                      {messagePopup.message}
+                  </p>
+
+                  <button
+                      type="button"
+                      onClick={() =>
+                          setMessagePopup((prev) => ({
+                              ...prev,
+                              open: false,
+                          }))
+                      }
+                      style={{
+                          width: "100%",
+                          border: "none",
+                          borderRadius: "10px",
+                          padding: "12px 18px",
+                          background: "#2563eb",
+                          color: "#ffffff",
+                          fontSize: "15px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                      }}
+                  >
+                      OK
+                  </button>
+              </div>
+          </div>
+      )}
       <div className="card shadow-sm mb-4">
         <div className="card-header">
           <h4 className="mb-0">

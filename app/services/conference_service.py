@@ -19,6 +19,10 @@ from app.repositories.conference_registration_repository import (
     ConferenceRegistrationRepository,
 )
 
+from app.services.notification_service import (
+    NotificationService,
+)
+
 class ConferenceService:
 
     # =========================================================
@@ -75,7 +79,8 @@ class ConferenceService:
             )
 
         conference = Conference(
-            **data.model_dump()
+            **data.model_dump(),
+            created_by=current_user.id,
         )
 
         return ConferenceRepository.create(

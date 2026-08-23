@@ -3,7 +3,6 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.repositories.user_repository import UserRepository
-
 from app.core.security import hash_password
 
 
@@ -18,31 +17,26 @@ class UserService:
         return UserRepository.get_by_id(db, user_id)
 
     @staticmethod
-    def update_user(
-        db: Session,
-        user,
-        data,
-    ):
+    def update_user(db: Session, user, data):
+        if data.username is not None:
+            user.username = data.username
 
-        if data.email:
+        if data.email is not None:
             user.email = data.email
 
-        if data.password:
-            user.password_hash = hash_password(
-                data.password
-            )
+        if data.phone_number is not None:
+            user.phone_number = data.phone_number
 
-        return UserRepository.update(
-            db,
-            user,
-        )
+        if data.password:
+            user.password_hash = hash_password(data.password)
+
+        # Role assignment is allowed only through the admin-protected
+        # API route in app/api/routes/users.py.
+        if data.role is not None:
+            user.role = data.role
+
+        return UserRepository.update(db, user)
 
     @staticmethod
-    def delete_user(
-        db: Session,
-        user,
-    ):
-        UserRepository.delete(
-            db,
-            user,
-        )
+    def delete_user(db: Session, user):
+        UserRepository.delete(db, user)

@@ -165,16 +165,28 @@ class PublicationService:
     def delete_publication(
         db: Session,
         publication_id: uuid.UUID,
-        current_user,
+        current_user: User,
     ):
+        # ============================================================
+        # ONLY SYSTEM ADMIN + INSTITUTION ADMIN
+        # ============================================================
+
         if current_user.role not in (
             UserRole.SYSTEM_ADMIN,
             UserRole.INSTITUTION_ADMIN,
         ):
             raise HTTPException(
-                status_code=403,
-                detail="Only System Admin and Institution Admin can delete publications.",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Only System Admin and Institution Admin "
+                    "can delete publications."
+                ),
             )
+
+        # ============================================================
+        # FIND PUBLICATION
+        # ============================================================
+
         publication = publication_repository.get_by_id(
             db,
             publication_id,
@@ -186,17 +198,22 @@ class PublicationService:
                 detail="Publication not found.",
             )
 
-        if publication.owner_id != current_user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not allowed to delete this publication.",
-            )
+        # ============================================================
+        # DELETE ASSOCIATED PDF FILE
+        # ============================================================
 
         if (
             publication.file_path
             and os.path.exists(publication.file_path)
         ):
-            os.remove(publication.file_path)
+            try:
+                os.remove(publication.file_path)
+            except OSError:
+                pass
+
+        # ============================================================
+        # DELETE DATABASE RECORD
+        # ============================================================
 
         publication_repository.delete(
             db,

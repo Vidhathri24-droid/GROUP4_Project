@@ -16,34 +16,81 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
+
+const getWebSocketUrl = () => {
+  const wsUrl = API_URL
+    .replace(/^http:/, "ws:")
+    .replace(/^https:/, "wss:");
+
+  return `${wsUrl}/notifications/ws`;
+};
+import {
+  getToken,
+  getCurrentUser,
+  getNormalizedRole,
+  isSystemAdmin as checkSystemAdmin,
+  isInstitutionAdmin as checkInstitutionAdmin,
+  isReviewer as checkReviewer,
+  isResearcher as checkResearcher,
+  logout as authLogout,
+} from "../utils/auth";
 
 export default function Navbar() {
   const navigate = useNavigate();
 
-  const isLoggedIn =
-    !!localStorage.getItem("access_token");
+  // ============================================================
+  // AUTHENTICATION
+  // ============================================================
+
+  const [accessToken, setAccessToken] = useState(() => {
+    return getToken();
+  });
+
+  const isLoggedIn = !!accessToken;
 
   // ============================================================
   // CURRENT USER
   // ============================================================
 
   const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const storedUser =
-        localStorage.getItem("user");
-
-      return storedUser
-        ? JSON.parse(storedUser)
-        : null;
-    } catch (error) {
-      console.error(
-        "Unable to read logged-in user:",
-        error
-      );
-
-      return null;
-    }
+    return getCurrentUser();
   });
+
+  // ============================================================
+  // NORMALIZED ROLE
+  // ============================================================
+
+  const normalizedRole = getNormalizedRole();
+
+  const isSystemAdmin =
+    checkSystemAdmin();
+
+  const isInstitutionAdmin =
+    checkInstitutionAdmin();
+
+  const isReviewer =
+    checkReviewer();
+
+  const isResearcher =
+    checkResearcher();
+
+  const isAdmin =
+    isSystemAdmin ||
+    isInstitutionAdmin;
+
+  /*
+   * Keep the existing navigation for every authenticated user
+   * except REVIEWER.
+   *
+   * REVIEWER gets only:
+   * - My Profile
+   * - Reviewer Panel
+   *
+   * System Admin and Institution Admin keep their normal
+   * navigation, including Citations and Collaboration.
+   */
+  const canSeeResearcherFeatures = !isReviewer;
 
   // ============================================================
   // NOTIFICATIONS
@@ -63,56 +110,79 @@ export default function Navbar() {
   // ============================================================
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
+    authLogout();
 
+    setAccessToken(null);
     setCurrentUser(null);
     setNotifications([]);
     setUnreadCount(0);
+    setNotificationsOpen(false);
 
     navigate("/login");
   };
 
   // ============================================================
-  // KEEP USER SYNCHRONIZED
+  // KEEP AUTH DATA SYNCHRONIZED
   // ============================================================
 
   useEffect(() => {
-    const updateUser = () => {
-      try {
-        const storedUser =
-          localStorage.getItem("user");
+    const updateAuth = () => {
+      const user = getCurrentUser();
+      const token = getToken();
 
-        setCurrentUser(
-          storedUser
-            ? JSON.parse(storedUser)
-            : null
-        );
-      } catch (error) {
-        console.error(
-          "Unable to read logged-in user:",
-          error
-        );
-
-        setCurrentUser(null);
-      }
+      setCurrentUser(user);
+      setAccessToken(token);
     };
 
+    /*
+     * Storage event handles changes from other tabs.
+     */
     window.addEventListener(
       "storage",
-      updateUser
+      updateAuth
+    );
+
+    /*
+     * Custom event allows the current tab to
+     * immediately refresh when login/user data
+     * changes.
+     */
+    window.addEventListener(
+      "auth:user-updated",
+      updateAuth
+    );
+
+    /*
+     * Also check when the window receives focus.
+     *
+     * This helps when login/logout changes storage
+     * in the same tab without dispatching the event.
+     */
+    window.addEventListener(
+      "focus",
+      updateAuth
     );
 
     return () => {
       window.removeEventListener(
         "storage",
-        updateUser
+        updateAuth
+      );
+
+      window.removeEventListener(
+        "auth:user-updated",
+        updateAuth
+      );
+
+      window.removeEventListener(
+        "focus",
+        updateAuth
       );
     };
   }, []);
 
   // ============================================================
-  // LOAD EXISTING NOTIFICATIONS FROM DATABASE
+  // LOAD EXISTING NOTIFICATIONS
   // ============================================================
 
   useEffect(() => {
@@ -127,10 +197,7 @@ export default function Navbar() {
       }
 
       try {
-        const token =
-          localStorage.getItem(
-            "access_token"
-          );
+        const token = getToken();
 
         if (!token) {
           setNotifications([]);
@@ -153,7 +220,6 @@ export default function Navbar() {
           ? response.data
           : [];
 
-        // Sort newest first
         const sortedData = [...data].sort(
           (a, b) => {
             const dateA = new Date(
@@ -181,11 +247,6 @@ export default function Navbar() {
         console.log(
           `Loaded ${sortedData.length} notifications`
         );
-
-        console.log(
-          "Notifications:",
-          sortedData
-        );
       } catch (error) {
         console.error(
           "Unable to load previous notifications:",
@@ -203,11 +264,6 @@ export default function Navbar() {
             error.response.status
           );
         }
-
-        /*
-         * Do NOT clear existing notification
-         * state if loading fails.
-         */
       }
     };
 
@@ -228,6 +284,9 @@ export default function Navbar() {
     ) {
       return;
     }
+    const WS_URL = API_URL
+      .replace(/^http:/, "ws:")
+      .replace(/^https:/, "wss:");
 
     const socket = new WebSocket(
       `ws://127.0.0.1:8000/notifications/ws?user_id=${currentUser.id}`
@@ -244,18 +303,8 @@ export default function Navbar() {
         const notification =
           JSON.parse(event.data);
 
-        console.log(
-          "New real-time notification:",
-          notification
-        );
-
         setNotifications(
           (previous) => {
-            /*
-             * Prevent duplicate notifications
-             * if the same notification already
-             * exists in the list.
-             */
             const alreadyExists =
               notification.id &&
               previous.some(
@@ -274,10 +323,6 @@ export default function Navbar() {
           }
         );
 
-        /*
-         * Only increment unread count when
-         * the incoming notification is unread.
-         */
         if (!notification.is_read) {
           setUnreadCount(
             (previous) =>
@@ -324,11 +369,6 @@ export default function Navbar() {
       return;
     }
 
-    /*
-     * Find the notification first so that
-     * we only decrease unreadCount if it
-     * was actually unread.
-     */
     const selectedNotification =
       notifications.find(
         (notification) =>
@@ -345,10 +385,7 @@ export default function Navbar() {
     }
 
     try {
-      const token =
-        localStorage.getItem(
-          "access_token"
-        );
+      const token = getToken();
 
       if (!token) {
         return;
@@ -385,10 +422,6 @@ export default function Navbar() {
             previous - 1
           )
       );
-
-      console.log(
-        `Notification ${notificationId} marked as read`
-      );
     } catch (error) {
       console.error(
         "Unable to mark notification as read:",
@@ -407,10 +440,7 @@ export default function Navbar() {
     }
 
     try {
-      const token =
-        localStorage.getItem(
-          "access_token"
-        );
+      const token = getToken();
 
       if (!token) {
         return;
@@ -437,10 +467,6 @@ export default function Navbar() {
       );
 
       setUnreadCount(0);
-
-      console.log(
-        "All notifications marked as read"
-      );
     } catch (error) {
       console.error(
         "Unable to mark all notifications as read:",
@@ -530,543 +556,660 @@ export default function Navbar() {
 
         {/* ======================================================
             NAVIGATION
+
+            IMPORTANT:
+            Explicit display:flex prevents the navbar links
+            from remaining hidden if Bootstrap's collapse
+            behavior/CSS is not loaded correctly.
         ====================================================== */}
 
         <div
-          className="collapse navbar-collapse"
+          className="navbar-collapse"
           id="navbar"
+          style={{
+            display: "flex",
+            flexGrow: 1,
+            alignItems: "center",
+          }}
         >
           <ul className="navbar-nav ms-auto align-items-lg-center">
 
-            {/* HOME */}
-
-            <li className="nav-item">
-              <NavLink
-                className={({ isActive }) =>
-                  isActive
-                    ? "nav-link active fw-bold"
-                    : "nav-link"
-                }
-                to="/"
-              >
-                <i className="bi bi-house-door me-1"></i>
-                Home
-              </NavLink>
-            </li>
-
-            {isLoggedIn && (
+            {!isReviewer && (
               <>
 
-                {/* RESEARCHERS */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/researchers"
-                  >
-                    <i className="bi bi-people me-1"></i>
-                    Researchers
-                  </NavLink>
-                </li>
-
-                {/* PUBLICATIONS */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/publications"
-                  >
-                    <i className="bi bi-journal-text me-1"></i>
-                    Publications
-                  </NavLink>
-                </li>
-
-                {/* CITATIONS */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/citations"
-                  >
-                    <i className="bi bi-quote me-1"></i>
-                    Citations
-                  </NavLink>
-                </li>
-
-                {/* INSTITUTIONS */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/institutions"
-                  >
-                    <i className="bi bi-bank me-1"></i>
-                    Institutions
-                  </NavLink>
-                </li>
-
-                {/* CONFERENCES */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/conferences"
-                  >
-                    <i className="bi bi-calendar-event me-1"></i>
-                    Conferences
-                  </NavLink>
-                </li>
-
-                {/* DASHBOARD */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/dashboard"
-                  >
-                    <i className="bi bi-speedometer2 me-1"></i>
-                    Dashboard
-                  </NavLink>
-                </li>
-
-                {/* COLLABORATION */}
-
-                <li className="nav-item">
-                  <NavLink
-                    className={({ isActive }) =>
-                      isActive
-                        ? "nav-link active fw-bold"
-                        : "nav-link"
-                    }
-                    to="/collaborations"
-                  >
-                    <i className="bi bi-people-fill me-1"></i>
-                    Collaboration
-                  </NavLink>
-                </li>
-
                 {/* ==================================================
-                    NOTIFICATIONS
+                    HOME
                 ================================================== */}
 
-                <li className="nav-item dropdown ms-lg-2">
-
-                  <button
-                    type="button"
-                    className="nav-link position-relative border-0 bg-transparent"
-                    title="Notifications"
-                    aria-label="Notifications"
-                    onClick={() =>
-                      setNotificationsOpen(
-                        (previous) =>
-                          !previous
-                      )
+                <li className="nav-item">
+                  <NavLink
+                    className={({ isActive }) =>
+                      isActive
+                        ? "nav-link active fw-bold"
+                        : "nav-link"
                     }
-                    style={{
-                      fontSize: "22px",
-                      padding: "8px 12px",
-                      color: "white",
-                    }}
+                    to="/"
                   >
-                    <Bell size={22} />
+                    <i className="bi bi-house-door me-1"></i>
+                    Home
+                  </NavLink>
+                </li>
 
-                    {/* UNREAD BADGE */}
+                {isLoggedIn && (
+                  <>
 
-                    {unreadCount > 0 && (
-                      <span
-                        className="position-absolute badge rounded-pill bg-danger"
-                        style={{
-                          top: "0px",
-                          right: "0px",
-                          fontSize: "10px",
-                          minWidth: "17px",
-                        }}
+                    {/* ==================================================
+                        RESEARCHERS
+                    ================================================== */}
+
+                    <li className="nav-item">
+                      <NavLink
+                        className={({ isActive }) =>
+                          isActive
+                            ? "nav-link active fw-bold"
+                            : "nav-link"
+                        }
+                        to="/researchers"
                       >
-                        {unreadCount > 99
-                          ? "99+"
-                          : unreadCount}
-                      </span>
+                        <i className="bi bi-people me-1"></i>
+                        Researchers
+                      </NavLink>
+                    </li>
+
+                    {/* ==================================================
+                        PUBLICATIONS
+                    ================================================== */}
+
+                    <li className="nav-item">
+                      <NavLink
+                        className={({ isActive }) =>
+                          isActive
+                            ? "nav-link active fw-bold"
+                            : "nav-link"
+                        }
+                        to="/publications"
+                      >
+                        <i className="bi bi-journal-text me-1"></i>
+                        Publications
+                      </NavLink>
+                    </li>
+
+                    {/* ==================================================
+                        CITATIONS
+                    ================================================== */}
+
+                    {canSeeResearcherFeatures && (
+                      <li className="nav-item">
+                        <NavLink
+                          className={({ isActive }) =>
+                            isActive
+                              ? "nav-link active fw-bold"
+                              : "nav-link"
+                          }
+                          to="/citations"
+                        >
+                          <i className="bi bi-quote me-1"></i>
+                          Citations
+                        </NavLink>
+                      </li>
                     )}
-                  </button>
 
-                  {/* ==================================================
-                      NOTIFICATION DROPDOWN
-                  ================================================== */}
+                    {/* ==================================================
+                        INSTITUTIONS
+                    ================================================== */}
 
-                  {notificationsOpen && (
-                    <div
-                      className="dropdown-menu dropdown-menu-end shadow show"
+                    <li className="nav-item">
+                      <NavLink
+                        className={({ isActive }) =>
+                          isActive
+                            ? "nav-link active fw-bold"
+                            : "nav-link"
+                        }
+                        to="/institutions"
+                      >
+                        <i className="bi bi-bank me-1"></i>
+                        Institutions
+                      </NavLink>
+                    </li>
+
+                    {/* ==================================================
+                        CONFERENCES
+                    ================================================== */}
+
+                    <li className="nav-item">
+                      <NavLink
+                        className={({ isActive }) =>
+                          isActive
+                            ? "nav-link active fw-bold"
+                            : "nav-link"
+                        }
+                        to="/conferences"
+                      >
+                        <i className="bi bi-calendar-event me-1"></i>
+                        Conferences
+                      </NavLink>
+                    </li>
+
+                    {/* ==================================================
+                        DASHBOARD
+                    ================================================== */}
+
+                    <li className="nav-item">
+                      <NavLink
+                        className={({ isActive }) =>
+                          isActive
+                            ? "nav-link active fw-bold"
+                            : "nav-link"
+                        }
+                        to="/dashboard"
+                      >
+                        <i className="bi bi-speedometer2 me-1"></i>
+                        Dashboard
+                      </NavLink>
+                    </li>
+
+                    {/* ==================================================
+                        COLLABORATION
+                    ================================================== */}
+
+                    {canSeeResearcherFeatures && (
+                      <li className="nav-item">
+                        <NavLink
+                          className={({ isActive }) =>
+                            isActive
+                              ? "nav-link active fw-bold"
+                              : "nav-link"
+                          }
+                          to="/collaboration"
+                        >
+                          <i className="bi bi-people-fill me-1"></i>
+                          Collaboration
+                        </NavLink>
+                      </li>
+                    )}
+
+                    {/* ==================================================
+                        ADMIN PANEL
+                    ================================================== */}
+
+                    {isAdmin && (
+                      <li className="nav-item">
+                        <NavLink
+                          className={({ isActive }) =>
+                            isActive
+                              ? "nav-link active fw-bold"
+                              : "nav-link"
+                          }
+                          to={
+                            isSystemAdmin
+                              ? "/admin"
+                              : "/admin/institution"
+                          }
+                        >
+                          <i className="bi bi-shield-lock me-1"></i>
+                          Admin Panel
+                        </NavLink>
+                      </li>
+                    )}
+
+                  </>
+                )}
+              </>
+            )}
+
+            {/* ==================================================
+                REVIEWER NAVIGATION
+            ================================================== */}
+
+            {isLoggedIn && isReviewer && (
+              <>
+
+                <li className="nav-item">
+                  <NavLink
+                    className={({ isActive }) =>
+                      isActive
+                        ? "nav-link active fw-bold"
+                        : "nav-link"
+                    }
+                    to="/profile"
+                  >
+                    <i className="bi bi-person me-1"></i>
+                    My Profile
+                  </NavLink>
+                </li>
+
+                <li className="nav-item">
+                  <NavLink
+                    className={({ isActive }) =>
+                      isActive
+                        ? "nav-link active fw-bold"
+                        : "nav-link"
+                    }
+                    to="/reviewer"
+                  >
+                    <i className="bi bi-clipboard-check me-1"></i>
+                    Review Panel
+                  </NavLink>
+                </li>
+
+              </>
+            )}
+
+            {/* ==================================================
+                NOTIFICATIONS
+            ================================================== */}
+
+            {isLoggedIn && (
+              <li className="nav-item dropdown ms-lg-2">
+
+                <button
+                  type="button"
+                  className="nav-link position-relative border-0 bg-transparent"
+                  title="Notifications"
+                  aria-label="Notifications"
+                  onClick={() =>
+                    setNotificationsOpen(
+                      (previous) =>
+                        !previous
+                    )
+                  }
+                  style={{
+                    fontSize: "22px",
+                    padding: "8px 12px",
+                    color: "white",
+                  }}
+                >
+                  <Bell size={22} />
+
+                  {unreadCount > 0 && (
+                    <span
+                      className="position-absolute badge rounded-pill bg-danger"
                       style={{
-                        width: "380px",
-                        maxWidth:
-                          "calc(100vw - 30px)",
-                        maxHeight:
-                          "520px",
-                        overflowY: "auto",
-                        padding: 0,
+                        top: "0px",
+                        right: "0px",
+                        fontSize: "10px",
+                        minWidth: "17px",
                       }}
                     >
+                      {unreadCount > 99
+                        ? "99+"
+                        : unreadCount}
+                    </span>
+                  )}
+                </button>
 
-                      {/* HEADER */}
+                {/* ==================================================
+                    NOTIFICATION DROPDOWN
+                ================================================== */}
 
-                      <div
-                        className="px-3 py-3 border-bottom d-flex justify-content-between align-items-center"
-                      >
-                        <div>
-                          <strong>
-                            Notifications
-                          </strong>
+                {notificationsOpen && (
+                  <div
+                    className="dropdown-menu dropdown-menu-end shadow show"
+                    style={{
+                      width: "380px",
+                      maxWidth:
+                        "calc(100vw - 30px)",
+                      maxHeight:
+                        "520px",
+                      overflowY: "auto",
+                      padding: 0,
+                    }}
+                  >
 
-                          <div className="text-muted small">
-                            Stay updated
-                          </div>
+                    {/* HEADER */}
+
+                    <div
+                      className="px-3 py-3 border-bottom d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <strong>
+                          Notifications
+                        </strong>
+
+                        <div className="text-muted small">
+                          Stay updated
                         </div>
-
-                        {unreadCount > 0 && (
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-link text-primary p-0"
-                            onClick={
-                              markAllAsRead
-                            }
-                          >
-                            Mark all read
-                          </button>
-                        )}
                       </div>
 
-                      {/* ==================================================
-                          NOTIFICATIONS LIST
-                      ================================================== */}
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-link text-primary p-0"
+                          onClick={
+                            markAllAsRead
+                          }
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
 
-                      {notifications.length === 0 ? (
+                    {/* NOTIFICATION LIST */}
 
-                        /* EMPTY STATE */
+                    {notifications.length === 0 ? (
 
-                        <div className="text-center py-5 px-3">
+                      <div className="text-center py-5 px-3">
 
-                          <div
-                            className="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
-                            style={{
-                              width: "52px",
-                              height: "52px",
-                            }}
-                          >
-                            <Bell
-                              size={24}
-                              className="text-primary"
-                            />
-                          </div>
-
-                          <div className="fw-semibold">
-                            No notifications
-                          </div>
-
-                          <div className="text-muted small mt-1">
-                            You're all caught up.
-                          </div>
-
+                        <div
+                          className="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                          style={{
+                            width: "52px",
+                            height: "52px",
+                          }}
+                        >
+                          <Bell
+                            size={24}
+                            className="text-primary"
+                          />
                         </div>
 
-                      ) : (
+                        <div className="fw-semibold">
+                          No notifications
+                        </div>
 
-                        /* NOTIFICATION LIST */
+                        <div className="text-muted small mt-1">
+                          You're all caught up.
+                        </div>
 
-                        <div>
+                      </div>
 
-                          {notifications.map(
-                            (
-                              notification,
-                              index
-                            ) => (
+                    ) : (
 
-                              <button
-                                key={
-                                  notification.id ||
-                                  `notification-${index}`
-                                }
-                                type="button"
-                                className="w-100 text-start border-0"
-                                onClick={() => {
+                      <div>
 
-                                  /*
-                                   * Only call API if the
-                                   * notification is unread.
-                                   */
-                                  if (
-                                    !notification.is_read &&
+                        {notifications.map(
+                          (
+                            notification,
+                            index
+                          ) => (
+
+                            <button
+                              key={
+                                notification.id ||
+                                `notification-${index}`
+                              }
+                              type="button"
+                              className="w-100 text-start border-0"
+                              onClick={() => {
+                                if (
+                                  !notification.is_read &&
+                                  notification.id
+                                ) {
+                                  markAsRead(
                                     notification.id
-                                  ) {
-                                    markAsRead(
-                                      notification.id
-                                    );
-                                  }
-                                }}
-                                style={{
-                                  padding:
-                                    "14px 16px",
+                                  );
+                                }
+                              }}
+                              style={{
+                                padding:
+                                  "14px 16px",
+                                borderBottom:
+                                  "1px solid #eee",
+                                backgroundColor:
+                                  notification.is_read
+                                    ? "white"
+                                    : "#f0f7ff",
+                                cursor:
+                                  notification.is_read
+                                    ? "default"
+                                    : "pointer",
+                              }}
+                            >
 
-                                  borderBottom:
-                                    "1px solid #eee",
+                              <div className="d-flex gap-3">
 
-                                  backgroundColor:
-                                    notification.is_read
-                                      ? "white"
-                                      : "#f0f7ff",
+                                <div
+                                  className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0"
+                                  style={{
+                                    width: "38px",
+                                    height: "38px",
+                                  }}
+                                >
+                                  <Bell size={17} />
+                                </div>
 
-                                  cursor:
-                                    notification.is_read
-                                      ? "default"
-                                      : "pointer",
-                                }}
-                              >
+                                <div
+                                  className="flex-grow-1"
+                                  style={{
+                                    minWidth: 0,
+                                  }}
+                                >
 
-                                <div className="d-flex gap-3">
+                                  <div className="d-flex justify-content-between gap-2">
 
-                                  {/* ICON */}
+                                    <strong
+                                      className="small"
+                                      style={{
+                                        overflow:
+                                          "hidden",
+                                        textOverflow:
+                                          "ellipsis",
+                                        whiteSpace:
+                                          "nowrap",
+                                      }}
+                                    >
+                                      {notification.title ||
+                                        "Notification"}
+                                    </strong>
 
-                                  <div
-                                    className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center flex-shrink-0"
-                                    style={{
-                                      width: "38px",
-                                      height: "38px",
-                                    }}
-                                  >
-                                    <Bell
-                                      size={17}
-                                    />
+                                    {!notification.is_read && (
+                                      <span
+                                        className="bg-primary rounded-circle flex-shrink-0"
+                                        style={{
+                                          width: "7px",
+                                          height: "7px",
+                                          marginTop: "5px",
+                                        }}
+                                      />
+                                    )}
+
                                   </div>
 
-                                  {/* CONTENT */}
-
                                   <div
-                                    className="flex-grow-1"
+                                    className="text-muted small mt-1"
                                     style={{
-                                      minWidth: 0,
+                                      lineHeight:
+                                        "1.4",
+                                      wordBreak:
+                                        "break-word",
                                     }}
                                   >
+                                    {notification.message ||
+                                      "You have a new notification."}
+                                  </div>
 
-                                    {/* TITLE + UNREAD DOT */}
-
-                                    <div className="d-flex justify-content-between gap-2">
-
-                                      <strong
-                                        className="small"
-                                        style={{
-                                          overflow:
-                                            "hidden",
-
-                                          textOverflow:
-                                            "ellipsis",
-
-                                          whiteSpace:
-                                            "nowrap",
-                                        }}
-                                      >
-                                        {notification.title ||
-                                          "Notification"}
-                                      </strong>
-
-                                      {!notification.is_read && (
-                                        <span
-                                          className="bg-primary rounded-circle flex-shrink-0"
-                                          style={{
-                                            width:
-                                              "7px",
-
-                                            height:
-                                              "7px",
-
-                                            marginTop:
-                                              "5px",
-                                          }}
-                                        />
-                                      )}
-
-                                    </div>
-
-                                    {/* MESSAGE */}
-
-                                    <div
-                                      className="text-muted small mt-1"
-                                      style={{
-                                        lineHeight:
-                                          "1.4",
-
-                                        wordBreak:
-                                          "break-word",
-                                      }}
-                                    >
-                                      {notification.message ||
-                                        "You have a new notification."}
-                                    </div>
-
-                                    {/* TIME */}
-
-                                    <div
-                                      className="text-muted mt-1"
-                                      style={{
-                                        fontSize:
-                                          "11px",
-                                      }}
-                                    >
-                                      {formatNotificationTime(
-                                        notification.created_at
-                                      )}
-                                    </div>
-
+                                  <div
+                                    className="text-muted mt-1"
+                                    style={{
+                                      fontSize:
+                                        "11px",
+                                    }}
+                                  >
+                                    {formatNotificationTime(
+                                      notification.created_at
+                                    )}
                                   </div>
 
                                 </div>
 
-                              </button>
+                              </div>
 
+                            </button>
+
+                          )
+                        )}
+
+                      </div>
+
+                    )}
+
+                    {/* FOOTER */}
+
+                    {notifications.length > 0 && (
+                      <div className="border-top text-center p-2">
+
+                        <Link
+                          to="/notifications"
+                          className="small text-primary text-decoration-none"
+                          onClick={() =>
+                            setNotificationsOpen(
+                              false
                             )
-                          )}
+                          }
+                        >
+                          View all notifications
+                        </Link>
 
-                        </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* ==================================================
-                          FOOTER
-                      ================================================== */}
+                  </div>
+                )}
 
-                      {notifications.length > 0 && (
-                        <div className="border-top text-center p-2">
+              </li>
+            )}
 
-                          <Link
-                            to="/notifications"
-                            className="small text-primary text-decoration-none"
-                            onClick={() =>
-                              setNotificationsOpen(
-                                false
-                              )
-                            }
-                          >
-                            View all notifications
-                          </Link>
+            {/* ==================================================
+                SEARCH
+            ================================================== */}
 
-                        </div>
-                      )}
+            <li className="nav-item ms-lg-2">
 
-                    </div>
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/search")
+                }
+                title="Search"
+                aria-label="Search"
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "white",
+                  fontSize: "22px",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                <Search size={22} />
+              </button>
+
+            </li>
+
+            {/* ==================================================
+                USER MENU
+            ================================================== */}
+
+            {isLoggedIn && (
+              <li className="nav-item dropdown ms-lg-3">
+
+                <a
+                  className="nav-link dropdown-toggle"
+                  href="#"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  onClick={(event) =>
+                    event.preventDefault()
+                  }
+                >
+                  <UserCircle
+                    size={22}
+                    className="me-1"
+                  />
+                </a>
+
+                <ul className="dropdown-menu dropdown-menu-end shadow">
+
+                  {/* ==================================================
+                      PROFILE
+                  ================================================== */}
+
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/profile"
+                    >
+                      <i className="bi bi-person me-2"></i>
+                      My Profile
+                    </Link>
+                  </li>
+
+                  {/* ==================================================
+                      SYSTEM ADMIN PANEL
+                  ================================================== */}
+
+                  {isSystemAdmin && (
+                    <>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/admin"
+                        >
+                          <i className="bi bi-shield-lock me-2"></i>
+                          Admin Panel
+                        </Link>
+                      </li>
+
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                    </>
                   )}
 
-                </li>
+                  {/* ==================================================
+                      INSTITUTION ADMIN PANEL
+                  ================================================== */}
 
-                {/* ==================================================
-                    SEARCH
-                ================================================== */}
+                  {isInstitutionAdmin && (
+                    <>
+                      <li>
+                        <Link
+                          className="dropdown-item"
+                          to="/admin/institution"
+                        >
+                          <i className="bi bi-building me-2"></i>
+                          Institution Admin Panel
+                        </Link>
+                      </li>
 
-                <li className="nav-item ms-lg-2">
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
+                    </>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate("/search")
-                    }
-                    title="Search"
-                    aria-label="Search"
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "white",
-                      fontSize: "22px",
-                      padding: "8px 12px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Search size={22} />
-                  </button>
+                  {/* SETTINGS */}
 
-                </li>
+                  <li>
+                    <Link
+                      className="dropdown-item"
+                      to="/settings"
+                    >
+                      <i className="bi bi-gear me-2"></i>
+                      Settings
+                    </Link>
+                  </li>
 
-                {/* ==================================================
-                    USER MENU
-                ================================================== */}
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
 
-                <li className="nav-item dropdown ms-lg-3">
+                  {/* LOGOUT */}
 
-                  <a
-                    className="nav-link dropdown-toggle"
-                    href="#"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    onClick={(event) =>
-                      event.preventDefault()
-                    }
-                  >
-                    <UserCircle
-                      size={22}
-                      className="me-1"
-                    />
-                  </a>
+                  <li>
+                    <button
+                      type="button"
+                      className="dropdown-item text-danger"
+                      onClick={logout}
+                    >
+                      <i className="bi bi-box-arrow-right me-2"></i>
+                      Logout
+                    </button>
+                  </li>
 
-                  <ul className="dropdown-menu dropdown-menu-end shadow">
+                </ul>
 
-                    <li>
-                      <Link
-                        className="dropdown-item"
-                        to="/profile"
-                      >
-                        <i className="bi bi-person me-2"></i>
-                        My Profile
-                      </Link>
-                    </li>
-
-                    <li>
-                      <Link
-                        className="dropdown-item"
-                        to="/settings"
-                      >
-                        <i className="bi bi-gear me-2"></i>
-                        Settings
-                      </Link>
-                    </li>
-
-                    <li>
-                      <hr className="dropdown-divider" />
-                    </li>
-
-                    <li>
-                      <button
-                        className="dropdown-item text-danger"
-                        onClick={logout}
-                      >
-                        <i className="bi bi-box-arrow-right me-2"></i>
-                        Logout
-                      </button>
-                    </li>
-
-                  </ul>
-
-                </li>
-
-              </>
+              </li>
             )}
 
             {/* ======================================================

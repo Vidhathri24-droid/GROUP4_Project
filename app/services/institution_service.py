@@ -1,4 +1,5 @@
 from uuid import UUID
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -13,18 +14,43 @@ from app.models.user import User, UserRole
 
 class InstitutionService:
 
+    # ============================================================
+    # ROLE CHECK
+    # SYSTEM ADMIN + INSTITUTION ADMIN
+    # ============================================================
+
+    @staticmethod
+    def _can_manage_institutions(current_user: User) -> bool:
+        return current_user.role in (
+            UserRole.SYSTEM_ADMIN,
+            UserRole.INSTITUTION_ADMIN,
+        )
+
+    # ============================================================
+    # CREATE INSTITUTION
+    # SYSTEM ADMIN + INSTITUTION ADMIN
+    # ============================================================
+
     @staticmethod
     def create_institution(
         db: Session,
         data: InstitutionCreate,
         current_user: User,
     ):
-        # Only System Admin can create institutions
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if not InstitutionService._can_manage_institutions(
+            current_user
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only System Admin can create institutions.",
+                detail=(
+                    "Only System Admin and Institution Admin "
+                    "can create institutions."
+                ),
             )
+
+        # --------------------------------------------------------
+        # Check duplicate institution name
+        # --------------------------------------------------------
 
         existing = InstitutionRepository.get_by_name(
             db,
@@ -33,9 +59,13 @@ class InstitutionService:
 
         if existing:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Institution already exists",
             )
+
+        # --------------------------------------------------------
+        # Create institution
+        # --------------------------------------------------------
 
         institution = Institution(
             **data.model_dump()
@@ -46,11 +76,19 @@ class InstitutionService:
             institution,
         )
 
+    # ============================================================
+    # GET ALL INSTITUTIONS
+    # ============================================================
+
     @staticmethod
     def get_all_institutions(
         db: Session,
     ):
         return InstitutionRepository.get_all(db)
+
+    # ============================================================
+    # GET ONE INSTITUTION
+    # ============================================================
 
     @staticmethod
     def get_institution(
@@ -64,11 +102,16 @@ class InstitutionService:
 
         if institution is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Institution not found",
             )
 
         return institution
+
+    # ============================================================
+    # UPDATE INSTITUTION
+    # SYSTEM ADMIN + INSTITUTION ADMIN
+    # ============================================================
 
     @staticmethod
     def update_institution(
@@ -77,12 +120,20 @@ class InstitutionService:
         data: InstitutionUpdate,
         current_user: User,
     ):
-        # Only System Admin can update institutions
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if not InstitutionService._can_manage_institutions(
+            current_user
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only System Admin can update institutions.",
+                detail=(
+                    "Only System Admin and Institution Admin "
+                    "can update institutions."
+                ),
             )
+
+        # --------------------------------------------------------
+        # Find institution
+        # --------------------------------------------------------
 
         institution = InstitutionRepository.get_by_id(
             db,
@@ -91,19 +142,57 @@ class InstitutionService:
 
         if institution is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Institution not found",
             )
 
-        updates = data.model_dump(exclude_unset=True)
+        # --------------------------------------------------------
+        # Apply only supplied fields
+        # --------------------------------------------------------
+
+        updates = data.model_dump(
+            exclude_unset=True
+        )
+
+        # --------------------------------------------------------
+        # Prevent accidental duplicate institution names
+        # --------------------------------------------------------
+
+        if "name" in updates:
+            existing = InstitutionRepository.get_by_name(
+                db,
+                updates["name"],
+            )
+
+            if (
+                existing is not None
+                and existing.id != institution.id
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Institution already exists",
+                )
+
+        # --------------------------------------------------------
+        # Update institution
+        # --------------------------------------------------------
 
         for key, value in updates.items():
-            setattr(institution, key, value)
+            setattr(
+                institution,
+                key,
+                value,
+            )
 
         db.commit()
         db.refresh(institution)
 
         return institution
+
+    # ============================================================
+    # DELETE INSTITUTION
+    # SYSTEM ADMIN + INSTITUTION ADMIN
+    # ============================================================
 
     @staticmethod
     def delete_institution(
@@ -111,12 +200,20 @@ class InstitutionService:
         institution_id: UUID,
         current_user: User,
     ):
-        # Only System Admin can delete institutions
-        if current_user.role != UserRole.SYSTEM_ADMIN:
+        if not InstitutionService._can_manage_institutions(
+            current_user
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Only System Admin can delete institutions.",
+                detail=(
+                    "Only System Admin and Institution Admin "
+                    "can delete institutions."
+                ),
             )
+
+        # --------------------------------------------------------
+        # Find institution
+        # --------------------------------------------------------
 
         institution = InstitutionRepository.get_by_id(
             db,
@@ -125,9 +222,13 @@ class InstitutionService:
 
         if institution is None:
             raise HTTPException(
-                status_code=404,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail="Institution not found",
             )
+
+        # --------------------------------------------------------
+        # Delete institution
+        # --------------------------------------------------------
 
         InstitutionRepository.delete(
             db,

@@ -2,13 +2,19 @@ import uuid
 
 from datetime import date, time
 
-from sqlalchemy import String, Date, Time, Text
+from sqlalchemy import (
+    String,
+    Date,
+    Time,
+    Text,
+    ForeignKey,
+)
+
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
-from app.models.conference_participant import ConferenceParticipant
 
 
 class Conference(TimestampMixin, Base):
@@ -43,6 +49,27 @@ class Conference(TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
+    )
+
+    # ---------------------------------------------------------
+    # Admin who created the conference
+    # ---------------------------------------------------------
+
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    # ---------------------------------------------------------
+    # Relationships
+    # ---------------------------------------------------------
+
+    creator = relationship(
+        "User",
+        foreign_keys=[created_by],
+        back_populates="created_conferences",
     )
 
     registrations = relationship(

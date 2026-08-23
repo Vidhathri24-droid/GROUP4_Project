@@ -1,1214 +1,1254 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
-    getCitations,
-    deleteCitation,
-    exportBibtex,
+  getCitations,
+  deleteCitation,
 } from "../../services/citationService";
 
-import "./Citations.css";
-
-
 function Citations() {
-    /* =========================================================
-       STATE
-    ========================================================= */
+  const navigate = useNavigate();
 
-    const [citations, setCitations] = useState([]);
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+  // ============================================================
+  // STATE
+  // ============================================================
 
-    // Filters
-    const [search, setSearch] = useState("");
-    const [citationStyle, setCitationStyle] = useState("");
-    const [year, setYear] = useState("");
-    const [sortBy, setSortBy] = useState("newest");
+  const [citations, setCitations] = useState([]);
 
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const citationsPerPage = 6;
+  // Search & filters
+  const [search, setSearch] = useState("");
+  const [ownershipFilter, setOwnershipFilter] = useState("all");
+  const [styleFilter, setStyleFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
-    // Export state
-    const [exportingId, setExportingId] = useState(null);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const ITEMS_PER_PAGE = 6;
 
-    /* =========================================================
-       LOAD CITATIONS
-    ========================================================= */
 
-    useEffect(() => {
-        loadCitations();
-    }, []);
+  // ============================================================
+  // LOAD CITATIONS
+  // ============================================================
 
+  const fetchCitations = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    const loadCitations = async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const data = await getCitations();
-
-            if (Array.isArray(data)) {
-                setCitations(data);
-            } else if (Array.isArray(data?.citations)) {
-                setCitations(data.citations);
-            } else if (Array.isArray(data?.data)) {
-                setCitations(data.data);
-            } else {
-                setCitations([]);
-            }
+      const mine = ownershipFilter === "mine";
 
-        } catch (err) {
-            console.error("Unable to load citations:", err);
+      const data = await getCitations(mine);
 
-            setError(
-                err.response?.data?.detail ||
-                "Unable to load citations. Please try again."
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+      console.log("Citations loaded:", data);
 
+      if (Array.isArray(data)) {
+        setCitations(data);
+      } else if (Array.isArray(data?.items)) {
+        setCitations(data.items);
+      } else {
+        setCitations([]);
+      }
 
-    /* =========================================================
-       DELETE
-    ========================================================= */
+    } catch (err) {
+      console.error("Failed to load citations:", err);
 
-    const handleDelete = async (id) => {
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this citation?"
-        );
+      setError(
+        err?.response?.data?.detail ||
+        "Failed to load citations."
+      );
 
-        if (!confirmed) {
-            return;
-        }
+      setCitations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            await deleteCitation(id);
 
-            setCitations((previous) =>
-                previous.filter(
-                    (citation) => citation.id !== id
-                )
-            );
+  // Reload whenever ownership changes
+  useEffect(() => {
+    fetchCitations();
+    setCurrentPage(1);
+  }, [ownershipFilter]);
 
-            setCurrentPage((page) => {
-                const remaining = citations.length - 1;
 
-                const maxPage = Math.max(
-                    1,
-                    Math.ceil(
-                        remaining / citationsPerPage
-                    )
-                );
+  // ============================================================
+  // REFRESH
+  // ============================================================
 
-                return Math.min(page, maxPage);
-            });
+  const handleRefresh = () => {
+    fetchCitations();
+    setCurrentPage(1);
+  };
 
-        } catch (err) {
-            console.error("Unable to delete citation:", err);
 
-            alert(
-                err.response?.data?.detail ||
-                "Unable to delete citation."
-            );
-        }
-    };
+  // ============================================================
+  // DELETE
+  // ============================================================
 
-
-    /* =========================================================
-       BIBTEX EXPORT
-    ========================================================= */
-
-    const handleBibtex = async (id) => {
-        try {
-            setExportingId(id);
-
-            const response = await exportBibtex(id);
-
-            /*
-             * Handle different possible API responses.
-             */
-
-            const content =
-                typeof response === "string"
-                    ? response
-                    : response?.data;
-
-            if (!content) {
-                throw new Error(
-                    "No BibTeX data received."
-                );
-            }
-
-            const blob = new Blob(
-                [content],
-                {
-                    type: "application/x-bibtex",
-                }
-            );
-
-            const url =
-                window.URL.createObjectURL(blob);
-
-            const link =
-                document.createElement("a");
-
-            link.href = url;
-
-            link.download = "citation.bib";
-
-            document.body.appendChild(link);
-
-            link.click();
-
-            link.remove();
-
-            window.URL.revokeObjectURL(url);
-
-        } catch (err) {
-            console.error(
-                "Unable to export BibTeX:",
-                err
-            );
-
-            alert(
-                err.response?.data?.detail ||
-                "Unable to export BibTeX."
-            );
-        } finally {
-            setExportingId(null);
-        }
-    };
-
-
-    /* =========================================================
-       FILTER OPTIONS
-    ========================================================= */
-
-    const citationStyles = useMemo(() => {
-        const styles = citations
-            .map(
-                (citation) =>
-                    citation.citation_style
-            )
-            .filter(Boolean);
-
-        return [...new Set(styles)].sort();
-    }, [citations]);
-
-
-    /* =========================================================
-       FILTER + SORT
-    ========================================================= */
-
-    const filteredCitations = useMemo(() => {
-        const searchValue =
-            search.trim().toLowerCase();
-
-        let result = citations.filter(
-            (citation) => {
-
-                const searchableText = [
-                    citation.title,
-                    citation.authors,
-                    citation.journal,
-                    citation.doi,
-                    citation.url,
-                    citation.citation_style,
-                    citation.formatted_citation,
-                ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase();
-
-
-                const matchesSearch =
-                    !searchValue ||
-                    searchableText.includes(
-                        searchValue
-                    );
-
-
-                const matchesStyle =
-                    !citationStyle ||
-                    citation.citation_style ===
-                        citationStyle;
-
-
-                const matchesYear =
-                    !year ||
-                    String(
-                        citation.year || ""
-                    ) === String(year);
-
-
-                return (
-                    matchesSearch &&
-                    matchesStyle &&
-                    matchesYear
-                );
-            }
-        );
-
-
-        /* =====================================================
-           SORT
-        ===================================================== */
-
-        result = [...result].sort(
-            (a, b) => {
-
-                if (sortBy === "newest") {
-                    return (
-                        Number(b.year || 0) -
-                        Number(a.year || 0)
-                    );
-                }
-
-
-                if (sortBy === "oldest") {
-                    return (
-                        Number(a.year || 0) -
-                        Number(b.year || 0)
-                    );
-                }
-
-
-                if (sortBy === "title") {
-                    return String(
-                        a.title || ""
-                    ).localeCompare(
-                        String(
-                            b.title || ""
-                        )
-                    );
-                }
-
-
-                if (sortBy === "authors") {
-                    return String(
-                        a.authors || ""
-                    ).localeCompare(
-                        String(
-                            b.authors || ""
-                        )
-                    );
-                }
-
-
-                return 0;
-            }
-        );
-
-
-        return result;
-
-    }, [
-        citations,
-        search,
-        citationStyle,
-        year,
-        sortBy,
-    ]);
-
-
-    /* =========================================================
-       PAGINATION
-    ========================================================= */
-
-    const totalPages = Math.max(
-        1,
-        Math.ceil(
-            filteredCitations.length /
-                citationsPerPage
-        )
+  const handleDelete = async (citationId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this citation?"
     );
 
+    if (!confirmed) {
+      return;
+    }
 
-    useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages);
+    try {
+      await deleteCitation(citationId);
+
+      alert("Citation deleted successfully.");
+
+      await fetchCitations();
+
+    } catch (err) {
+      console.error("Delete citation error:", err);
+
+      alert(
+        err?.response?.data?.detail ||
+        "Failed to delete citation."
+      );
+    }
+  };
+
+
+  // ============================================================
+  // BIBTEX GENERATOR
+  // ============================================================
+
+  const generateBibTeX = (citation) => {
+    const authors = citation.authors || "Unknown Author";
+
+    const firstAuthor =
+      authors
+        .split(",")[0]
+        ?.trim()
+        ?.replace(/\s+/g, "_")
+        ?.replace(/[^a-zA-Z0-9_-]/g, "") ||
+      "citation";
+
+    const year =
+      citation.year ||
+      new Date().getFullYear();
+
+    const title =
+      citation.title ||
+      "Untitled Publication";
+
+    const key = `${firstAuthor}${year}`;
+
+    const escapeBibtex = (value) => {
+      if (!value) return "";
+
+      return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/[{}]/g, "")
+        .replace(/&/g, "\\&");
+    };
+
+    let bibtex = `@article{${key},
+  title = {${escapeBibtex(title)}},
+  author = {${escapeBibtex(authors)}},
+  year = {${year}}`;
+
+    if (citation.journal) {
+      bibtex += `,
+  journal = {${escapeBibtex(citation.journal)}}`;
+    }
+
+    if (citation.volume) {
+      bibtex += `,
+  volume = {${escapeBibtex(citation.volume)}}`;
+    }
+
+    if (citation.issue) {
+      bibtex += `,
+  number = {${escapeBibtex(citation.issue)}}`;
+    }
+
+    if (citation.pages) {
+      bibtex += `,
+  pages = {${escapeBibtex(citation.pages)}}`;
+    }
+
+    if (citation.doi) {
+      bibtex += `,
+  doi = {${escapeBibtex(citation.doi)}}`;
+    }
+
+    if (citation.url) {
+      bibtex += `,
+  url = {${escapeBibtex(citation.url)}}`;
+    }
+
+    bibtex += "\n}";
+
+    return bibtex;
+  };
+
+
+  const handleBibTeX = (citation) => {
+    try {
+      const bibtex = generateBibTeX(citation);
+
+      const blob = new Blob(
+        [bibtex],
+        {
+          type: "application/x-bibtex",
         }
-    }, [currentPage, totalPages]);
+      );
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+
+      link.download =
+        `${(citation.title || "citation")
+          .replace(/[^a-z0-9]/gi, "_")
+          .toLowerCase()}.bib`;
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      document.body.removeChild(link);
+
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error("BibTeX export error:", err);
+
+      alert("Unable to export BibTeX.");
+    }
+  };
 
 
-    const startIndex =
-        (currentPage - 1) *
-        citationsPerPage;
+  // ============================================================
+  // SEARCH + FILTER + SORT
+  // ============================================================
 
+  const filteredCitations = useMemo(() => {
+    let result = [...citations];
 
-    const endIndex = Math.min(
-        startIndex + citationsPerPage,
-        filteredCitations.length
-    );
+    // ----------------------------------------------------------
+    // Search
+    // ----------------------------------------------------------
 
+    const searchValue = search
+      .trim()
+      .toLowerCase();
 
-    const currentCitations =
-        filteredCitations.slice(
-            startIndex,
-            endIndex
-        );
+    if (searchValue) {
+      result = result.filter((citation) => {
 
+        const searchableText = [
+          citation.title,
+          citation.authors,
+          citation.journal,
+          citation.doi,
+          citation.url,
+          citation.citation_style,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-    /* =========================================================
-       RESET PAGE WHEN FILTER CHANGES
-    ========================================================= */
-
-    const handleSearchChange = (event) => {
-        setSearch(event.target.value);
-        setCurrentPage(1);
-    };
-
-
-    const handleStyleChange = (event) => {
-        setCitationStyle(
-            event.target.value
-        );
-
-        setCurrentPage(1);
-    };
-
-
-    const handleYearChange = (event) => {
-        setYear(event.target.value);
-        setCurrentPage(1);
-    };
-
-
-    const handleSortChange = (event) => {
-        setSortBy(event.target.value);
-        setCurrentPage(1);
-    };
-
-
-    /* =========================================================
-       CLEAR FILTERS
-    ========================================================= */
-
-    const clearFilters = () => {
-        setSearch("");
-        setCitationStyle("");
-        setYear("");
-        setSortBy("newest");
-        setCurrentPage(1);
-    };
-
-
-    const hasActiveFilters =
-        search ||
-        citationStyle ||
-        year ||
-        sortBy !== "newest";
-
-
-    /* =========================================================
-       PAGE NAVIGATION
-    ========================================================= */
-
-    const goToPage = (page) => {
-        if (
-            page < 1 ||
-            page > totalPages
-        ) {
-            return;
-        }
-
-        setCurrentPage(page);
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-        });
-    };
-
-
-    const getPageNumbers = () => {
-        const pages = [];
-
-        if (totalPages <= 7) {
-            for (
-                let i = 1;
-                i <= totalPages;
-                i++
-            ) {
-                pages.push(i);
-            }
-
-            return pages;
-        }
-
-
-        pages.push(1);
-
-
-        if (currentPage > 4) {
-            pages.push("...");
-        }
-
-
-        const start = Math.max(
-            2,
-            currentPage - 1
-        );
-
-        const end = Math.min(
-            totalPages - 1,
-            currentPage + 1
-        );
-
-
-        for (
-            let i = start;
-            i <= end;
-            i++
-        ) {
-            pages.push(i);
-        }
-
-
-        if (
-            currentPage <
-            totalPages - 3
-        ) {
-            pages.push("...");
-        }
-
-
-        pages.push(totalPages);
-
-        return pages;
-    };
-
-
-    /* =========================================================
-       LOADING
-    ========================================================= */
-
-    if (loading) {
-        return (
-            <div className="citations-page">
-
-                <div className="citations-header">
-
-                    <div>
-
-                        <h1>
-                            Citation Management
-                        </h1>
-
-                        <p>
-                            Manage and organize
-                            publication citations.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div className="citations-empty">
-
-                    <div className="citations-empty-icon">
-                        ⏳
-                    </div>
-
-                    <h3>
-                        Loading citations...
-                    </h3>
-
-                    <p>
-                        Retrieving citation records
-                        from the research network.
-                    </p>
-
-                </div>
-
-            </div>
-        );
+        return searchableText.includes(searchValue);
+      });
     }
 
 
-    /* =========================================================
-       ERROR
-    ========================================================= */
+    // ----------------------------------------------------------
+    // Citation Style
+    // ----------------------------------------------------------
 
-    if (error) {
-        return (
-            <div className="citations-page">
-
-                <div className="citations-header">
-
-                    <div>
-                        <div className="citations-eyebrow">
-                            📚 Research Network
-                        </div>
-
-                        <h1>
-                            Citation Management
-                        </h1>
-
-                        <p>
-                            Manage and organize
-                            publication citations.
-                        </p>
-                    </div>
-
-                    <div className="citations-header-actions">
-
-                        <button
-                            type="button"
-                            className="citation-btn citation-btn-outline"
-                            onClick={loadCitations}
-                        >
-                            ↻ Refresh
-                        </button>
-
-                        <Link
-                            to="/citations/add"
-                            className="citation-btn citation-btn-primary"
-                        >
-                            + Add Citation
-                        </Link>
-
-                    </div>
-
-                </div>
-
-
-                <div className="citations-empty">
-
-                    <div className="citations-empty-icon">
-                        ⚠️
-                    </div>
-
-                    <h3>
-                        Unable to load citations
-                    </h3>
-
-                    <p>
-                        {error}
-                    </p>
-
-                    <button
-                        type="button"
-                        className="citation-btn citation-btn-primary"
-                        onClick={loadCitations}
-                    >
-                        Try Again
-                    </button>
-
-                </div>
-
-            </div>
-        );
+    if (styleFilter) {
+      result = result.filter(
+        (citation) =>
+          String(
+            citation.citation_style || ""
+          ).toUpperCase() ===
+          styleFilter.toUpperCase()
+      );
     }
 
 
-    /* =========================================================
-       MAIN
-    ========================================================= */
+    // ----------------------------------------------------------
+    // Year
+    // ----------------------------------------------------------
 
+    if (yearFilter) {
+      result = result.filter(
+        (citation) =>
+          String(citation.year || "") ===
+          String(yearFilter)
+      );
+    }
+
+
+    // ----------------------------------------------------------
+    // Sorting
+    // ----------------------------------------------------------
+
+    result.sort((a, b) => {
+
+      if (sortBy === "newest") {
+        return (
+          Number(b.year || 0) -
+          Number(a.year || 0)
+        );
+      }
+
+      if (sortBy === "oldest") {
+        return (
+          Number(a.year || 0) -
+          Number(b.year || 0)
+        );
+      }
+
+      if (sortBy === "title_asc") {
+        return String(
+          a.title || ""
+        ).localeCompare(
+          String(b.title || "")
+        );
+      }
+
+      if (sortBy === "title_desc") {
+        return String(
+          b.title || ""
+        ).localeCompare(
+          String(a.title || "")
+        );
+      }
+
+      return 0;
+    });
+
+    return result;
+
+  }, [
+    citations,
+    search,
+    styleFilter,
+    yearFilter,
+    sortBy,
+  ]);
+
+
+  // ============================================================
+  // PAGINATION
+  // ============================================================
+
+  const totalPages = Math.ceil(
+    filteredCitations.length /
+      ITEMS_PER_PAGE
+  );
+
+  const safeCurrentPage =
+    Math.min(
+      currentPage,
+      Math.max(totalPages, 1)
+    );
+
+  const startIndex =
+    (safeCurrentPage - 1) *
+    ITEMS_PER_PAGE;
+
+  const paginatedCitations =
+    filteredCitations.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+
+
+  // ============================================================
+  // RESET FILTERS
+  // ============================================================
+
+  const clearFilters = () => {
+    setSearch("");
+    setOwnershipFilter("all");
+    setStyleFilter("");
+    setYearFilter("");
+    setSortBy("newest");
+    setCurrentPage(1);
+  };
+
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
+  if (loading) {
     return (
-        <div className="citations-page">
+      <div className="container py-5">
 
-            {/* =================================================
-                HEADER
-            ================================================= */}
+        <div className="text-center py-5">
 
-            <div className="citations-header">
+          <div
+            className="spinner-border text-primary"
+            role="status"
+            style={{
+              width: "3rem",
+              height: "3rem",
+            }}
+          >
+          </div>
 
-                <div>
+          <p className="text-muted mt-3">
+            Loading citations...
+          </p>
 
-                    <div className="citations-eyebrow">
-                        📚 Research Network
-                    </div>
+        </div>
 
-                    <h1>
-                        Citation Management
-                    </h1>
-
-                    <p>
-                        Manage, organize and export
-                        publication citations.
-                    </p>
-
-                </div>
+      </div>
+    );
+  }
 
 
-                <div className="citations-header-actions">
+  // ============================================================
+  // PAGE
+  // ============================================================
 
-                    <button
-                        type="button"
-                        className="citation-btn citation-btn-outline"
-                        onClick={loadCitations}
-                    >
-                        ↻ Refresh
-                    </button>
+  return (
+    <div
+      className="citations-page"
+      style={{
+        minHeight: "100vh",
+        background: "#f5f8fc",
+      }}
+    >
 
-                    <Link
-                        to="/citations/add"
-                        className="citation-btn citation-btn-primary"
-                    >
-                        + Add Citation
-                    </Link>
+      <div className="container py-5">
 
-                </div>
+        {/* ======================================================
+            HEADER
+        ====================================================== */}
+
+        <div className="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+
+          <div>
+
+            <div
+              className="text-primary fw-bold mb-2"
+              style={{
+                fontSize: "14px",
+                letterSpacing: "0.5px",
+              }}
+            >
+              📚 RESEARCH NETWORK
+            </div>
+
+            <h1
+              className="fw-bold mb-2"
+              style={{
+                color: "#18243d",
+                fontSize: "36px",
+              }}
+            >
+              Citation Management
+            </h1>
+
+            <p
+              className="text-muted mb-0"
+              style={{
+                fontSize: "16px",
+              }}
+            >
+              Manage, organize and export publication citations.
+            </p>
+
+          </div>
+
+
+          <div className="d-flex gap-2">
+
+            <button
+              type="button"
+              className="btn btn-outline-primary"
+              onClick={handleRefresh}
+            >
+              ↻ Refresh
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() =>
+                navigate("/citations/add")
+              }
+            >
+              + Add Citation
+            </button>
+
+          </div>
+
+        </div>
+
+
+        {/* ======================================================
+            ERROR
+        ====================================================== */}
+
+        {error && (
+
+          <div
+            className="alert alert-danger d-flex justify-content-between align-items-center"
+            role="alert"
+          >
+
+            <span>
+              {error}
+            </span>
+
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger"
+              onClick={handleRefresh}
+            >
+              Retry
+            </button>
+
+          </div>
+
+        )}
+
+
+        {/* ======================================================
+            SEARCH & FILTER
+        ====================================================== */}
+
+        <div
+          className="card border-0 shadow-sm mb-4"
+          style={{
+            borderRadius: "16px",
+          }}
+        >
+
+          <div className="card-body p-4">
+
+            <h5
+              className="fw-bold mb-1"
+              style={{
+                color: "#18243d",
+              }}
+            >
+              Search & Filter
+            </h5>
+
+            <p className="text-muted mb-4">
+              Find citations using title, author, journal,
+              DOI or citation style.
+            </p>
+
+
+            <div className="row g-3">
+
+              {/* Search */}
+
+              <div className="col-xl-4 col-lg-4 col-md-6">
+
+                <label className="form-label fw-semibold">
+                  Search
+                </label>
+
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="🔎 Search title, authors, journal, DOI..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+
+              </div>
+
+
+              {/* Ownership */}
+
+              <div className="col-xl-2 col-lg-2 col-md-6">
+
+                <label className="form-label fw-semibold">
+                  Ownership
+                </label>
+
+                <select
+                  className="form-select"
+                  value={ownershipFilter}
+                  onChange={(e) => {
+                    setOwnershipFilter(
+                      e.target.value
+                    );
+                    setCurrentPage(1);
+                  }}
+                >
+
+                  <option value="all">
+                    All Citations
+                  </option>
+
+                  <option value="mine">
+                    My Citations
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              {/* Citation Style */}
+
+              <div className="col-xl-2 col-lg-2 col-md-6">
+
+                <label className="form-label fw-semibold">
+                  Citation Style
+                </label>
+
+                <select
+                  className="form-select"
+                  value={styleFilter}
+                  onChange={(e) => {
+                    setStyleFilter(
+                      e.target.value
+                    );
+                    setCurrentPage(1);
+                  }}
+                >
+
+                  <option value="">
+                    All styles
+                  </option>
+
+                  <option value="APA">
+                    APA
+                  </option>
+
+                  <option value="IEEE">
+                    IEEE
+                  </option>
+
+                  <option value="MLA">
+                    MLA
+                  </option>
+
+                  <option value="Chicago">
+                    Chicago
+                  </option>
+
+                  <option value="Harvard">
+                    Harvard
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              {/* Year */}
+
+              <div className="col-xl-2 col-lg-2 col-md-6">
+
+                <label className="form-label fw-semibold">
+                  Year
+                </label>
+
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder="e.g. 2026"
+                  value={yearFilter}
+                  onChange={(e) => {
+                    setYearFilter(
+                      e.target.value
+                    );
+                    setCurrentPage(1);
+                  }}
+                />
+
+              </div>
+
+
+              {/* Sort */}
+
+              <div className="col-xl-2 col-lg-2 col-md-6">
+
+                <label className="form-label fw-semibold">
+                  Sort By
+                </label>
+
+                <select
+                  className="form-select"
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+
+                  <option value="newest">
+                    Newest first
+                  </option>
+
+                  <option value="oldest">
+                    Oldest first
+                  </option>
+
+                  <option value="title_asc">
+                    Title A–Z
+                  </option>
+
+                  <option value="title_desc">
+                    Title Z–A
+                  </option>
+
+                </select>
+
+              </div>
 
             </div>
 
 
-            {/* =================================================
-                FILTER PANEL
-            ================================================= */}
+            {/* Active filter / clear */}
 
-            <section className="citations-filter-card">
+            {(search ||
+              ownershipFilter !== "all" ||
+              styleFilter ||
+              yearFilter) && (
 
-                <div className="citations-filter-heading">
+              <div className="mt-3 d-flex align-items-center gap-2 flex-wrap">
 
-                    <div>
+                <span className="text-muted small">
+                  Active filters:
+                </span>
 
-                        <h2>
-                            Search & Filter
-                        </h2>
-
-                        <p>
-                            Find citations using title,
-                            author, journal, DOI or
-                            citation style.
-                        </p>
-
-                    </div>
-
-
-                    {hasActiveFilters && (
-                        <button
-                            type="button"
-                            className="citation-clear-btn"
-                            onClick={clearFilters}
-                        >
-                            Clear Filters
-                        </button>
-                    )}
-
-                </div>
-
-
-                <div className="citations-filter-grid">
-
-                    {/* Search */}
-
-                    <div className="citation-field citation-search-field">
-
-                        <label>
-                            Search
-                        </label>
-
-                        <div className="citation-input-wrapper">
-
-                            <span>
-                                🔎
-                            </span>
-
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={
-                                    handleSearchChange
-                                }
-                                placeholder="Search title, authors, journal, DOI..."
-                            />
-
-                        </div>
-
-                    </div>
-
-
-                    {/* Citation Style */}
-
-                    <div className="citation-field">
-
-                        <label>
-                            Citation Style
-                        </label>
-
-                        <select
-                            value={citationStyle}
-                            onChange={
-                                handleStyleChange
-                            }
-                        >
-
-                            <option value="">
-                                All styles
-                            </option>
-
-                            {citationStyles.map(
-                                (style) => (
-                                    <option
-                                        key={style}
-                                        value={style}
-                                    >
-                                        {style}
-                                    </option>
-                                )
-                            )}
-
-                        </select>
-
-                    </div>
-
-
-                    {/* Year */}
-
-                    <div className="citation-field">
-
-                        <label>
-                            Year
-                        </label>
-
-                        <input
-                            type="number"
-                            min="1900"
-                            max="2100"
-                            value={year}
-                            onChange={
-                                handleYearChange
-                            }
-                            placeholder="e.g. 2026"
-                        />
-
-                    </div>
-
-
-                    {/* Sort */}
-
-                    <div className="citation-field">
-
-                        <label>
-                            Sort By
-                        </label>
-
-                        <select
-                            value={sortBy}
-                            onChange={
-                                handleSortChange
-                            }
-                        >
-
-                            <option value="newest">
-                                Newest first
-                            </option>
-
-                            <option value="oldest">
-                                Oldest first
-                            </option>
-
-                            <option value="title">
-                                Title A–Z
-                            </option>
-
-                            <option value="authors">
-                                Author A–Z
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            {/* =================================================
-                RESULTS BAR
-            ================================================= */}
-
-            <div className="citations-results-bar">
-
-                <div className="citations-count">
-
-                    <strong>
-                        {filteredCitations.length}
-                    </strong>
-
-                    <span>
-                        {filteredCitations.length === 1
-                            ? " citation"
-                            : " citations"}
-                    </span>
-
-                </div>
-
-
-                {filteredCitations.length > 0 && (
-                    <div className="citations-range">
-
-                        Showing{" "}
-
-                        <strong>
-                            {startIndex + 1}
-                        </strong>
-
-                        {" – "}
-
-                        <strong>
-                            {endIndex}
-                        </strong>
-
-                    </div>
+                {ownershipFilter === "mine" && (
+                  <span className="badge bg-primary">
+                    My Citations
+                  </span>
                 )}
 
-            </div>
-
-
-            {/* =================================================
-                EMPTY RESULT
-            ================================================= */}
-
-            {filteredCitations.length === 0 ? (
-
-                <div className="citations-empty">
-
-                    <div className="citations-empty-icon">
-                        🔎
-                    </div>
-
-                    <h3>
-                        No citations found
-                    </h3>
-
-                    <p>
-                        Try changing your search
-                        or filter criteria.
-                    </p>
-
-                    {hasActiveFilters && (
-                        <button
-                            type="button"
-                            className="citation-btn citation-btn-primary"
-                            onClick={clearFilters}
-                        >
-                            Clear Filters
-                        </button>
-                    )}
-
-                </div>
-
-            ) : (
-
-                <>
-                    {/* =========================================
-                        CITATION GRID
-                    ========================================= */}
-
-                    <div className="citations-grid">
-
-                        {currentCitations.map(
-                            (citation) => (
-
-                                <article
-                                    className="citation-card"
-                                    key={citation.id}
-                                >
-
-                                    {/* Card Header */}
-
-                                    <div className="citation-card-header">
-
-                                        <div className="citation-card-meta">
-
-                                            <span className="citation-year">
-                                                {citation.year ||
-                                                    "—"}
-                                            </span>
-
-                                            {citation.citation_style && (
-                                                <span className="citation-style-badge">
-                                                    {
-                                                        citation.citation_style
-                                                    }
-                                                </span>
-                                            )}
-
-                                        </div>
-
-                                    </div>
-
-
-                                    {/* Title */}
-
-                                    <Link
-                                        to={`/citations/${citation.id}`}
-                                        className="citation-title"
-                                    >
-                                        {
-                                            citation.title ||
-                                            "Untitled Citation"
-                                        }
-                                    </Link>
-
-
-                                    {/* Authors */}
-
-                                    {citation.authors && (
-                                        <div className="citation-detail">
-
-                                            <span className="citation-detail-label">
-                                                Authors
-                                            </span>
-
-                                            <span className="citation-detail-value">
-                                                {
-                                                    citation.authors
-                                                }
-                                            </span>
-
-                                        </div>
-                                    )}
-
-
-                                    {/* Journal */}
-
-                                    {citation.journal && (
-                                        <div className="citation-detail">
-
-                                            <span className="citation-detail-label">
-                                                Journal
-                                            </span>
-
-                                            <span className="citation-detail-value">
-                                                {
-                                                    citation.journal
-                                                }
-                                            </span>
-
-                                        </div>
-                                    )}
-
-
-                                    {/* Year */}
-
-                                    <div className="citation-detail">
-
-                                        <span className="citation-detail-label">
-                                            Year
-                                        </span>
-
-                                        <span className="citation-detail-value">
-                                            {citation.year ||
-                                                "—"}
-                                        </span>
-
-                                    </div>
-
-
-                                    {/* DOI */}
-
-                                    {citation.doi && (
-                                        <div className="citation-detail">
-
-                                            <span className="citation-detail-label">
-                                                DOI
-                                            </span>
-
-                                            <a
-                                                href={
-                                                    citation.doi.startsWith(
-                                                        "http"
-                                                    )
-                                                        ? citation.doi
-                                                        : `https://doi.org/${citation.doi}`
-                                                }
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="citation-doi"
-                                            >
-                                                {
-                                                    citation.doi
-                                                }
-                                            </a>
-
-                                        </div>
-                                    )}
-
-
-                                    {/* Formatted Citation */}
-
-                                    {citation.formatted_citation && (
-                                        <div className="formatted-citation">
-
-                                            <div className="formatted-citation-label">
-                                                Formatted Citation
-                                            </div>
-
-                                            <p>
-                                                {
-                                                    citation.formatted_citation
-                                                }
-                                            </p>
-
-                                        </div>
-                                    )}
-
-
-                                    {/* Actions */}
-
-                                    <div className="citation-actions">
-
-                                        <Link
-                                            to={`/citations/${citation.id}`}
-                                            className="citation-btn citation-btn-secondary"
-                                        >
-                                            View
-                                        </Link>
-
-
-                                        <Link
-                                            to={`/citations/${citation.id}/edit`}
-                                            className="citation-btn citation-btn-warning"
-                                        >
-                                            Edit
-                                        </Link>
-
-
-                                        <button
-                                            type="button"
-                                            className="citation-btn citation-btn-danger"
-                                            onClick={() =>
-                                                handleDelete(
-                                                    citation.id
-                                                )
-                                            }
-                                        >
-                                            Delete
-                                        </button>
-
-
-                                        <button
-                                            type="button"
-                                            className="citation-btn citation-btn-success"
-                                            disabled={
-                                                exportingId ===
-                                                citation.id
-                                            }
-                                            onClick={() =>
-                                                handleBibtex(
-                                                    citation.id
-                                                )
-                                            }
-                                        >
-                                            {exportingId ===
-                                            citation.id
-                                                ? "Exporting..."
-                                                : "BibTeX"}
-                                        </button>
-
-                                    </div>
-
-                                </article>
-
-                            )
-                        )}
-
-                    </div>
-
-
-                    {/* =========================================
-                        PAGINATION
-                    ========================================= */}
-
-                    {totalPages > 1 && (
-
-                        <div className="citations-pagination">
-
-                            <button
-                                type="button"
-                                className="citations-page-btn"
-                                disabled={
-                                    currentPage === 1
-                                }
-                                onClick={() =>
-                                    goToPage(
-                                        currentPage - 1
-                                    )
-                                }
-                            >
-                                ‹
-                            </button>
-
-
-                            {getPageNumbers().map(
-                                (page, index) => {
-
-                                    if (
-                                        page === "..."
-                                    ) {
-                                        return (
-                                            <span
-                                                key={`ellipsis-${index}`}
-                                                className="citations-page-ellipsis"
-                                            >
-                                                …
-                                            </span>
-                                        );
-                                    }
-
-
-                                    return (
-                                        <button
-                                            type="button"
-                                            key={page}
-                                            className={`citations-page-btn ${
-                                                currentPage ===
-                                                page
-                                                    ? "active"
-                                                    : ""
-                                            }`}
-                                            onClick={() =>
-                                                goToPage(
-                                                    page
-                                                )
-                                            }
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                }
-                            )}
-
-
-                            <button
-                                type="button"
-                                className="citations-page-btn"
-                                disabled={
-                                    currentPage ===
-                                    totalPages
-                                }
-                                onClick={() =>
-                                    goToPage(
-                                        currentPage + 1
-                                    )
-                                }
-                            >
-                                ›
-                            </button>
-
-                        </div>
-
-                    )}
-
-                </>
+                {styleFilter && (
+                  <span className="badge bg-primary">
+                    {styleFilter}
+                  </span>
+                )}
+
+                {yearFilter && (
+                  <span className="badge bg-primary">
+                    Year: {yearFilter}
+                  </span>
+                )}
+
+                {search && (
+                  <span className="badge bg-primary">
+                    Search: {search}
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  className="btn btn-sm btn-link text-danger"
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+
+              </div>
 
             )}
 
-        </div>
-    );
-}
+          </div>
 
+        </div>
+
+
+        {/* ======================================================
+            RESULT SUMMARY
+        ====================================================== */}
+
+        <div className="d-flex justify-content-between align-items-center mb-3">
+
+          <div>
+
+            <span
+              className="fw-bold"
+              style={{
+                color: "#18243d",
+                fontSize: "18px",
+              }}
+            >
+              {filteredCitations.length}
+            </span>
+
+            <span className="text-muted ms-1">
+              {filteredCitations.length === 1
+                ? "citation"
+                : "citations"}
+            </span>
+
+          </div>
+
+
+          {filteredCitations.length > 0 && (
+
+            <div className="text-muted small">
+
+              Showing{" "}
+              <strong>
+                {startIndex + 1}
+              </strong>
+              {" – "}
+              <strong>
+                {Math.min(
+                  startIndex + ITEMS_PER_PAGE,
+                  filteredCitations.length
+                )}
+              </strong>
+              {" of "}
+              <strong>
+                {filteredCitations.length}
+              </strong>
+
+            </div>
+
+          )}
+
+        </div>
+
+
+        {/* ======================================================
+            EMPTY STATE
+        ====================================================== */}
+
+        {filteredCitations.length === 0 ? (
+
+          <div
+            className="card border-0 shadow-sm text-center"
+            style={{
+              borderRadius: "16px",
+            }}
+          >
+
+            <div className="card-body py-5">
+
+              <div
+                style={{
+                  fontSize: "48px",
+                }}
+              >
+                🔗
+              </div>
+
+              <h4
+                className="fw-bold mt-3"
+                style={{
+                  color: "#18243d",
+                }}
+              >
+                No citations found
+              </h4>
+
+              <p className="text-muted">
+                {search ||
+                styleFilter ||
+                yearFilter ||
+                ownershipFilter === "mine"
+                  ? "Try changing your filters or search terms."
+                  : "There are no citations available yet."}
+              </p>
+
+              {(search ||
+                styleFilter ||
+                yearFilter ||
+                ownershipFilter === "mine") && (
+
+                <button
+                  className="btn btn-outline-primary"
+                  onClick={clearFilters}
+                >
+                  Clear Filters
+                </button>
+
+              )}
+
+            </div>
+
+          </div>
+
+        ) : (
+
+          <>
+            {/* ==================================================
+                CITATION CARDS
+            ================================================== */}
+
+            <div className="row g-4">
+
+              {paginatedCitations.map(
+                (citation) => (
+
+                  <div
+                    className="col-xl-4 col-lg-6"
+                    key={citation.id}
+                  >
+
+                    <div
+                      className="card h-100 border-0 shadow-sm"
+                      style={{
+                        borderRadius: "16px",
+                      }}
+                    >
+
+                      <div className="card-body p-4 d-flex flex-column">
+
+                        {/* Year + Style */}
+
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+
+                          <span
+                            className="small fw-semibold text-muted"
+                          >
+                            {citation.year || "—"}
+                          </span>
+
+                          {citation.citation_style && (
+
+                            <span
+                              className="badge rounded-pill"
+                              style={{
+                                background:
+                                  "#e8f1ff",
+                                color:
+                                  "#1769e0",
+                                padding:
+                                  "7px 11px",
+                              }}
+                            >
+                              {citation.citation_style}
+                            </span>
+
+                          )}
+
+                        </div>
+
+
+                        {/* Title */}
+
+                        <h5
+                          className="fw-bold mb-4"
+                          style={{
+                            color: "#1769e0",
+                            lineHeight: "1.35",
+                            minHeight: "50px",
+                          }}
+                        >
+                          {citation.title ||
+                            "Untitled Citation"}
+                        </h5>
+
+
+                        {/* Authors */}
+
+                        <div className="mb-3">
+
+                          <div
+                            className="fw-semibold small mb-1"
+                          >
+                            Authors
+                          </div>
+
+                          <div className="text-muted small">
+                            {citation.authors ||
+                              "Not specified"}
+                          </div>
+
+                        </div>
+
+
+                        {/* Journal */}
+
+                        <div className="mb-3">
+
+                          <div
+                            className="fw-semibold small mb-1"
+                          >
+                            Journal
+                          </div>
+
+                          <div className="text-muted small">
+                            {citation.journal ||
+                              "Not specified"}
+                          </div>
+
+                        </div>
+
+
+                        {/* Year */}
+
+                        <div className="mb-3">
+
+                          <div
+                            className="fw-semibold small mb-1"
+                          >
+                            Year
+                          </div>
+
+                          <div className="text-muted small">
+                            {citation.year ||
+                              "Not specified"}
+                          </div>
+
+                        </div>
+
+
+                        {/* DOI */}
+
+                        <div className="mb-3">
+
+                          <div
+                            className="fw-semibold small mb-1"
+                          >
+                            DOI
+                          </div>
+
+                          {citation.doi ? (
+
+                            <a
+                              href={
+                                citation.doi.startsWith(
+                                  "http"
+                                )
+                                  ? citation.doi
+                                  : `https://doi.org/${citation.doi}`
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className="small text-decoration-none"
+                              style={{
+                                color: "#1769e0",
+                                wordBreak:
+                                  "break-word",
+                              }}
+                            >
+                              {citation.doi}
+                            </a>
+
+                          ) : (
+
+                            <span className="text-muted small">
+                              Not specified
+                            </span>
+
+                          )}
+
+                        </div>
+
+
+                        {/* Spacer */}
+
+                        <div className="mt-auto">
+
+                          <hr />
+
+
+                          {/* Actions */}
+
+                          <div className="d-flex gap-2 flex-wrap">
+
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() =>
+                                navigate(
+                                  `/citations/${citation.id}`
+                                )
+                              }
+                            >
+                              View
+                            </button>
+
+
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-warning"
+                              onClick={() =>
+                                navigate(
+                                  `/citations/${citation.id}/edit`
+                                )
+                              }
+                            >
+                              Edit
+                            </button>
+
+
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-danger"
+                              onClick={() =>
+                                handleDelete(
+                                  citation.id
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+
+
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-success"
+                              onClick={() =>
+                                handleBibTeX(
+                                  citation
+                                )
+                              }
+                            >
+                              BibTeX
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                )
+              )}
+
+            </div>
+
+
+            {/* ==================================================
+                PAGINATION
+            ================================================== */}
+
+            {totalPages > 1 && (
+
+              <div className="d-flex justify-content-center mt-5">
+
+                <nav>
+
+                  <ul className="pagination">
+
+                    <li
+                      className={`page-item ${
+                        safeCurrentPage === 1
+                          ? "disabled"
+                          : ""
+                      }`}
+                    >
+
+                      <button
+                        className="page-link"
+                        onClick={() =>
+                          setCurrentPage(
+                            (page) =>
+                              Math.max(
+                                page - 1,
+                                1
+                              )
+                          )
+                        }
+                        disabled={
+                          safeCurrentPage === 1
+                        }
+                      >
+                        Previous
+                      </button>
+
+                    </li>
+
+
+                    {Array.from(
+                      {
+                        length: totalPages,
+                      },
+                      (_, index) => index + 1
+                    ).map((page) => (
+
+                      <li
+                        key={page}
+                        className={`page-item ${
+                          safeCurrentPage === page
+                            ? "active"
+                            : ""
+                        }`}
+                      >
+
+                        <button
+                          className="page-link"
+                          onClick={() =>
+                            setCurrentPage(page)
+                          }
+                        >
+                          {page}
+                        </button>
+
+                      </li>
+
+                    ))}
+
+
+                    <li
+                      className={`page-item ${
+                        safeCurrentPage ===
+                        totalPages
+                          ? "disabled"
+                          : ""
+                      }`}
+                    >
+
+                      <button
+                        className="page-link"
+                        onClick={() =>
+                          setCurrentPage(
+                            (page) =>
+                              Math.min(
+                                page + 1,
+                                totalPages
+                              )
+                          )
+                        }
+                        disabled={
+                          safeCurrentPage ===
+                          totalPages
+                        }
+                      >
+                        Next
+                      </button>
+
+                    </li>
+
+                  </ul>
+
+                </nav>
+
+              </div>
+
+            )}
+
+          </>
+
+        )}
+
+      </div>
+
+    </div>
+  );
+}
 
 export default Citations;

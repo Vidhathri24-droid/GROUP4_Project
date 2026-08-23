@@ -1,9 +1,20 @@
 import uuid
 from enum import Enum
+from datetime import datetime
 
-from sqlalchemy import ForeignKey, UniqueConstraint, String
+from sqlalchemy import (
+    ForeignKey,
+    UniqueConstraint,
+    String,
+    DateTime,
+)
+
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
 
 from app.db.database import Base
 from app.models.base_model import TimestampMixin
@@ -14,7 +25,16 @@ class ParticipationType(str, Enum):
     PRESENTER = "Presenter"
 
 
-class ConferenceRegistration(TimestampMixin, Base):
+class RegistrationStatus(str, Enum):
+    APPROVED = "Approved"
+    PENDING = "Pending"
+    REJECTED = "Rejected"
+
+
+class ConferenceRegistration(
+    TimestampMixin,
+    Base,
+):
     __tablename__ = "conference_registrations"
 
     __table_args__ = (
@@ -33,13 +53,19 @@ class ConferenceRegistration(TimestampMixin, Base):
 
     conference_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("conferences.id", ondelete="CASCADE"),
+        ForeignKey(
+            "conferences.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
     )
 
@@ -47,6 +73,25 @@ class ConferenceRegistration(TimestampMixin, Base):
         String(20),
         nullable=False,
         default=ParticipationType.ATTENDEE.value,
+    )
+
+    # ---------------------------------------------------------
+    # Presenter approval status
+    # ---------------------------------------------------------
+
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default=RegistrationStatus.APPROVED.value,
+    )
+
+    # ---------------------------------------------------------
+    # Conference reminder tracking
+    # ---------------------------------------------------------
+
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     conference = relationship(

@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
 from app.repositories.user_repository import  UserRepository
-from app.models.user import UserRole
+from app.models.user import User,UserRole
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/token"
@@ -44,6 +44,24 @@ def get_current_user(
         )
 
     return user
+
+def require_system_admin(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Allow access only to System Administrators.
+
+    This is a backend security check.
+    Frontend visibility checks are NOT sufficient.
+    """
+
+    if current_user.role != UserRole.SYSTEM_ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="System Administrator privileges required.",
+        )
+
+    return current_user
 
 def require_admin(current_user=Depends(get_current_user)):
 

@@ -209,6 +209,12 @@ class User(TimestampMixin, Base):
         cascade="all, delete-orphan",
     )
 
+    created_conferences = relationship(
+        "Conference",
+        foreign_keys="Conference.created_by",
+        back_populates="creator",
+    )
+
     notifications = relationship(
         "Notification",
         back_populates="user",

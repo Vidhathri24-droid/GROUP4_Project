@@ -7,6 +7,8 @@ from fastapi import (
     File,
     Query,
     UploadFile,
+    HTTPException,
+    status,
 )
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -15,7 +17,8 @@ from app.api.dependencies import (
     get_current_user,
     get_db,
 )
-from app.models.user import User
+from app.models.user import User, UserRole
+from app.models.publication import Publication
 from app.schemas.publication import (
     PublicationCreate,
     PublicationResponse,
@@ -189,7 +192,142 @@ def filter_publications(
         order=order,
     )
 
+# ============================================================
+# EXPORT ALL PUBLICATIONS
+# SYSTEM ADMIN + INSTITUTION ADMIN ONLY
+# ============================================================
 
+@router.get(
+    "/export",
+)
+def export_all_publications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # --------------------------------------------------------
+    # BACKEND SECURITY
+    # --------------------------------------------------------
+
+    if current_user.role not in [
+        UserRole.SYSTEM_ADMIN,
+        UserRole.INSTITUTION_ADMIN,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Only System Admin and Institution Admin "
+                "can export publications."
+            ),
+        )
+
+    # --------------------------------------------------------
+    # GET ALL PUBLICATIONS
+    #
+    # Do NOT use PublicationService.get_all_publications()
+    # because that method currently:
+    #
+    # - returns only ACCEPTED publications
+    # - has a limit of 100
+    #
+    # Export must contain ALL publications.
+    # --------------------------------------------------------
+
+    publications = (
+        db.query(Publication)
+        .order_by(
+            Publication.publication_year.desc()
+        )
+        .all()
+    )
+
+    # --------------------------------------------------------
+    # RETURN COMPLETE DATA
+    # --------------------------------------------------------
+
+    return [
+        {
+            "id": str(publication.id),
+
+            "title":
+                publication.title,
+
+            "abstract":
+                publication.abstract,
+
+            "doi":
+                publication.doi,
+
+            "journal":
+                publication.journal,
+
+            "conference":
+                publication.conference,
+
+            "publication_year":
+                publication.publication_year,
+
+            "publication_type":
+                (
+                    publication.publication_type.value
+                    if hasattr(
+                        publication.publication_type,
+                        "value",
+                    )
+                    else publication.publication_type
+                ),
+
+            "status":
+                (
+                    publication.status.value
+                    if hasattr(
+                        publication.status,
+                        "value",
+                    )
+                    else publication.status
+                ),
+
+            "url":
+                publication.url,
+
+            "citation_count":
+                publication.citation_count,
+
+            "owner_id":
+                (
+                    str(publication.owner_id)
+                    if publication.owner_id
+                    else None
+                ),
+
+            "file_name":
+                publication.file_name,
+
+            "file_path":
+                publication.file_path,
+
+            "file_size":
+                publication.file_size,
+
+            "file_type":
+                publication.file_type,
+
+            "created_at":
+                (
+                    publication.created_at.isoformat()
+                    if publication.created_at
+                    else None
+                ),
+
+            "updated_at":
+                (
+                    publication.updated_at.isoformat()
+                    if publication.updated_at
+                    else None
+                ),
+        }
+        for publication in publications
+    ]
+    
 @router.get(
     "/{publication_id}",
     response_model=PublicationResponse,
