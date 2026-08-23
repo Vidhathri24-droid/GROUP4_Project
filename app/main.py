@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.db.database import Base, engine
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as user_router
@@ -26,6 +27,7 @@ app = FastAPI(
     title="Scientific Collaboration Network Analyzer",
     version="1.0.0",
 )
+Base.metadata.create_all(bind=engine)
 
 
 cors_origins = {
