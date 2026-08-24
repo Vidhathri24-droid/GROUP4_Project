@@ -7,11 +7,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { GoogleLogin } from "@react-oauth/google";
-
 import {
   login,
-  googleLogin,
   getCurrentUser,
 } from "../services/authService";
 
@@ -45,7 +42,6 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-
   const [rememberMe, setRememberMe] = useState(false);
 
   const [captcha, setCaptcha] = useState("");
@@ -80,7 +76,7 @@ function Login() {
   };
 
   /* ==========================================================
-     NORMAL LOGIN
+     NORMAL LOGIN (FIXED)
      ========================================================== */
 
   const handleSubmit = async (e) => {
@@ -104,189 +100,62 @@ function Login() {
     setLoading(true);
 
     try {
-      /* ------------------------------------------------------
-         LOGIN
-         ------------------------------------------------------ */
-
+      /* 1. LOGIN CALL */
       const response = await login(email, password);
 
-      /* ------------------------------------------------------
-         SAVE JWT
-         ------------------------------------------------------ */
+      // SAFE TOKEN EXTRACTION (Key name fallback)
+      const token =
+        response &&
+        (response.access_token || response.token || response.accessToken);
 
-      if (response.access_token) {
+      if (token) {
+        /* 2. SAVE TOKEN IN BOTH STORAGE LOCATIONS FOR SAFETY */
+        localStorage.setItem("access_token", token);
+        sessionStorage.setItem("access_token", token);
+
         if (rememberMe) {
-          localStorage.setItem(
-            "access_token",
-            response.access_token
-          );
+          localStorage.setItem("remembered_email", email);
         } else {
-          sessionStorage.setItem(
-            "access_token",
-            response.access_token
-          );
+          localStorage.removeItem("remembered_email");
         }
-      }
 
-      /* ------------------------------------------------------
-         FETCH CURRENT USER
-         ------------------------------------------------------ */
+        /* 3. FETCH CURRENT USER WITH FALLBACK */
+        try {
+          const user = await getCurrentUser();
+          const userStr = JSON.stringify(user);
+          localStorage.setItem("user", userStr);
+          sessionStorage.setItem("user", userStr);
+        } catch (userErr) {
+          console.warn("getCurrentUser failed, saving fallback details:", userErr);
+          const fallbackUser = { email: email, name: email.split("@")[0] };
+          const fallbackStr = JSON.stringify(fallbackUser);
+          localStorage.setItem("user", fallbackStr);
+          sessionStorage.setItem("user", fallbackStr);
+        }
 
-      const user = await getCurrentUser();
-
-      /* ------------------------------------------------------
-         SAVE USER INFORMATION
-         ------------------------------------------------------ */
-
-      if (rememberMe) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-
-        localStorage.setItem(
-          "remembered_email",
-          email
-        );
+        /* 4. REDIRECT TO DASHBOARD */
+        navigate("/dashboard");
       } else {
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-
-        localStorage.removeItem(
-          "remembered_email"
-        );
+        setError("Invalid response from server (No access token found).");
+        refreshCaptcha();
       }
-
-      /* ------------------------------------------------------
-         REDIRECT
-         ------------------------------------------------------ */
-
-      navigate("/dashboard");
     } catch (err) {
-      console.error(err);
+      console.error("Login Submission Error:", err);
 
       if (err.response?.status === 403) {
-        setError(
-          "Please verify your email before logging in."
-        );
+        setError("Please verify your email before logging in.");
       } else if (err.response?.data?.detail) {
         setError(err.response.data.detail);
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
       } else {
-        setError("Login failed.");
+        setError("Login failed. Check server/network connection.");
       }
 
-      /* Generate new CAPTCHA after failed login */
       refreshCaptcha();
     } finally {
       setLoading(false);
     }
-  };
-
-  /* ==========================================================
-     GOOGLE LOGIN SUCCESS
-     ========================================================== */
-
-  const handleGoogleSuccess = async (
-    credentialResponse
-  ) => {
-    try {
-      setError("");
-      setLoading(true);
-
-      /* ------------------------------------------------------
-         Make sure Google returned a credential
-         ------------------------------------------------------ */
-
-      if (!credentialResponse?.credential) {
-        setError(
-          "Google authentication failed. Please try again."
-        );
-        return;
-      }
-
-      /* ------------------------------------------------------
-         Send Google credential to backend
-         ------------------------------------------------------ */
-
-      const response = await googleLogin(
-        credentialResponse.credential
-      );
-
-      /* ------------------------------------------------------
-         Save JWT
-         ------------------------------------------------------ */
-
-      if (response.access_token) {
-        if (rememberMe) {
-          localStorage.setItem(
-            "access_token",
-            response.access_token
-          );
-        } else {
-          sessionStorage.setItem(
-            "access_token",
-            response.access_token
-          );
-        }
-      }
-
-      /* ------------------------------------------------------
-         Get logged-in user
-         ------------------------------------------------------ */
-
-      const user = await getCurrentUser();
-
-      /* ------------------------------------------------------
-         Save user
-         ------------------------------------------------------ */
-
-      if (rememberMe) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-      } else {
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-      }
-
-      /* ------------------------------------------------------
-         Redirect
-         ------------------------------------------------------ */
-
-      navigate("/dashboard");
-    } catch (err) {
-      console.error(
-        "Google login failed:",
-        err
-      );
-
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError(
-          "Google login failed. Please try again."
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ==========================================================
-     GOOGLE LOGIN ERROR
-     ========================================================== */
-
-  const handleGoogleError = () => {
-    console.error("Google Sign-In failed.");
-
-    setError(
-      "Google Sign-In was unsuccessful. Please try again."
-    );
   };
 
   /* ==========================================================
@@ -312,10 +181,7 @@ function Login() {
           border: "none",
         }}
       >
-        {/* ==================================================
-            HEADER
-            ================================================== */}
-
+        {/* HEADER */}
         <div className="text-center mb-4">
           <div
             style={{
@@ -354,10 +220,7 @@ function Login() {
           </p>
         </div>
 
-        {/* ==================================================
-            ERROR MESSAGE
-            ================================================== */}
-
+        {/* ERROR MESSAGE */}
         {error && (
           <div
             className="alert alert-danger"
@@ -368,9 +231,7 @@ function Login() {
           >
             <div>{error}</div>
 
-            {error
-              .toLowerCase()
-              .includes("verify") && (
+            {error.toLowerCase().includes("verify") && (
               <div className="mt-2">
                 <Link
                   to="/resend-verification"
@@ -383,20 +244,11 @@ function Login() {
           </div>
         )}
 
-        {/* ==================================================
-            LOGIN FORM
-            ================================================== */}
-
+        {/* LOGIN FORM */}
         <form onSubmit={handleSubmit}>
-          {/* =================================================
-              EMAIL
-              ================================================= */}
-
+          {/* EMAIL */}
           <div className="mb-3">
-            <label
-              className="form-label fw-bold"
-              htmlFor="email"
-            >
+            <label className="form-label fw-bold" htmlFor="email">
               Email
             </label>
 
@@ -406,9 +258,7 @@ function Login() {
               className="form-control"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               required
               style={{
@@ -418,36 +268,20 @@ function Login() {
             />
           </div>
 
-          {/* =================================================
-              PASSWORD
-              ================================================= */}
-
+          {/* PASSWORD */}
           <div className="mb-3">
-            <label
-              className="form-label fw-bold"
-              htmlFor="password"
-            >
+            <label className="form-label fw-bold" htmlFor="password">
               Password
             </label>
 
-            <div
-              style={{
-                position: "relative",
-              }}
-            >
+            <div style={{ position: "relative" }}>
               <input
                 id="password"
-                type={
-                  showPassword
-                    ? "text"
-                    : "password"
-                }
+                type={showPassword ? "text" : "password"}
                 className="form-control"
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) =>
-                  setPassword(e.target.value)
-                }
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
                 style={{
@@ -457,31 +291,16 @@ function Login() {
                 }}
               />
 
-              {/* Password visibility button */}
-
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword(
-                    (previous) => !previous
-                  )
-                }
-                aria-label={
-                  showPassword
-                    ? "Hide password"
-                    : "Show password"
-                }
-                title={
-                  showPassword
-                    ? "Hide password"
-                    : "Show password"
-                }
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                title={showPassword ? "Hide password" : "Show password"}
                 style={{
                   position: "absolute",
                   right: "8px",
                   top: "50%",
-                  transform:
-                    "translateY(-50%)",
+                  transform: "translateY(-50%)",
                   border: "none",
                   background: "transparent",
                   color: "#6c757d",
@@ -491,39 +310,24 @@ function Login() {
                   alignItems: "center",
                 }}
               >
-                {showPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          {/* =================================================
-              CAPTCHA
-              ================================================= */}
-
+          {/* CAPTCHA */}
           <div className="mb-3">
-            <label
-              className="form-label fw-bold"
-              htmlFor="captcha"
-            >
+            <label className="form-label fw-bold" htmlFor="captcha">
               Security Check
             </label>
 
-            <div
-              className="d-flex gap-2 align-items-center mb-2"
-            >
-              {/* CAPTCHA Display */}
-
+            <div className="d-flex gap-2 align-items-center mb-2">
               <div
                 style={{
                   flex: 1,
                   height: "48px",
                   borderRadius: "9px",
-                  border:
-                    "1px solid #dee2e6",
+                  border: "1px solid #dee2e6",
                   background:
                     "linear-gradient(135deg, #f1f6ff, #e8f0ff)",
                   display: "flex",
@@ -534,21 +338,16 @@ function Login() {
                   userSelect: "none",
                 }}
               >
-                {/* Decorative line 1 */}
-
                 <span
                   style={{
                     position: "absolute",
                     width: "100%",
                     height: "1px",
                     background: "#9bbcff",
-                    transform:
-                      "rotate(-7deg)",
+                    transform: "rotate(-7deg)",
                     opacity: 0.7,
                   }}
                 />
-
-                {/* Decorative line 2 */}
 
                 <span
                   style={{
@@ -556,13 +355,10 @@ function Login() {
                     width: "100%",
                     height: "1px",
                     background: "#75a8ff",
-                    transform:
-                      "rotate(8deg)",
+                    transform: "rotate(8deg)",
                     opacity: 0.6,
                   }}
                 />
-
-                {/* CAPTCHA text */}
 
                 <span
                   style={{
@@ -571,17 +367,13 @@ function Login() {
                     letterSpacing: "6px",
                     fontStyle: "italic",
                     color: "#1557a6",
-                    transform:
-                      "rotate(-2deg)",
-                    textShadow:
-                      "1px 1px 0 #ffffff",
+                    transform: "rotate(-2deg)",
+                    textShadow: "1px 1px 0 #ffffff",
                   }}
                 >
                   {captcha}
                 </span>
               </div>
-
-              {/* CAPTCHA Refresh */}
 
               <button
                 type="button"
@@ -592,8 +384,7 @@ function Login() {
                   width: "48px",
                   height: "48px",
                   borderRadius: "9px",
-                  border:
-                    "1px solid #dee2e6",
+                  border: "1px solid #dee2e6",
                   background: "#ffffff",
                   color: "#0d6efd",
                   display: "flex",
@@ -606,17 +397,13 @@ function Login() {
               </button>
             </div>
 
-            {/* CAPTCHA input */}
-
             <input
               id="captcha"
               type="text"
               className="form-control"
               placeholder="Enter the characters shown above"
               value={captchaInput}
-              onChange={(e) =>
-                setCaptchaInput(e.target.value)
-              }
+              onChange={(e) => setCaptchaInput(e.target.value)}
               autoComplete="off"
               required
               style={{
@@ -635,44 +422,28 @@ function Login() {
             </small>
           </div>
 
-          {/* =================================================
-              REMEMBER ME + FORGOT PASSWORD
-              ================================================= */}
-
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          {/* REMEMBER ME + FORGOT PASSWORD */}
+          <div className="d-flex justify-content-between align-items-center mb-4">
             <div className="form-check">
               <input
                 className="form-check-input"
                 type="checkbox"
                 id="remember"
                 checked={rememberMe}
-                onChange={(e) =>
-                  setRememberMe(
-                    e.target.checked
-                  )
-                }
+                onChange={(e) => setRememberMe(e.target.checked)}
               />
 
-              <label
-                className="form-check-label"
-                htmlFor="remember"
-              >
+              <label className="form-check-label" htmlFor="remember">
                 Remember Me
               </label>
             </div>
 
-            <Link
-              to="/forgot-password"
-              className="text-decoration-none"
-            >
+            <Link to="/forgot-password" className="text-decoration-none">
               Forgot Password?
             </Link>
           </div>
 
-          {/* =================================================
-              NORMAL LOGIN BUTTON
-              ================================================= */}
-
+          {/* LOGIN BUTTON */}
           <button
             type="submit"
             className="btn btn-primary w-100"
@@ -683,82 +454,13 @@ function Login() {
               fontWeight: 600,
             }}
           >
-            {loading
-              ? "Logging in..."
-              : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
-          {/* =================================================
-              OR DIVIDER
-              ================================================= */}
-
-          <div
-            className="d-flex align-items-center my-3"
-            style={{
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                height: "1px",
-                background: "#dee2e6",
-              }}
-            />
-
-            <span
-              style={{
-                color: "#6c757d",
-                fontSize: "13px",
-                fontWeight: 500,
-              }}
-            >
-              OR
-            </span>
-
-            <div
-              style={{
-                flex: 1,
-                height: "1px",
-                background: "#dee2e6",
-              }}
-            />
-          </div>
-
-          {/* =================================================
-              GOOGLE SIGN-IN
-              ================================================= */}
-
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "center",
-              overflow: "hidden",
-            }}
-          >
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              useOneTap={false}
-              theme="outline"
-              size="large"
-              text="signin_with"
-              shape="rectangular"
-              width="380"
-            />
-          </div>
-
-          {/* =================================================
-              REGISTER
-              ================================================= */}
-
+          {/* REGISTER LINK */}
           <p className="text-center mt-3 mb-0">
             Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="text-decoration-none fw-bold"
-            >
+            <Link to="/register" className="text-decoration-none fw-bold">
               Register
             </Link>
           </p>
