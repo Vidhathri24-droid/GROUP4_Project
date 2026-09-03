@@ -122,8 +122,10 @@ export default function Researchers() {
      *   - View/search only
      */
     const canManageResearchers =
-        normalizedRole === "SYSTEM_ADMIN" ||
-        normalizedRole === "INSTITUTION_ADMIN";
+    normalizedRole === "SYSTEM_ADMIN" ||
+    normalizedRole === "SYSTEMADMIN" ||
+    normalizedRole === "INSTITUTION_ADMIN" ||
+    normalizedRole === "INSTITUTIONADMIN";
 
 
     const isAdmin = () => canManageResearchers;

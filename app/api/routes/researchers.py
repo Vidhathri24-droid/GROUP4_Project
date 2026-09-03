@@ -29,36 +29,36 @@ router = APIRouter(
 # ONLY SYSTEM ADMIN AND INSTITUTION ADMIN
 # ============================================================
 
-@router.post(
-    "/",
-    response_model=ResearcherResponse,
-    status_code=201,
-)
+@router.post("/", response_model=ResearcherResponse, status_code=201)
 def create_researcher(
     researcher: ResearcherCreate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-
-    # --------------------------------------------------------
-    # Check authorization
-    # --------------------------------------------------------
-
     role = current_user.role
 
-    # Support both Enum values and plain strings
     role_value = (
         role.value
         if hasattr(role, "value")
         else str(role)
     )
 
+    normalized_role = (
+        role_value
+        .strip()
+        .upper()
+        .replace(" ", "_")
+        .replace("-", "_")
+    )
+
     allowed_roles = {
         "SYSTEM_ADMIN",
+        "SYSTEMADMIN",
         "INSTITUTION_ADMIN",
+        "INSTITUTIONADMIN",
     }
 
-    if role_value not in allowed_roles:
+    if normalized_role not in allowed_roles:
         raise HTTPException(
             status_code=403,
             detail=(
@@ -67,15 +67,12 @@ def create_researcher(
             ),
         )
 
-    # --------------------------------------------------------
-    # Create researcher
-    # --------------------------------------------------------
-
     return ResearcherService.create_researcher(
         db,
         researcher,
     )
 
+   
 
 # ============================================================
 # GET ALL RESEARCHERS

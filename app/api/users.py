@@ -3,7 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db, get_current_user, require_admin
+from app.api.dependencies import (
+    get_db,
+    get_current_user,
+    require_admin,
+    require_admin_or_institution_admin,
+)
 from app.schemas.user import UserUpdate
 from app.services.user_service import UserService
 
@@ -18,7 +23,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.get("/")
 def get_users(
     db: Session = Depends(get_db),
-    current_user=Depends(require_admin),
+    current_user=Depends(require_admin_or_institution_admin),
 ):
     return UserService.get_all_users(db)
 

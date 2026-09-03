@@ -12,7 +12,25 @@ export const login = async (email, password) => {
     password,
   });
 
-  return response.data;
+  const data = response.data;
+
+  // Save JWT token
+  if (data.access_token) {
+    localStorage.setItem(
+      "access_token",
+      data.access_token
+    );
+  }
+
+  // Save user if returned by backend
+  if (data.user) {
+    localStorage.setItem(
+      "user",
+      JSON.stringify(data.user)
+    );
+  }
+
+  return data;
 };
 
 export const googleLogin = async (credential) => {
@@ -264,4 +282,8 @@ export const getCurrentUser = async () => {
 
 export const logout = () => {
   localStorage.removeItem("access_token");
+  localStorage.removeItem("user");
+
+  sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("user");
 };

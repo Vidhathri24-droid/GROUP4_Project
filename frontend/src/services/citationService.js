@@ -22,7 +22,7 @@ export const getPublicationCitations = async (publicationId) => {
 
 export const createCitation = async (data) => {
   const response = await api.post(
-    "/citations",
+    "/citations/",
     data
   );
   return response.data;

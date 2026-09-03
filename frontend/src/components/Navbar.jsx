@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL;
+
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://127.0.0.1:8000";
 
 const getWebSocketUrl = () => {
   const wsUrl = API_URL
@@ -28,11 +31,6 @@ const getWebSocketUrl = () => {
 import {
   getToken,
   getCurrentUser,
-  getNormalizedRole,
-  isSystemAdmin as checkSystemAdmin,
-  isInstitutionAdmin as checkInstitutionAdmin,
-  isReviewer as checkReviewer,
-  isResearcher as checkResearcher,
   logout as authLogout,
 } from "../utils/auth";
 
@@ -56,28 +54,36 @@ export default function Navbar() {
   const [currentUser, setCurrentUser] = useState(() => {
     return getCurrentUser();
   });
+  console.log("NAVBAR CURRENT USER:", currentUser);
+  console.log("NAVBAR CURRENT ROLE:", currentUser?.role);
 
   // ============================================================
   // NORMALIZED ROLE
   // ============================================================
 
-  const normalizedRole = getNormalizedRole();
+  const normalizedRole = String(
+    currentUser?.role || ""
+  )
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
 
   const isSystemAdmin =
-    checkSystemAdmin();
+    normalizedRole === "SYSTEM_ADMIN" ||
+    normalizedRole === "SYSTEMADMIN";
 
   const isInstitutionAdmin =
-    checkInstitutionAdmin();
+    normalizedRole === "INSTITUTION_ADMIN" ||
+    normalizedRole === "INSTITUTIONADMIN";
 
   const isReviewer =
-    checkReviewer();
+    normalizedRole === "REVIEWER";
 
   const isResearcher =
-    checkResearcher();
+    normalizedRole === "RESEARCHER";
 
   const isAdmin =
-    isSystemAdmin ||
-    isInstitutionAdmin;
+    isSystemAdmin || isInstitutionAdmin;
 
   /*
    * Keep the existing navigation for every authenticated user
@@ -129,6 +135,9 @@ export default function Navbar() {
     const updateAuth = () => {
       const user = getCurrentUser();
       const token = getToken();
+
+      console.log("CURRENT USER:", user);
+      console.log("CURRENT ROLE:", user?.role);
 
       setCurrentUser(user);
       setAccessToken(token);
@@ -278,55 +287,42 @@ export default function Navbar() {
   // ============================================================
 
   useEffect(() => {
-    if (
-      !isLoggedIn ||
-      !currentUser?.id
-    ) {
+    if (!isLoggedIn || !currentUser?.id) {
       return;
     }
-    const WS_URL = API_URL
-      .replace(/^http:/, "ws:")
-      .replace(/^https:/, "wss:");
 
-    const socket = new WebSocket(
-      `ws://127.0.0.1:8000/notifications/ws?user_id=${currentUser.id}`
+    const ws = new WebSocket(
+      `${getWebSocketUrl()}?user_id=${currentUser.id}`
     );
 
-    socket.onopen = () => {
-      console.log(
-        "Notification WebSocket connected."
-      );
+    ws.onopen = () => {
+      console.log("Notification WebSocket connected.");
     };
 
-    socket.onmessage = (event) => {
+    ws.onmessage = (event) => {
       try {
-        const notification =
-          JSON.parse(event.data);
+        const notification = JSON.parse(event.data);
 
-        setNotifications(
-          (previous) => {
-            const alreadyExists =
-              notification.id &&
-              previous.some(
-                (item) =>
-                  item.id === notification.id
-              );
+        setNotifications((previous) => {
+          const alreadyExists =
+            notification.id &&
+            previous.some(
+              (item) => item.id === notification.id
+            );
 
-            if (alreadyExists) {
-              return previous;
-            }
-
-            return [
-              notification,
-              ...previous,
-            ];
+          if (alreadyExists) {
+            return previous;
           }
-        );
+
+          return [
+            notification,
+            ...previous,
+          ];
+        });
 
         if (!notification.is_read) {
           setUnreadCount(
-            (previous) =>
-              previous + 1
+            (previous) => previous + 1
           );
         }
       } catch (error) {
@@ -337,26 +333,23 @@ export default function Navbar() {
       }
     };
 
-    socket.onerror = (error) => {
+    ws.onerror = (error) => {
       console.error(
         "Notification WebSocket error:",
         error
       );
     };
 
-    socket.onclose = () => {
+    ws.onclose = () => {
       console.log(
         "Notification WebSocket disconnected."
       );
     };
 
     return () => {
-      socket.close();
+      ws.close();
     };
-  }, [
-    isLoggedIn,
-    currentUser?.id,
-  ]);
+  }, [isLoggedIn, currentUser?.id]);
 
   // ============================================================
   // MARK SINGLE NOTIFICATION AS READ
@@ -406,11 +399,11 @@ export default function Navbar() {
           previous.map(
             (notification) =>
               notification.id ===
-              notificationId
+                notificationId
                 ? {
-                    ...notification,
-                    is_read: true,
-                  }
+                  ...notification,
+                  is_read: true,
+                }
                 : notification
           )
       );

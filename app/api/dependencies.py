@@ -92,3 +92,20 @@ def require_reviewer(current_user=Depends(get_current_user)):
         )
 
     return current_user
+
+def require_admin_or_institution_admin(
+    current_user=Depends(get_current_user)
+):
+    role_value = (
+        current_user.role.value
+        if hasattr(current_user.role, "value")
+        else str(current_user.role)
+    )
+
+    if role_value not in {"SYSTEM_ADMIN", "INSTITUTION_ADMIN"}:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+
+    return current_user

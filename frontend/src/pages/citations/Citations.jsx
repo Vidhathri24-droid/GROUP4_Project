@@ -483,7 +483,7 @@ function Citations() {
               type="button"
               className="btn btn-primary"
               onClick={() =>
-                navigate("/citations/add")
+                navigate("/citations/create")
               }
             >
               + Add Citation

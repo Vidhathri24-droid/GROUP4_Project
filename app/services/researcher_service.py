@@ -125,19 +125,19 @@ class ResearcherService:
         # --------------------------------------------------------
 
         researcher = Researcher(
-            user_id=researcher_data.user_id,
-            first_name=researcher_data.first_name,
-            last_name=researcher_data.last_name or "",
-            bio=researcher_data.bio,
-            phone=researcher_data.phone,
-            experience=researcher_data.experience or 0,
-            orcid=researcher_data.orcid,
-            google_scholar=researcher_data.google_scholar,
-            research_gate=researcher_data.research_gate,
-            linkedin=researcher_data.linkedin,
-            skills=researcher_data.skills,
-            interests=researcher_data.interests,
-        )
+    user_id=researcher_data.user_id,
+    first_name=researcher_data.first_name,
+    last_name=researcher_data.last_name or None,
+    bio=researcher_data.bio or None,
+    phone=researcher_data.phone or None,
+    experience=researcher_data.experience or 0,
+    orcid=researcher_data.orcid or None,
+    google_scholar=researcher_data.google_scholar or None,
+    research_gate=researcher_data.research_gate or None,
+    linkedin=researcher_data.linkedin or None,
+    skills=researcher_data.skills or None,
+    interests=researcher_data.interests or None,
+)
 
         # --------------------------------------------------------
         # LINK RESEARCHER → DEPARTMENT

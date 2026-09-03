@@ -448,7 +448,7 @@ class AuthService:
         user.password_reset_token = None
         user.password_reset_expiry = None
 
-        db.commit()
+        db.commit() 
         db.refresh(user)
 
         return {
@@ -1039,6 +1039,8 @@ class AuthService:
         user.password_hash = hash_password(
             password
         )
+
+        user.is_active = True
 
         db.commit()
         db.refresh(user)

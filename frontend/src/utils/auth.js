@@ -245,6 +245,9 @@ export const saveAuthData = (
   if (token) {
     saveToken(token, rememberMe);
   }
+
+  // Tell Navbar and other components that auth data changed
+  window.dispatchEvent(new Event("auth:user-updated"));
 };
 
 
@@ -275,6 +278,9 @@ export const clearStoredToken = () => {
 export const logout = () => {
   clearStoredToken();
   clearStoredUser();
+
+  // Tell Navbar that the user logged out
+  window.dispatchEvent(new Event("auth:user-updated"));
 };
 
 

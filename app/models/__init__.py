@@ -9,3 +9,4 @@ from .conference import Conference
 from .conference_registration import ConferenceRegistration
 from .notification import Notification
 from .citation import Citation
+from .collaboration import Collaboration

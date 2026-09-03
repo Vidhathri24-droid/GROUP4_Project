@@ -15,6 +15,8 @@ import {
   getCurrentUser,
 } from "../services/authService";
 
+import { saveAuthData } from "../utils/auth";
+
 /* ============================================================
    CAPTCHA GENERATOR
    ============================================================ */
@@ -114,19 +116,7 @@ function Login() {
          SAVE JWT
          ------------------------------------------------------ */
 
-      if (response.access_token) {
-        if (rememberMe) {
-          localStorage.setItem(
-            "access_token",
-            response.access_token
-          );
-        } else {
-          sessionStorage.setItem(
-            "access_token",
-            response.access_token
-          );
-        }
-      }
+
 
       /* ------------------------------------------------------
          FETCH CURRENT USER
@@ -138,27 +128,17 @@ function Login() {
          SAVE USER INFORMATION
          ------------------------------------------------------ */
 
+      saveAuthData(
+        user,
+        response.access_token,
+        rememberMe
+      );
+
       if (rememberMe) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-
-        localStorage.setItem(
-          "remembered_email",
-          email
-        );
+        localStorage.setItem("remembered_email", email);
       } else {
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify(user)
-        );
-
-        localStorage.removeItem(
-          "remembered_email"
-        );
+        localStorage.removeItem("remembered_email");
       }
-
       /* ------------------------------------------------------
          REDIRECT
          ------------------------------------------------------ */
@@ -371,15 +351,15 @@ function Login() {
             {error
               .toLowerCase()
               .includes("verify") && (
-              <div className="mt-2">
-                <Link
-                  to="/resend-verification"
-                  className="btn btn-warning btn-sm"
-                >
-                  Resend Verification Email
-                </Link>
-              </div>
-            )}
+                <div className="mt-2">
+                  <Link
+                    to="/resend-verification"
+                    className="btn btn-warning btn-sm"
+                  >
+                    Resend Verification Email
+                  </Link>
+                </div>
+              )}
           </div>
         )}
 
